@@ -11,6 +11,7 @@ const CreateImageFromName = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [mode, setMode] = useState('');
 
   useEffect(() => {
     if (name) {
@@ -21,7 +22,7 @@ const CreateImageFromName = () => {
   const fetchImage = async (name) => {
     setIsLoading(true);
     try {
-      const url = `/api/create-image-from-name/${name}`;
+      const url = `/api/create-image-from-name-replicate/${name}`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -34,12 +35,17 @@ const CreateImageFromName = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Redirect the user to the new URL
-    router.push(`/create-image-from-name/${encodeURIComponent(inputValue.replace(/ /g, '-'))}`);
+    const formattedInput = encodeURIComponent(inputValue.replace(/ /g, '-'));
+    const url = mode === 'dalle' ? `/create-image-from-name-dalle/${formattedInput}` : `/create-image-from-name-replicate/${formattedInput}`;
+    router.push(url);
   };
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
+  };
+
+  const handleModeChange = (event) => {
+    setMode(event.target.value);
   };
 
   return (
@@ -60,6 +66,28 @@ const CreateImageFromName = () => {
           onChange={handleInputChange} 
           placeholder="Enter a first and last name..." 
         />
+                <div>
+          <p>Select model:</p>
+          <label>
+            <input 
+              type="radio" 
+              value="replicate" 
+              checked={mode === 'replicate'} 
+              onChange={handleModeChange} 
+            />
+            OpenJourney
+          </label>
+          <br></br>
+          <label>
+            <input 
+              type="radio" 
+              value="dalle" 
+              checked={mode === 'dalle'} 
+              onChange={handleModeChange} 
+            />
+            DALL-E
+          </label>
+        </div>
         <button type="submit">Submit</button>
       </form>
     </div>
