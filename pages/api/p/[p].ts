@@ -14,10 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: `Unable to parse provided name ${p}` });
     }
 
+    let validatedPrompt: string
     if (typeof prompt !== 'string') {
         console.error('prompt is not a string');
-        return res.status(400).json({ error: `Unable to parse provided prompt ${p}` });
+        validatedPrompt = "";
+    } else {
+        validatedPrompt = prompt;
     }
+ 
 
     // Check mongo for the provided name
     let data = null;
@@ -41,15 +45,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (model) {
         case "openjourney":
             // TODO: put prompt in post request
-            imageUrl = await createPersonaWithOpenjourney(prettifiedName, prompt);
-            return res.redirect(imageUrl);
-            // return res.status(200).json({"model":model, "image_url":imageUrl});
+            imageUrl = await createPersonaWithOpenjourney(prettifiedName, validatedPrompt);
+            // return res.redirect(imageUrl);
+            return res.status(200).json({"model":model, "image_url":imageUrl});
         case "dall-e":
-            imageUrl = await createPersonaWithDalle(prettifiedName, prompt);
-            return res.redirect(imageUrl);
-            // return res.status(200).json({"model":model, "image_url":imageUrl});
+            imageUrl = await createPersonaWithDalle(prettifiedName, validatedPrompt);
+            // return res.redirect(imageUrl);
+            return res.status(200).json({"model":model, "image_url":imageUrl});
         default:
-            throw new Error(`Unsupported model: ${model}`);
+            console.log(`Unsupported model: ${model}`);
+            imageUrl = await createPersonaWithOpenjourney(prettifiedName, validatedPrompt);
+            return res.redirect(imageUrl);
+
     }
     
 
