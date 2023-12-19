@@ -42,11 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case "openjourney":
             // TODO: put prompt in post request
             imageUrl = await createPersonaWithOpenjourney(prettifiedName, prompt);
-            res.redirect(imageUrl);
+            return res.redirect(imageUrl);
             // return res.status(200).json({"model":model, "image_url":imageUrl});
         case "dall-e":
             imageUrl = await createPersonaWithDalle(prettifiedName, prompt);
-            res.redirect(imageUrl);
+            return res.redirect(imageUrl);
             // return res.status(200).json({"model":model, "image_url":imageUrl});
         default:
             throw new Error(`Unsupported model: ${model}`);
