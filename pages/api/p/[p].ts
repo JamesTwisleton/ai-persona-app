@@ -11,9 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof p === 'string') {
         prettifiedName = prettifyUrlProvidedName(p);
     } else {
-        // Handle the case where provided name p is not a string
-        console.error('p is not a string');
         return res.status(400).json({ error: `Unable to parse provided name ${p}` });
+    }
+
+    if (typeof prompt !== 'string') {
+        console.error('prompt is not a string');
+        return res.status(400).json({ error: `Unable to parse provided prompt ${p}` });
     }
 
     // Check mongo for the provided name
