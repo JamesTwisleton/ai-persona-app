@@ -2,13 +2,15 @@
     "name": "Barold Butterworth",
     "images": [
         {
-            "image_url": "https://example.com",
+            "image_url": "https://example.com/image0.jpg",
+            "model": "OpenJourney",
             "additional_prompt": null,
             "upvotes": 1,
             "downvotes": 0
         },
         {
-            "image_url": "https://example.com",
+            "image_url": "https://example.com/image1.jpg",
+            "model": "DALL-E",
             "additional_prompt": "red hair",
             "upvotes": 1,
             "downvotes": 0
