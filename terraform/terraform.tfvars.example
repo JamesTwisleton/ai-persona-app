@@ -1,0 +1,4 @@
+aws_access_key = "ENTER_YOUR_KEY_KERE"
+aws_secret_access_key = "ENTER_YOUR_KEY_KERE"
+mongodbatlas_public_key = "ENTER_YOUR_KEY_KERE"
+mongodbatlas_private_key = "ENTER_YOUR_KEY_KERE"

@@ -27,7 +27,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
-/terraform/.env
+/terraform/terraform.tfvars
 
 # vercel
 .vercel
@@ -35,3 +35,30 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# terraform
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Exclude all .tfvars files, which might contain sensitive data, such as
+# password, private keys, and other secrets. These should not be part of version control
+*.tfvars
+*.tfvars.json
+
+# Ignore override files as they are usually used for local overrides and should
+# not be shared in version control
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
