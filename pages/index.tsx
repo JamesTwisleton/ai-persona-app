@@ -1,6 +1,5 @@
 // pages/index.tsx
 import { useState } from 'react';
-import Image from 'next/image';
 
 export default function Home() {
   const [name, setName] = useState('');
@@ -93,9 +92,7 @@ export default function Home() {
       {imageURL && (
         <div>
           <h2>Result:</h2>
-          <Image src={imageURL} alt="Fetched Image" width={300} height={200} className="mt-2" />
-
-
+          <img src={imageURL} alt="Fetched Image"/>
         </div>
       )}
     </div>
