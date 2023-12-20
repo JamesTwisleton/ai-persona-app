@@ -2,6 +2,9 @@
 
 ## Running locally
 
+### Requirements
+[Next.Js](https://nextjs.org/docs/getting-started/installation)
+
 First, create a `.env.local` file - check out [.env.local.example](.env.local.example) for the format.
 
 Run the dev server:
@@ -17,6 +20,16 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Creating your own instance
+### Provisioning an s3 bucket
+in the [terraform](terraform/) directory
+
+```
+terraform init
+terraform plan
+terraform apply
+```
 
 ## Deployment
 Pushes to main will be deployed to:

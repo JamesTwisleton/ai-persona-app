@@ -9,17 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "aws-sdk": "^2.1522.0",
+    "axios": "^1.6.2",
     "mongodb": "^6.3.0",
     "next": "^14.0.4",
     "openai": "^3.3.0",
     "react": "^18",
     "react-dom": "^18",
-    "replicate": "^0.25.1"
+    "replicate": "^0.25.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^9.0.7",
     "autoprefixer": "^10.4.16",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
