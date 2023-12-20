@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase, addPersonaOrUpdateImages } from '../../../utils/mongo';
-import { prettifyUrlProvidedName } from '@/utils/strings';
+import fetchAndUploadImage from '@/utils/aws';
 import createPersonaWithDalle from '@/utils/dall-e';
 import createPersonaWithOpenjourney from '@/utils/openjourney';
-import fetchAndUploadImage from '@/utils/aws';
+import { prettifyUrlProvidedName } from '@/utils/strings';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { p, prompt, model } = req.query;
@@ -23,8 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         validatedPrompt = prompt;
     }
 
-    console.log(`No documents found with the name ${prettifiedName}`);
-
     let modelToUse: string = model as string;
     if (modelToUse !== "openjourney" && modelToUse !== "dall-e") {
         console.log(`Unsupported model provided: ${model}. Defaulting to 'openjourney'.`);
@@ -40,7 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case "dall-e":
             imageUrl = await createPersonaWithDalle(prettifiedName, validatedPrompt);
             break;
-
     }
 
     // Fetch generated URL and save image to S3, put s3 location in mongo
