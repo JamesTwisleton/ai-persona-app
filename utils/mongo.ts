@@ -70,7 +70,7 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
     }
 }
 
-export async function getExistingPersona(db: Db, name: string) {
+export async function getPersona(db: Db, name: string) {
     const collection = db.collection('personas');
 
     // Check if a document with the given name exists

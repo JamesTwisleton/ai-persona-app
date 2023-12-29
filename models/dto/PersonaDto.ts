@@ -1,10 +1,4 @@
-type ImageDto = {
-    image_url: string;
-    model: string;
-    additional_prompt: string;
-    upvotes: number;
-    downvotes: number;
-};
+import ImageDto from "./ImageDto";
 
 class PersonaDto {
     name: string;

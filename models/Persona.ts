@@ -1,14 +1,5 @@
 import { ObjectId } from "mongodb";
-
-type Image = {
-    generated_image_url: string;
-    s3_location: string;
-    model: string;
-    additional_prompt: string;
-    upvotes: number;
-    downvotes: number;
-};
-
+import Image from "./Image";
 class Persona {
     _id: ObjectId;
     name: string;

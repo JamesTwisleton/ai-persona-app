@@ -1,7 +1,7 @@
 // Import AWS SDK
 const AWS = require('aws-sdk');
 import Persona from '@/models/Persona';
-import PersonaDto from '@/models/PersonaDto';
+import PersonaDto from '@/models/dto/PersonaDto';
 import { v4 as uuidv4 } from 'uuid';
 
 // Configure AWS with your credentials
