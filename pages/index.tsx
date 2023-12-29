@@ -11,7 +11,13 @@ export default function Home() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/p/${name}?model=${model}&prompt=${prompt}`);
+      const response = await fetch(`/api/p`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, model, prompt }),
+      });
       const data = await response.json();
 
       if (response.ok) {
