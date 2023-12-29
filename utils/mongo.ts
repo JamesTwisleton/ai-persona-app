@@ -1,5 +1,6 @@
+import Persona from '@/models/Persona';
 import { MongoClient, Db } from 'mongodb';
-
+import { ObjectId } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB;
 
@@ -41,7 +42,7 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
 
     // Create the image object
     const image = {
-        image_url: imageUrl,
+        generated_image_url: imageUrl,
         s3_location: s3location,
         model: model,
         additional_prompt: additionalPrompt,
@@ -55,16 +56,31 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
     if (existingDoc) {
         // Document exists, so update it
         console.log(`Found persona with name ${name} on mongo, updating images`);
+        const persona = new Persona(existingDoc._id, existingDoc.name, existingDoc.images);
+        persona.addImage(image);
         await collection.updateOne(
-            { name: name },
-            { $push: { images: image } }
+            { _id: persona._id },
+            { $set: { images: persona.images } }
         );
     } else {
         // Document does not exist, so create a new one
         console.log(`Didn't find persona with ${name} on mongo, creating new entry`);
-        await collection.insertOne({
-            name: name,
-            images: [image]
-        });
+        const newPersona = new Persona(new ObjectId(), name, [image]);
+        await collection.insertOne(newPersona);
+    }
+}
+
+export async function getPersona(db: Db, name: string) {
+    const collection = db.collection('personas');
+
+    // Check if a document with the given name exists
+    const existingDoc = await collection.findOne({ name: name });
+
+    if (existingDoc) {
+        console.log(`Found persona with name ${name} on mongo`);
+        return new Persona(existingDoc._id, existingDoc.name, existingDoc.images); // Document exists
+    } else {
+        console.log(`Didn't find persona with name ${name} on mongo`);
+        return false; // Document does not exist
     }
 }
