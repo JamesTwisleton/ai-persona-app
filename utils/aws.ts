@@ -3,6 +3,10 @@ const AWS = require('aws-sdk');
 import Persona from '@/models/Persona';
 import PersonaDto from '@/models/dto/PersonaDto';
 import { v4 as uuidv4 } from 'uuid';
+import Replicate from "replicate";
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN,
+});
 
 // Configure AWS with your credentials
 AWS.config.update({
@@ -70,6 +74,16 @@ export async function fetchImageFromS3(location: string) {
     // Generate a pre-signed URL for temporary access
     console.log(`Generating pre-signed URL for image at location: ${location}`);
     const presignedUrl = s3.getSignedUrl('getObject', getParams);
+
+    const output = await replicate.run(
+      "salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746",
+      {
+        input: {
+          image: presignedUrl
+        }
+      }
+    );
+    console.log(`Generated image description: ${output}`);
 
     return presignedUrl;
   } catch (error) {
