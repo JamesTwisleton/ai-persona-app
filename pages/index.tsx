@@ -6,6 +6,7 @@ export default function Home() {
   const [images, setImages] = useState<ImageDto[]>([]);
   const [model, setModel] = useState<string>('openjourney');
   const [prompt, setPrompt] = useState<string>('');
+  const [mottoTone, setMotto] = useState<string>('sarcastic');
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchData = async (forceCreate = false) => {
@@ -16,7 +17,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, model, prompt, force: forceCreate }),
+        body: JSON.stringify({ name, model, prompt, mottoTone, force: forceCreate }),
       });
       const data = await response.json();
 
@@ -42,6 +43,7 @@ export default function Home() {
     await fetchData(true);
   };
 
+  // This is the container for the webpage
   return (
     <div>
 
@@ -65,7 +67,10 @@ export default function Home() {
               onChange={(e) => setName(e.target.value)}
             />
           </label>
+          <br></br>
+        <br></br>
         </div>
+        
         <div>
           <label>
             Describe them (Optional):
@@ -76,9 +81,32 @@ export default function Home() {
               onChange={(e) => setPrompt(e.target.value)}
             />
           </label>
+          <br></br>
+        <br></br>
         </div>
+
+
+      <div>
+        <label>Select a motto tone (Optional):
+
+        </label>
+        <br />
+        <select value={mottoTone}
+        onChange={(e) => setMotto(e.target.value)}
+        >
+          <option value="neutral">neutral</option>
+          <option value="sarcastic">sarcastic</option>
+          <option value="comical">comical</option>
+          <option value="sombre">sombre</option>
+        </select>
+        <br></br>
+        <br></br>
+      </div>
+
+
         <div>
           <label>Model to use:</label>
+
           <br />
           <label>
             OpenJourney
@@ -116,6 +144,7 @@ export default function Home() {
             <img src={image.image_url} alt={`Fetched Image ${index + 1}`} style={{ width: '100%', height: 'auto' }} />
             <div>
               <p>Description: {image.additional_prompt || 'None'}</p>
+              <p>mottoTone: {image.mottoTone}</p>
               <p>Upvotes: {image.upvotes}</p>
               <p>Downvotes: {image.downvotes}</p>
               <p>Model: {image.model}</p>
