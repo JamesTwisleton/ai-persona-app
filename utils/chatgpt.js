@@ -14,7 +14,9 @@ export default async function chatWithChatGPT(prompt, mottoTone) {
             prompt: question,
           });
 
-        const generatedText = response.data.choices[0].text;
+        // const generatedText = response.data.choices[0].text; // Doesn't seem to be working
+        const generatedText = 'dummy response'
+
         console.log("Generated Text:", generatedText);
 
         return generatedText;
