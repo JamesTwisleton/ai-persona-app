@@ -6,12 +6,12 @@ const configuration = new Configuration({
 export default async function chatWithChatGPT(prompt, mottoTone) {
     try {
         const openai = new OpenAIApi(configuration);
-        const questsion = `Generate a short character motto with the description: ${prompt} in a ${mottoTone} style`;
-        console.log(`Calling ChatGPT with prompt: ${questsion}`);
+        const question = `Generate a short character motto with the description: ${prompt} in a ${mottoTone} style`;
+        console.log(`Calling ChatGPT with prompt: ${question}`);
         
         const response = await openai.createCompletion({
             model: "text-davinci-003",
-            prompt: questsion,
+            prompt: question,
           });
 
         const generatedText = response.data.choices[0].text;
