@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase, addPersonaOrUpdateImages, getPersona } from '../../../utils/mongo';
 import { fetchAndUploadImage, fetchImagesForPersonaFromS3 } from '@/utils/aws';
 import createPersonaWithDalle from '@/utils/dall-e';
+import chatWithChatGPT from '@/utils/chatgpt';
 import createPersonaWithOpenjourney from '@/utils/openjourney';
 import Persona from '@/models/Persona';
 import axios from 'axios'
@@ -48,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { name, model, prompt, mottoTone, force } = req.body;
+    const { name, model, prompt, mottoTone, motto, force } = req.body;
     try {
         const { db } = await connectToDatabase();
         const existingPersona = await getPersona(db, name) as Persona;
@@ -89,11 +90,14 @@ async function generateAndUploadPersona(name: string, model: string, prompt: str
             break;
     }
 
+    // Generate a motto using chatGPT
+    const motto = await chatWithChatGPT(prompt, mottoTone);
+
     // Fetch generated URL and save image to S3, put s3 location in mongo
     try {
         const { db } = await connectToDatabase();
         const s3location = await fetchAndUploadImage(imageUrl, name, modelToUse);
-        await addPersonaOrUpdateImages(db, name, modelToUse, prompt, mottoTone, imageUrl, s3location);
+        await addPersonaOrUpdateImages(db, name, modelToUse, prompt, mottoTone, motto, imageUrl, s3location);
     } catch (e) {
         console.error('Error uploading image to S3 and putting in MongoDB:', e);
     }

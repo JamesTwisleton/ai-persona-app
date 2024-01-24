@@ -13,7 +13,6 @@ AWS.config.update({
 
 // Create an S3 instance
 const s3 = new AWS.S3();
-
 const axios = require('axios');
 
 export async function fetchAndUploadImage(imageUrl: string, name: string, model: string) {
@@ -51,6 +50,7 @@ export async function fetchImagesForPersonaFromS3(persona: Persona): Promise<Per
       model: image.model,
       additional_prompt: image.additional_prompt,
       mottoTone: image.mottoTone,
+      motto: image.motto,
       upvotes: image.upvotes,
       downvotes: image.downvotes
     };
