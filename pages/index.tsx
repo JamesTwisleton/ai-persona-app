@@ -6,7 +6,8 @@ export default function Home() {
   const [images, setImages] = useState<ImageDto[]>([]);
   const [model, setModel] = useState<string>('openjourney');
   const [prompt, setPrompt] = useState<string>('');
-  const [mottoTone, setMotto] = useState<string>('sarcastic');
+  const [mottoTone, setMottoTone] = useState<string>('sarcastic');
+  const [motto, setMotto] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchData = async (forceCreate = false) => {
@@ -17,7 +18,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, model, prompt, mottoTone, force: forceCreate }),
+        body: JSON.stringify({ name, model, prompt, mottoTone, motto, force: forceCreate }),
       });
       const data = await response.json();
 
@@ -87,12 +88,12 @@ export default function Home() {
 
 
       <div>
-        <label>Select a motto tone (Optional):
+        <label>Select a motto tone:
 
         </label>
         <br />
         <select value={mottoTone}
-        onChange={(e) => setMotto(e.target.value)}
+        onChange={(e) => setMottoTone(e.target.value)}
         >
           <option value="neutral">neutral</option>
           <option value="sarcastic">sarcastic</option>
@@ -144,7 +145,8 @@ export default function Home() {
             <img src={image.image_url} alt={`Fetched Image ${index + 1}`} style={{ width: '100%', height: 'auto' }} />
             <div>
               <p>Description: {image.additional_prompt || 'None'}</p>
-              <p>mottoTone: {image.mottoTone}</p>
+              <p>mottoTone: {image.mottoTone || 'None'}</p>
+              <p>motto: {image.motto || 'None'}</p>
               <p>Upvotes: {image.upvotes}</p>
               <p>Downvotes: {image.downvotes}</p>
               <p>Model: {image.model}</p>

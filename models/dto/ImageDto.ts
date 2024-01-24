@@ -3,6 +3,7 @@ type ImageDto = {
     model: string;
     additional_prompt: string;
     mottoTone: string;
+    motto: string;
     upvotes: number;
     downvotes: number;
 };

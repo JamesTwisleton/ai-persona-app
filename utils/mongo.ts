@@ -37,7 +37,7 @@ export async function addToCollection(db: Db, collectionName: string, document: 
     await collection.insertOne(document);
 }
 
-export async function addPersonaOrUpdateImages(db: Db, name: string, model: string,additionalPrompt: string, mottoTone: string, imageUrl: string, s3location: string) {
+export async function addPersonaOrUpdateImages(db: Db, name: string, model: string,additionalPrompt: string, mottoTone: string, motto: string, imageUrl: string, s3location: string) {
     const collection = db.collection('personas');
 
     // Create the image object
@@ -47,12 +47,13 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
         model: model,
         additional_prompt: additionalPrompt,
         mottoTone: mottoTone,
+        motto: motto,
         upvotes: 1,
         downvotes: 0,
     };
 
     // Check if a document with the given name exists
-    const existingDoc = await collection.findOne({ name: name });
+    const existingDoc = await collection.findOne({ name: name});
 
     if (existingDoc) {
         // Document exists, so update it
