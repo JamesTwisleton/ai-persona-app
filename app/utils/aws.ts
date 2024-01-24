@@ -1,40 +1,37 @@
-// Import AWS SDK
-const AWS = require('aws-sdk');
+import { S3Client, PutObjectCommand, GetObjectCommand, PutObjectCommandInput, GetObjectCommandInput } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { Buffer } from 'buffer';
 import Persona from '@/models/Persona';
 import PersonaDto from '@/models/dto/PersonaDto';
-import { v4 as uuidv4 } from 'uuid';
 
-// Configure AWS with your credentials
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: 'us-east-1'
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+  }
 });
 
-// Create an S3 instance
-const s3 = new AWS.S3();
-const axios = require('axios');
-
-export async function fetchAndUploadImage(imageUrl: string, name: string, model: string) {
+export async function fetchAndUploadImage(imageUrl: string, name: string, model: string): Promise<string> {
   try {
-    // Fetch the image
-    const response = await axios({
-      method: 'get',
-      url: imageUrl,
-      responseType: 'arraybuffer'
-    });
+    const response = await axios.get<ArrayBuffer>(imageUrl, { responseType: 'arraybuffer' });
 
-    // Define S3 upload parameters
-    const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
+    // Convert ArrayBuffer to Buffer
+    const buffer = Buffer.from(response.data);
+
+    const uploadParameters: PutObjectCommandInput = {
+      Bucket: process.env.S3_BUCKET_NAME!,
       Key: `persona-generations/${uuidv4()}`,
-      Body: response.data
+      Body: buffer
     };
 
-    // Upload to S3
-    console.log(`Uploading image generated using model: ${model} for name: ${name} with image url: ${imageUrl}`)
-    const s3Response = await s3.upload(uploadParams).promise();
-    return s3Response.key;
+    console.log(`Uploading image generated using model: ${model} for name: ${name} with image URL: ${imageUrl}`);
+    const putObjectCommand = new PutObjectCommand(uploadParameters);
+    await s3Client.send(putObjectCommand);
+
+    return uploadParameters.Key as string;
   } catch (error) {
     console.error('Error fetching or uploading image:', error);
     throw error;
@@ -59,18 +56,19 @@ export async function fetchImagesForPersonaFromS3(persona: Persona): Promise<Per
   return new PersonaDto(persona.name, mappedImages);
 }
 
-export async function fetchImageFromS3(location: string) {
+// Function to fetch an image from S3 using a pre-signed URL
+export async function fetchImageFromS3(location: string): Promise<string> {
   try {
-    // Define S3 get parameters
-    const getParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: location,
-      Expires: 60 // URL expires in 60 seconds (or any duration suitable for your needs)
+    const getObjectParameters: GetObjectCommandInput = {
+      Bucket: process.env.S3_BUCKET_NAME!,
+      Key: location
     };
 
-    // Generate a pre-signed URL for temporary access
     console.log(`Generating pre-signed URL for image at location: ${location}`);
-    const presignedUrl = s3.getSignedUrl('getObject', getParams);
+    const getObjectCommand = new GetObjectCommand(getObjectParameters);
+
+    // Generate a pre-signed URL with a specified expiration time
+    const presignedUrl = await getSignedUrl(s3Client, getObjectCommand, { expiresIn: 60 }); // URL expires in 60 seconds
 
     return presignedUrl;
   } catch (error) {
