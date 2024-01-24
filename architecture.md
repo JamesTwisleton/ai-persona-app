@@ -18,7 +18,7 @@ The purpose of this document is to outline the architectural design for an AI pe
 The application's primary functionality is to process a user request to generate an artificial social media persona (image and phrase).
 
 ## 2. System Architecture
-<img src="node_framework.png" alt="scheme" width="800"/>
+<img src="architecture.png" alt="scheme" width="800"/>
 
 
 ### 2.1 Frontend (Next.js)
