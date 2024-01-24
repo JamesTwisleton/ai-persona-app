@@ -37,7 +37,7 @@ export async function addToCollection(db: Db, collectionName: string, document: 
     await collection.insertOne(document);
 }
 
-export async function addPersonaOrUpdateImages(db: Db, name: string, model: string, additionalPrompt: string, imageUrl: string, s3location: string) {
+export async function addPersonaOrUpdateImages(db: Db, name: string, model: string,additionalPrompt: string, mottoTone: string, imageUrl: string, s3location: string) {
     const collection = db.collection('personas');
 
     // Create the image object
@@ -46,6 +46,7 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
         s3_location: s3location,
         model: model,
         additional_prompt: additionalPrompt,
+        mottoTone: mottoTone,
         upvotes: 1,
         downvotes: 0,
     };
