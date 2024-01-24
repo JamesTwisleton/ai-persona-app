@@ -1,15 +1,10 @@
-import { Configuration, OpenAIApi } from "openai";
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+import OpenAI from 'openai';
 
-export default async function createPersonaWithDalle(name, prompt) {
-    
-
+export default async function createPersonaWithDalle(name: string, prompt: string) {
     try {
-        const openai = new OpenAIApi(configuration);
+        const openai = new OpenAI();
         console.log(`Calling DALL-E to create image for name: ${name} and additionalPrompt: ${prompt}`);
-        const response = await openai.createImage({
+        const response = await openai.images.generate({
         
             // TODO: this errors if this file is typescript? its apparently a supported field in the API?
             model: "dall-e-2",
@@ -18,8 +13,8 @@ export default async function createPersonaWithDalle(name, prompt) {
             size: "256x256",
         });
 
-        if (response.data && response.data.data && response.data.data.length > 0 && response.data.data[0].url) {
-            return response.data.data[0].url;
+        if (response.data && response.data[0] && response.data[0].url) {
+            return response.data[0].url;
         } else {
             // Handle the case where the URL is not present in the response
             throw new Error('No image URL returned in the response');
