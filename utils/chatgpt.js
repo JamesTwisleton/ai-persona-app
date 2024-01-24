@@ -9,10 +9,11 @@ export default async function chatWithChatGPT(prompt, mottoTone) {
         const question = `Generate a short character motto with the description: ${prompt} in a ${mottoTone} style`;
         console.log(`Calling ChatGPT with prompt: ${question}`);
         
-        const response = await openai.createCompletion({
-            model: "text-davinci-003",
-            prompt: question,
-          });
+        // TODO: This raises and error.
+        // const response = await openai.createCompletion({
+        //     model: "text-davinci-003",
+        //     prompt: question,
+        //   });
 
         // const generatedText = response.data.choices[0].text; // Doesn't seem to be working
         const generatedText = 'dummy response'
