@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-The purpose of this document is to outline the architectural design for an AI persona web application that involves integration with various technologies, including Next.js via React for the frontend, Amazon S3 for storage and containerizarion, openAI's DALL-E or Midjourney for persona image generation, and MongoDB for data persistence. The application's primary functionality is to process a user request to generate an generative artificial social media persona (image and phrase).
+The purpose of this document is to outline the architectural design for an AI persona web application that involves integration with various technologies, including Next.js via React for the frontend, Amazon S3 for storage and containerizarion, openAI's DALL-E or Midjourney for persona image generation, chatGPT for motto generation, and MongoDB for data persistence. The application's primary functionality is to process a user request to generate an artificial social media persona (image and phrase).
 
 ## 2. System Architecture
 
@@ -23,10 +23,10 @@ The backend connects to MongoDB to store and retrieve data. It will perform "ups
 
 #### 2.2.2 Communication with DALL-E / Midjourney
 
-The backend communicates with openAI's DALL-E or Midourney to generate an image persona based on user input (personal name &descriptive prompt). After sending a request, a generated image URL is recived alongside.
+The backend communicates with openAI's DALL-E or Midourney to generate an image persona based on user input (persona name & descriptive prompt). After sending a request, a generated image URL is returned.
 
 #### 2.2.3 Communication with chatGPT
-The backend communicates with chatGPT using the original descriptive prompt input for image generation for contect awareness, as well as motto-tone, this acts as a personality flavor to help chatGPT generate a suitable motto. In response, chatGPT generates a personalised motto, or phrase which linked back to the generated persona image and persona name.
+The backend communicates with chatGPT using the original descriptive prompt input for image generation, as well as a categorial motto-tone, this acts as a personality flavor to help chatGPT generate a suitable motto. In response, chatGPT generates a personalised phrase which is linked back to the generated persona.
 
 ### 2.3 Persona Generation Workflow
 
@@ -42,9 +42,9 @@ The backend communicates with chatGPT using the original descriptive prompt inpu
 
 6. **Upload to S3**: The downloaded image is then uploaded to an Amazon S3 bucket, and a unique S3 bucket address is generated.
 
-7. **Upsert to MongoDB**: If no image exists, a new persona entry is created with the new image and attributes (name, motto_tone, descriptive, prompt). If an image already exists for the persona name, a new image is added to the persona profile.
+7. **Upsert to MongoDB**: If no image exists, a new persona entry is created alongside the new image and attributes (name, motto_tone, descriptive, prompt). If an image already exists for the persona name, a new image is added to the persona profile.
 
-8. **Retrieving pre-existing personas from MongoDB**: If the persona name exists, mongoDB grabs all the s3 bucket addresses stored for that persona, AWS then generates short lived image URLs (60 seconds) which are provided to the frontend along with the other metadata. 
+8. **Retrieving pre-existing personas from MongoDB**: On request, MongoDB grabs all the s3 bucket addresses stored for the provided persona. AWS then generates short lived image URLs (60 seconds) which are provided to the frontend along with the other metadata. 
 
 ## 3. Technology Stack
 
