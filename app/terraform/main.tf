@@ -68,6 +68,31 @@ output "ai_persona_app_ecr_repo_url" {
   value = aws_ecr_repository.ai_persona_app_ecr_repo.repository_url
 }
 
+# TODO: declare ECS stuff once CICD is up and running to put images on ECR
+
+# resource "aws_ecs_cluster" "ai_persona_app_cluster" {
+#   name = "ai-persona-app"
+# }
+
+# resource "aws_ecs_task_definition" "ai_persona_app_task" {
+#   family                   = "my-task-family"
+#   network_mode             = "awsvpc"
+#   requires_compatibilities = ["FARGATE"]
+#   cpu                      = "256"
+#   memory                   = "512"
+
+#   container_definitions = jsonencode([{
+#     name  = "my-container",
+#     image = "your_ecr_repository_url:your_image_tag",
+#     portMappings = [{
+#       containerPort = 80,
+#       hostPort      = 80
+#     }]
+#   }])
+# }
+
+
+
 # TODO: invalid policy, is it needed?
 # resource "aws_ecr_repository_policy" "ai_persona_app_ecr_policy" {
 #   repository = aws_ecr_repository.ai_persona_app_ecr_repo.name
@@ -93,27 +118,4 @@ output "ai_persona_app_ecr_repo_url" {
 #       }
 #     ]
 #   })
-# }
-
-# TODO: declare ECS stuff once CICD is up and running to put images on ECR
-
-# resource "aws_ecs_cluster" "ai_persona_app_cluster" {
-#   name = "ai-persona-app"
-# }
-
-# resource "aws_ecs_task_definition" "ai_persona_app_task" {
-#   family                   = "my-task-family"
-#   network_mode             = "awsvpc"
-#   requires_compatibilities = ["FARGATE"]
-#   cpu                      = "256"
-#   memory                   = "512"
-
-#   container_definitions = jsonencode([{
-#     name  = "my-container",
-#     image = "your_ecr_repository_url:your_image_tag",
-#     portMappings = [{
-#       containerPort = 80,
-#       hostPort      = 80
-#     }]
-#   }])
 # }
