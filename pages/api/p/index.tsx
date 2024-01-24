@@ -5,6 +5,44 @@ import createPersonaWithDalle from '@/utils/dall-e';
 import chatWithChatGPT from '@/utils/chatgpt';
 import createPersonaWithOpenjourney from '@/utils/openjourney';
 import Persona from '@/models/Persona';
+import axios from 'axios'
+
+// Get key from .env.local and create chatGPT request
+// export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// async function sendToChatGPT(prompt: string): Promise<string> {
+//     const apiKey = OPENAI_API_KEY;
+  
+//     const apiUrl = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+  
+//     // TODO: Replace tone with user input
+//     const tone = "sarcastic"
+//     const personality_prompt = `Generate a short personal mottoTone based on the personality description: ${prompt}.
+//                                 Do this in the tone of ${tone} `
+
+//     try {
+//       const response = await axios.post(
+//         apiUrl,
+//         {
+//           prompt: personality_prompt,
+//           max_tokens: 100,  // Adjust as necessary
+//         },
+//         {
+//           headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': `Bearer ${apiKey}`,
+//           },
+//         }
+//       );
+  
+//       const generatedText = response.data.choices[0].text;
+//       return generatedText;
+//     } catch (error) {
+//       console.error('Error calling OpenAI API:', error);
+//       return 'Error occurred while processing your request.';
+//     }
+//   }
+  
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
