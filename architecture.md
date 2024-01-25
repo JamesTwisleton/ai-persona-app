@@ -1,5 +1,3 @@
-# TODO: move this to documentation folder as part of dockerisation PR
-
 # Architecture
 
 ## 1. Introduction
