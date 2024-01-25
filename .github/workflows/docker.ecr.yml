@@ -40,5 +40,8 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+        IMAGE_DIGEST=$(aws ecr describe-images --repository-name $ECR_REPOSITORY --image-ids imageTag=latest --query 'imageDetails[0].imageDigest' --output text)
+        aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageDigest=$IMAGE_DIGEST
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

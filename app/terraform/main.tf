@@ -259,8 +259,8 @@ resource "aws_ecs_service" "ai_persona_app_service" {
   # }
 }
 
-
-
+# TODO: provisioning seems to mostly work, but actual service deployment is failing. Could
+# be a network issue, misconfigured task definition/vpcs.etc
 
 
 # TODO: invalid policy, is it needed?
