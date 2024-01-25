@@ -259,7 +259,10 @@ resource "aws_ecs_service" "ai_persona_app_service" {
   # }
 }
 
-# TODO: provisioning seems to mostly work, but actual service deployment is failing. Could
+# TODO:
+# need to pass in env variables to docker container - downloaded image from ECR, MONGODB_URI isnt defined. use secret manager?
+
+# provisioning seems to mostly work, but actual service deployment is failing. Could
 # be a network issue, misconfigured task definition/vpcs.etc
 
 
