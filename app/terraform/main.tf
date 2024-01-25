@@ -96,6 +96,38 @@ resource "aws_ecs_cluster" "ai_persona_app_cluster" {
   name = "ai-persona-app"
 }
 
+resource "aws_iam_role" "ecs_task_role" {
+  name = "ecs_task_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        },
+      },
+    ],
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_role_policy" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name = "/ecs/ai-persona-app"
+
+  retention_in_days = 30  # You can adjust this value based on your requirements
+
+  tags = {
+    Environment = "production"
+  }
+}
+
 resource "aws_ecs_task_definition" "ai_persona_app_task" {
   family                   = "ai-persona-app-task-family"
   network_mode             = "awsvpc"
@@ -103,9 +135,18 @@ resource "aws_ecs_task_definition" "ai_persona_app_task" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([{
     name  = "ai-persona-app-container",
+    logConfiguration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+      awslogs-region        = "us-east-1"
+      awslogs-stream-prefix = "ecs"
+    }
+    }
     # TODO: figure out doing this dynamically, actual deployment should be done with GitHub Actions
     # so it shouldn't be a problem - need to make Actions remove latest tag and tag new image
     # with latest, otherwise running this terraform will revert the container image to whatever
@@ -233,11 +274,12 @@ resource "aws_ecs_service" "ai_persona_app_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets = [
-      aws_subnet.public_subnet_1.id, 
-      aws_subnet.public_subnet_2.id
-    ]
-    security_groups = [aws_security_group.alb_security_group.id]
+  subnets = [
+    aws_subnet.public_subnet_1.id, 
+    aws_subnet.public_subnet_2.id
+  ]
+  security_groups = [aws_security_group.alb_security_group.id]
+  assign_public_ip = true
   }
 
   desired_count = 1
