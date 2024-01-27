@@ -56,7 +56,7 @@ resource "aws_iam_role" "ecs_execution_role" {
 
 # Attach the AmazonECSTaskExecutionRolePolicy to the role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_execution_role.name
+  role       = aws_iam_role.ecs_execution_role.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -70,13 +70,14 @@ resource "aws_ecs_task_definition" "ai_persona_app_task" {
   family                   = "ai-persona-app-task"
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_execution_role.arn
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256" # CPU units
   memory                   = "512" # Memory in MiB
 
   container_definitions = jsonencode([
     {
-      name  = "my-container",
+      name  = "ai-persona-app-container",
       image = "${aws_ecr_repository.ai_persona_app_ecr_repo.repository_url}:latest",
       portMappings = [
         {

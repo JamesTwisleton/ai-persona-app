@@ -32,23 +32,28 @@ resource "aws_ecr_repository" "ai_persona_app_ecr_repo" {
   }
 }
 
-# TODO: couldn't get ECS to access ECR with policies - maybe making it public will work? Should it be public?
-resource "aws_ecr_repository_policy" "public_access" {
+resource "aws_ecr_repository_policy" "ai_persona_app_ecr_repo_policy" {
   repository = aws_ecr_repository.ai_persona_app_ecr_repo.name
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
+  policy     = <<EOF
+  {
+    "Version": "2008-10-17",
+    "Statement": [
       {
-        Sid       = "PublicRead",
-        Effect    = "Allow",
-        Principal = "*",
-        Action    = [
-          "ecr:GetDownloadUrlForLayer",
+        "Sid": "full ecr access",
+        "Effect": "Allow",
+        "Principal": "*",
+        "Action": [
+          "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability"
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetLifecyclePolicy",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
         ]
       }
     ]
-  })
+  }
+  EOF
 }
