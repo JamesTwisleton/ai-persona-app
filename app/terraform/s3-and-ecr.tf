@@ -34,15 +34,16 @@ resource "aws_ecr_repository" "ai_persona_app_ecr_repo" {
 
 resource "aws_ecr_repository_policy" "ai_persona_app_ecr_repo_policy" {
   repository = aws_ecr_repository.ai_persona_app_ecr_repo.name
-  policy     = <<EOF
-  {
-    "Version": "2008-10-17",
-    "Statement": [
+  policy     = jsonencode({
+    Version = "2008-10-17",
+    Statement = [
       {
-        "Sid": "full ecr access",
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": [
+        Sid    = "ECRAccess",
+        Effect = "Allow",
+        Principal = {
+          AWS = aws_iam_role.ai_persona_app_ecs_execution_role.arn
+        },
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
           "ecr:CompleteLayerUpload",
@@ -54,6 +55,5 @@ resource "aws_ecr_repository_policy" "ai_persona_app_ecr_repo_policy" {
         ]
       }
     ]
-  }
-  EOF
+  })
 }
