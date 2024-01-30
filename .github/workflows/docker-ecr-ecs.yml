@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./app
+        working-directory: ./code/nextjs
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -25,6 +25,10 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+    - name: Set up Docker Build Arguments
+      run: |
+        echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+        echo "MONGODB_DB=${{ secrets.MONGODB_DB }}" >> .env  
 
     - name: Build, Tag, and Push Image to Amazon ECR
       env:
@@ -32,7 +36,8 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        source .env
+        docker build --build-arg MONGODB_URI=$MONGODB_URI --build-arg MONGODB_DB=$MONGODB_DB -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
         aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
