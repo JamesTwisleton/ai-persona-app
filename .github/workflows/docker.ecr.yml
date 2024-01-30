@@ -1,4 +1,4 @@
-name: Build and Push to ECR
+name: Build and Push to ECR and Deploy to ECS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-push:
+  build-and-push-and-deploy:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,15 +26,9 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+
     - name: Build, Tag, and Push Image to Amazon ECR
       env:
-        OPENAI_API_KEY: ${{ secrets.ECR_REPOSITORY_NAME }}
-        REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        MONGODB_DB: ${{ secrets.MONGODB_DB }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
         IMAGE_TAG: ${{ github.sha }}
@@ -44,3 +38,10 @@ jobs:
         aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    - name: Deploy to ECS
+      env:
+        ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+        ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+      run: |
+        aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
