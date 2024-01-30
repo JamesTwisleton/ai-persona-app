@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
           run:
-            working-directory: ./app
+            working-directory: ./code/nextjs
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -22,6 +22,11 @@ jobs:
 
     - name: Install Dependencies
       run: npm install
+
+    - name: Set Environment Variables (figure out removing this)
+      run: |
+        echo "MONGODB_URI=PLACEHOLDER" >> $GITHUB_ENV
+        echo "MONGODB_DB=PLACEHOLDER" >> $GITHUB_ENV
 
     - name: Build Next.js Application
       run: npm run build

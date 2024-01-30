@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+
+**/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -48,8 +49,8 @@ crash.log
 
 # Exclude all .tfvars files, which might contain sensitive data, such as
 # password, private keys, and other secrets. These should not be part of version control
-*.tfvars
-*.tfvars.json
+**/*.tfvars
+**/*.tfvars.json
 
 # Ignore override files as they are usually used for local overrides and should
 # not be shared in version control

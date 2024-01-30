@@ -1,7 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, PutObjectCommandInput, GetObjectCommandInput } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import { Buffer } from 'buffer';
 import Persona from '@/models/Persona';
 import PersonaDto from '@/models/dto/PersonaDto';
@@ -16,15 +15,21 @@ const s3Client = new S3Client({
 
 export async function fetchAndUploadImage(imageUrl: string, name: string, model: string): Promise<string> {
   try {
-    const response = await axios.get<ArrayBuffer>(imageUrl, { responseType: 'arraybuffer' });
+    // Use the native fetch API to get the image
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const buffer = await response.arrayBuffer();
 
-    // Convert ArrayBuffer to Buffer
-    const buffer = Buffer.from(response.data);
+    // Convert ArrayBuffer to Buffer for S3 upload
+    const bufferForUpload = Buffer.from(buffer);
 
     const uploadParameters: PutObjectCommandInput = {
       Bucket: process.env.S3_BUCKET_NAME!,
       Key: `persona-generations/${uuidv4()}`,
-      Body: buffer
+      Body: bufferForUpload,
+      // Additional parameters like ContentType can be added if necessary
     };
 
     console.log(`Uploading image generated using model: ${model} for name: ${name} with image URL: ${imageUrl}`);
