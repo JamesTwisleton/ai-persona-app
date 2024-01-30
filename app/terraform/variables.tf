@@ -22,3 +22,23 @@ variable "aws_secret_access_key" {
   description = "AWS Secret Key"
   type        = string
 }
+
+variable "openai_api_key" {
+  description = "OpenAI API Key"
+  type        = string
+}
+
+variable "replicate_api_token" {
+  description = "Replicate API Token"
+  type        = string
+}
+
+variable "mongodb_uri" {
+  description = "MongoDB URI"
+  type        = string
+}
+
+variable "mongodb_db" {
+  description = "MongoDB DB"
+  type        = string
+}
