@@ -88,7 +88,7 @@ export default function Home() {
 
 
       <div>
-        <label>Select a motto tone:
+        <label>Select a motto-tone:
 
         </label>
         <br />
