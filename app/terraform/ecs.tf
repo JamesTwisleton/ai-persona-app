@@ -57,7 +57,8 @@ resource "aws_security_group" "ai_persona_app_sg" {
   description = "Allow inbound traffic"
   vpc_id      = aws_vpc.ai_persona_app_vpc.id        # Associate with the created VPC
 
-  # Ingress rule: Allow inbound traffic on port 3000 (for the Next.js application).
+  # Ingress rule: Allow inbound traffic from 0 to port 3000 (for the Next.js application).
+  # TODO: figure out why simply doing port 80 doesn't work?
   ingress {
     from_port   = 0
     to_port     = 3000
@@ -193,7 +194,38 @@ resource "aws_ecs_task_definition" "ai_persona_app_task" {
           awslogs-region        = "us-east-1",          # Replace with your AWS region
           awslogs-stream-prefix = "ecs"
         }
-      }
+      },
+      # TODO: put these in secret manager
+      environment = [
+        {
+          name = "OPENAI_API_KEY",
+          value = var.openai_api_key
+        },
+        {
+          name = "REPLICATE_API_TOKEN",
+          value = var.replicate_api_token
+        },
+        {
+          name = "MONGODB_URI",
+          value = var.mongodb_uri
+        },
+        {
+          name = "MONGODB_DB",
+          value = var.mongodb_db
+        },
+        {
+          name = "AWS_ACCESS_KEY_ID",
+          value = var.aws_access_key
+        },
+        {
+          name = "AWS_SECRET_ACCESS_KEY",
+          value = var.aws_secret_access_key
+        },
+        {
+          name = "S3_BUCKET_NAME",
+          value = aws_s3_bucket.ai_persona_app_bucket.bucket
+        }
+      ]
     }
   ])
 }
