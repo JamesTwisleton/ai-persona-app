@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
           run:
-            working-directory: ./app
+            working-directory: ./code/nextjs
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2

@@ -39,10 +39,10 @@ export default async function Page({ params }: { params: { name: string } }) {
         </div>
         <div className="col-span-2 p-8">
         
-        <h2 className="text-4xl font-extrabold dark:text-white">Here's what's been created for {prettifiedName} so far.</h2>
+        <h2 className="text-4xl font-extrabold dark:text-white">Here&apos;s what&apos;s been created for {prettifiedName} so far.</h2>
           <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 bg-gray-950">
             {existingPersona.images.map((image, index) => (
-              <PersonaImage image={image} index={index} />
+              <PersonaImage key={image.image_url}image={image} index={index} />
             ))}
           </div>
         </div>
