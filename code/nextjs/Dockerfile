@@ -1,5 +1,8 @@
 FROM node:latest
 
+ARG MONGODB_URI
+ARG MONGODB_DB
+
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
