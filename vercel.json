@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "code/nextjs/$1"
+      "dest": "code/nextjs/app/$1"
     }
   ]
 }
