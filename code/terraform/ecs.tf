@@ -50,6 +50,15 @@ resource "aws_subnet" "ai_persona_app_subnet1" {
   }
 }
 
+resource "aws_acm_certificate" "ai_persona_app_certificate" {
+  domain_name       = "personacomposer.app"
+  validation_method = "DNS"
+}
+
+resource "aws_route53_zone" "ai_persona_app_hosted_zone" {
+  name = "personacomposer.app"
+}
+
 # Define a security group for the VPC.
 # Security groups act as a virtual firewall to control inbound and outbound traffic.
 resource "aws_security_group" "ai_persona_app_sg" {
@@ -64,6 +73,13 @@ resource "aws_security_group" "ai_persona_app_sg" {
     to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]                      # Allow traffic from any IP
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Egress rule: Allow all outbound traffic.
@@ -270,17 +286,34 @@ resource "aws_lb_target_group" "ai_persona_app_tg" {
   ]
 }
 
-# Define a listener for the ALB.
-# The listener checks for connection requests and forwards them to the target group.
-resource "aws_lb_listener" "ai_persona_app_alb_listener" {
+# HTTPS Listener for the ALB
+resource "aws_lb_listener" "ai_persona_app_alb_https_listener" {
   load_balancer_arn = aws_lb.ai_persona_app_alb.arn
-  port              = "80"                              # Listen on port 80 (HTTP)
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.ai_persona_app_certificate.arn
 
-  # Default action: Forward requests to the target group
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ai_persona_app_tg.arn
+  }
+}
+
+# HTTP to HTTPS Redirect
+resource "aws_lb_listener" "ai_persona_app_alb_http_listener" {
+  load_balancer_arn = aws_lb.ai_persona_app_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 }
 
@@ -317,12 +350,14 @@ resource "aws_ecs_service" "ai_persona_app_service" {
     container_port   = 3000
   }
 
-  desired_count = 1                                    # Number of tasks to run
+  desired_count = 1
   depends_on = [
-    aws_lb_listener.ai_persona_app_alb_listener,
+    aws_lb_listener.ai_persona_app_alb_https_listener,
+    aws_lb_listener.ai_persona_app_alb_http_listener,
     aws_ecs_task_definition.ai_persona_app_task
   ]
 }
+
 
 # Define an Amazon Elastic Container Service (ECS) cluster.
 # A cluster is a grouping of tasks or services.
