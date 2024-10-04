@@ -8,7 +8,7 @@ ARG MONGODB_DB
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to leverage Docker cache
+# Copy package.json and package-lock.json for npm install
 COPY package*.json ./
 
 # Install dependencies
