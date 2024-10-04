@@ -5,6 +5,7 @@ import { Buffer } from 'buffer';
 import Persona from '@/models/Persona';
 import PersonaDto from '@/models/dto/PersonaDto';
 
+// Initialize S3 client with AWS credentials
 const s3Client = new S3Client({
   region: 'us-east-1',
   credentials: {
@@ -13,9 +14,16 @@ const s3Client = new S3Client({
   }
 });
 
+/**
+ * Fetches an image from a URL and uploads it to S3
+ * @param {string} imageUrl - The URL of the image to fetch
+ * @param {string} name - The name associated with the image (for logging purposes)
+ * @param {string} model - The model used to generate the image (for logging purposes)
+ * @returns {Promise<string>} The S3 key of the uploaded image
+ */
 export async function fetchAndUploadImage(imageUrl: string, name: string, model: string): Promise<string> {
   try {
-    // Use the native fetch API to get the image
+    // Fetch the image using the native fetch API
     const response = await fetch(imageUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -25,11 +33,12 @@ export async function fetchAndUploadImage(imageUrl: string, name: string, model:
     // Convert ArrayBuffer to Buffer for S3 upload
     const bufferForUpload = Buffer.from(buffer);
 
+    // Prepare S3 upload parameters
     const uploadParameters: PutObjectCommandInput = {
       Bucket: process.env.S3_BUCKET_NAME!,
-      Key: `persona-generations/${uuidv4()}`,
+      Key: `persona-generations/${uuidv4()}`, // Generate a unique key for the image
       Body: bufferForUpload,
-      // Additional parameters like ContentType can be added if necessary
+      // ContentType could be added here if known
     };
 
     console.log(`Uploading image generated using model: ${model} for name: ${name} with image URL: ${imageUrl}`);
@@ -43,6 +52,11 @@ export async function fetchAndUploadImage(imageUrl: string, name: string, model:
   }
 }
 
+/**
+ * Fetches images for a persona from S3 and returns a PersonaDto
+ * @param {Persona} persona - The persona object containing image information
+ * @returns {Promise<PersonaDto>} A PersonaDto with pre-signed URLs for each image
+ */
 export async function fetchImagesForPersonaFromS3(persona: Persona): Promise<PersonaDto> {
   const mappedImages = await Promise.all(persona.images.map(async (image) => {
     const presignedUrl = await fetchImageFromS3(image.s3_location);
@@ -61,7 +75,11 @@ export async function fetchImagesForPersonaFromS3(persona: Persona): Promise<Per
   return new PersonaDto(persona.name, mappedImages);
 }
 
-// Function to fetch an image from S3 using a pre-signed URL
+/**
+ * Generates a pre-signed URL for an image stored in S3
+ * @param {string} location - The S3 key of the image
+ * @returns {Promise<string>} A pre-signed URL for the image
+ */
 export async function fetchImageFromS3(location: string): Promise<string> {
   try {
     const getObjectParameters: GetObjectCommandInput = {
@@ -72,8 +90,8 @@ export async function fetchImageFromS3(location: string): Promise<string> {
     console.log(`Generating pre-signed URL for image at location: ${location}`);
     const getObjectCommand = new GetObjectCommand(getObjectParameters);
 
-    // Generate a pre-signed URL with a specified expiration time
-    const presignedUrl = await getSignedUrl(s3Client, getObjectCommand, { expiresIn: 60 }); // URL expires in 60 seconds
+    // Generate a pre-signed URL with a 60-second expiration time
+    const presignedUrl = await getSignedUrl(s3Client, getObjectCommand, { expiresIn: 60 });
 
     return presignedUrl;
   } catch (error) {
