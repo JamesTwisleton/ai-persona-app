@@ -42,3 +42,46 @@ export default async function chatWithChatGPT(prompt: string, mottoTone: string)
         throw error; // Re-throw to allow handling by the caller
     }
 }
+
+/**
+ * Generates a character motto using ChatGPT based on a given prompt and tone.
+ * 
+ * @param {string} prompt - The description of the character.
+ * @param {string} mottoTone - The desired tone of the motto (e.g., 'neutral', 'sarcastic', 'comical', 'sombre').
+ * @returns {Promise<string>} The generated motto.
+ * @throws {Error} If there's an issue with the API call or response processing.
+ */
+export async function generateBlueskyPost(name: string, description: string, motto: string): Promise<string> {
+    try {
+        // Initialize the OpenAI client
+        const openai = new OpenAI();
+
+        // TODO: move prompts into dedicated folder
+        const question = `Please generate a social media post with 300 or less characters. This should be the average post someone called ${name} with the description ${description} would make. A phrase that they would absolutely agree with: ${motto}.`;
+        console.log(`Calling ChatGPT to generate a social media post using prompt: ${question}`);
+
+        // Make the API call to ChatGPT
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o', // Using GPT-4 for better quality responses
+            messages: [{ role: 'user', content: question }],
+            max_tokens: 60, // Limit the response length to ensure a concise motto
+            // TODO: @Dean can you explain this please?
+            temperature: 0.7, // Adjust for creativity vs. consistency
+        });
+
+        // Extract the generated motto from the response
+        const generatedResponse = completion.choices[0]?.message?.content?.trim();
+
+        if (!generatedResponse) {
+            throw new Error('No response generated from ChatGPT');
+        }
+
+        console.log(`ChatGPT generated BlueSky post: ${generatedResponse}`);
+
+        return generatedResponse;
+
+    } catch (error) {
+        console.error("Error in chatWithChatGPT:", error);
+        throw error; // Re-throw to allow handling by the caller
+    }
+}
