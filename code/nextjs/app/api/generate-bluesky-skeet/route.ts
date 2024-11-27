@@ -4,7 +4,7 @@ import { fetchImagesForPersonaFromS3 } from '@/lib/aws';
 import generateAndUploadPersona from "@/lib/generate-and-upload-persona";
 import Persona from '@/models/Persona';
 import { capitalizeFirstLetter } from "@/lib/strings";
-import { generateBlueskyPost } from "@/lib/chatgpt";
+import { generateBlueskySkeet } from "@/lib/chatgpt";
 
 /**
  * Handles POST requests to create or retrieve a persona.
@@ -18,8 +18,7 @@ export async function POST(request: NextRequest) {
     console.log(name);
     console.log(image);
 
-    const generatedPost = await generateBlueskyPost(name, image.additional_prompt, image.motto);
-    console.log(generatedPost);
+    const generatedPost = await generateBlueskySkeet(name, image.additional_prompt, image.motto);
 
     return NextResponse.json({ generatedPost: generatedPost}, { status: 200 });
 
