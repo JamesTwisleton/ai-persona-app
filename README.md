@@ -3,28 +3,24 @@
 ## Running locally
 
 ### Requirements
-* [Next.Js](https://nextjs.org/docs/getting-started/installation)
+* [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
-* [Docker](http://docker.com)
+### Instructions
 
 1. Navigate to the [nextjs](./code/nextjs/) folder.
 
 2. Create a `.env.local` file - check out [.env.local.example](./code/nextjs/.env.local.example) for the format.
 
 
-3. Build the docker image:
+3. Install and run the app:
     ```bash
-    docker build -t persona-composer .
-    ```
-4. Run the docker image:
-
-    ```bash
-    docker run -it -p 3000:3000 persona-composer
+    npm install
+    npm run dev
     ```
 
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Deployment
-Pushes to main will be deployed to:
+Pushes to `main` branch will be deployed to:
 
-[ai-persona-app.vercel.app](https://ai-persona-app.vercel.app)
+[personacomposer.app](https://personacomposer.app)
