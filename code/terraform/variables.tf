@@ -42,3 +42,18 @@ variable "mongodb_db" {
   description = "MongoDB DB"
   type        = string
 }
+
+variable "bluesky_username" {
+  description = "BlueSky username"
+  type        = string
+}
+
+variable "bluesky_password" {
+  description = "BlueSky password"
+  type        = string
+}
+
+variable "bluesky_profile_base_url" {
+  description = "BlueSky profile base url"
+  type        = string
+}
