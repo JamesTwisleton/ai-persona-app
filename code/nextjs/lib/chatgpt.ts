@@ -51,13 +51,13 @@ export default async function chatWithChatGPT(prompt: string, mottoTone: string)
  * @returns {Promise<string>} The generated motto.
  * @throws {Error} If there's an issue with the API call or response processing.
  */
-export async function generateBlueskyPost(name: string, description: string, motto: string): Promise<string> {
+export async function generateBlueskySkeet(name: string, description: string, motto: string): Promise<string> {
     try {
         // Initialize the OpenAI client
         const openai = new OpenAI();
 
         // TODO: move prompts into dedicated folder
-        const question = `Please generate a social media post with 300 or less characters. This should be the average post someone called ${name} with the description ${description} would make. A phrase that they would absolutely agree with: ${motto}.`;
+        const question = `Please generate a social media post with 300 or less characters. This should be the average post someone called ${name} with the description ${description} would make. A phrase that they would absolutely agree with: ${motto}. Check that the post doesn't get cut off mid-sentence`;
         console.log(`Calling ChatGPT to generate a social media post using prompt: ${question}`);
 
         // Make the API call to ChatGPT
