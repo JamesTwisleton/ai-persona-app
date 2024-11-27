@@ -57,8 +57,7 @@ export async function generateBlueskySkeet(name: string, description: string, mo
         const openai = new OpenAI();
 
         // TODO: move prompts into dedicated folder
-        const question = `Please generate a social media post with 300 or less characters. This should be the average post someone called ${name} with the description ${description} would make. A phrase that they would absolutely agree with: ${motto}. Check that the post doesn't get cut off mid-sentence`;
-        console.log(`Calling ChatGPT to generate a social media post using prompt: ${question}`);
+        const question = `Generate a complete social media post for someone named ${name}, based on their description: ${description}. They agree wholeheartedly with the following statement: '${motto}'. The post must be under 250 characters, end with a full sentence, and prioritize clarity without truncation. Avoid unfinished thoughts.`;
 
         // Make the API call to ChatGPT
         const completion = await openai.chat.completions.create({

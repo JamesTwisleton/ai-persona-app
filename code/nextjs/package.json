@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@atproto/api": "^0.13.18",
     "@aws-sdk/client-s3": "^3.502.0",
     "@aws-sdk/s3-request-presigner": "^3.502.0",
     "mongodb": "^6.3.0",
