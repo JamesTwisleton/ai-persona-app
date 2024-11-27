@@ -65,6 +65,7 @@ export async function fetchImagesForPersonaFromS3(persona: Persona): Promise<Per
       image_url: presignedUrl,
       model: image.model,
       additional_prompt: image.additional_prompt,
+      // TODO: change this to use underscores like the rest
       mottoTone: image.mottoTone,
       motto: image.motto,
       upvotes: image.upvotes,
