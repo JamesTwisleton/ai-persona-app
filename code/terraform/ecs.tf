@@ -240,6 +240,18 @@ resource "aws_ecs_task_definition" "ai_persona_app_task" {
         {
           name = "S3_BUCKET_NAME",
           value = aws_s3_bucket.ai_persona_app_bucket.bucket
+        },
+        {
+          name = "BLUESKY_USERNAME",
+          value = var.bluesky_username
+        },
+        {
+          name = "BLUESKY_PASSWORD",
+          value = var.bluesky_password
+        },
+        {
+          name = "BLUESKY_PROFILE_BASE_URL",
+          value = var.bluesky_profile_base_url
         }
       ]
     }
