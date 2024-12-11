@@ -21,7 +21,7 @@
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Development
-* after cloning the repo, copy [pre-commit](./code/hooks/pre-commit) into the `.git/hooks` folder to add a pre-commit which runs eslint
+* after cloning the repo, copy [pre-commit](./code/hooks/pre-commit) into the `.git/hooks` folder to add a pre-commit which runs prettier
 
 ## Deployment
 Pushes to `main` branch will be deployed to:
