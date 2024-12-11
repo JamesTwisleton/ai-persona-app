@@ -1,4 +1,9 @@
 #!/bin/sh
 cd code/nextjs || exit 1
-echo "Running ESLint..."
-npx eslint .
+
+echo "Running Prettier..."
+# Format files and stage changes
+npx prettier --write .
+
+echo "Staging changes..."
+git add .
