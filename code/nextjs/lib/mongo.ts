@@ -126,14 +126,17 @@ export async function addPersonaOrUpdateImages(
 export async function getPersona(db: Db, name: string) {
   const collection = db.collection('personas');
 
+    // Ensure name is a valid UTF-8 string
+    const sanitizedName = Buffer.from(name, 'utf8').toString();
+
   // Check if a document with the given name exists
-  const existingDoc = await collection.findOne({ name: name });
+  const existingDoc = await collection.findOne({ name: sanitizedName });
 
   if (existingDoc) {
-    console.log(`Found persona with name ${name} on mongo`);
+    console.log(`Found persona with name ${sanitizedName} on mongo`);
     return new Persona(existingDoc._id, existingDoc.name, existingDoc.images);
   } else {
-    console.log(`Didn't find persona with name ${name} on mongo`);
+    console.log(`Didn't find persona with name ${sanitizedName} on mongo`);
     return false;
   }
 }

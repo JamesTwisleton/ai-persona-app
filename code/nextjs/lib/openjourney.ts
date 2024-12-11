@@ -32,13 +32,8 @@ export default async function createPersonaWithOpenjourney(
       },
     );
 
-    // Check if the response contains a valid image URL
-    if (response && typeof response[0] === 'string') {
-      return response[0];
-    } else {
-      console.log('Unexpected response structure:', response);
-      throw new Error('No image URL returned in OpenJourney response');
-    }
+    return response[0];
+
   } catch (error) {
     console.error(
       `Error creating image with OpenJourney for name: ${name} and prompt: ${prompt}`,
