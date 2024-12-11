@@ -4,16 +4,16 @@ import {
   GetObjectCommand,
   PutObjectCommandInput,
   GetObjectCommandInput,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { v4 as uuidv4 } from 'uuid';
-import { Buffer } from 'buffer';
-import Persona from '@/models/Persona';
-import PersonaDto from '@/models/dto/PersonaDto';
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { v4 as uuidv4 } from "uuid";
+import { Buffer } from "buffer";
+import Persona from "@/models/Persona";
+import PersonaDto from "@/models/dto/PersonaDto";
 
 // Initialize S3 client with AWS credentials
 const s3Client = new S3Client({
-  region: 'us-east-1',
+  region: "us-east-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -59,7 +59,7 @@ export async function fetchAndUploadImage(
 
     return uploadParameters.Key as string;
   } catch (error) {
-    console.error('Error fetching or uploading image:', error);
+    console.error("Error fetching or uploading image:", error);
     throw error;
   }
 }
@@ -73,7 +73,7 @@ export async function fetchImagesForPersonaFromS3(
   persona: Persona,
 ): Promise<PersonaDto> {
   const mappedImages = await Promise.all(
-    persona.images.map(async image => {
+    persona.images.map(async (image) => {
       const presignedUrl = await fetchImageFromS3(image.s3_location);
 
       return {
@@ -114,7 +114,7 @@ export async function fetchImageFromS3(location: string): Promise<string> {
 
     return presignedUrl;
   } catch (error) {
-    console.error('Error generating pre-signed URL for image from S3:', error);
+    console.error("Error generating pre-signed URL for image from S3:", error);
     throw error;
   }
 }

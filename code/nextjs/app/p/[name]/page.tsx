@@ -1,8 +1,8 @@
-import checkForExistingPersona from '@/lib/check-for-existing-persona';
-import { prettifyUrlProvidedName } from '@/lib/strings';
-import PersonaDto from '@/models/dto/PersonaDto';
-import PersonaImage from '@/components/PersonaImage';
-import CreatePersonaForm from '@/components/CreatePersonaForm';
+import checkForExistingPersona from "@/lib/check-for-existing-persona";
+import { prettifyUrlProvidedName } from "@/lib/strings";
+import PersonaDto from "@/models/dto/PersonaDto";
+import PersonaImage from "@/components/PersonaImage";
+import CreatePersonaForm from "@/components/CreatePersonaForm";
 
 /**
  * Page component for displaying and creating personas.

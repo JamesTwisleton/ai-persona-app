@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { BskyAgent } from '@atproto/api';
+import { NextRequest, NextResponse } from "next/server";
+import { BskyAgent } from "@atproto/api";
 
 /**
  * Handles requests to post to bluesky
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     !process.env.BLUESKY_PASSWORD ||
     !process.env.BLUESKY_PROFILE_BASE_URL
   ) {
-    throw new Error('bluesky environment variables not set');
+    throw new Error("bluesky environment variables not set");
   }
 
   const data = await request.json();
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const { name, image, skeet } = data;
 
   const agent = new BskyAgent({
-    service: 'https://bsky.social',
+    service: "https://bsky.social",
   });
   await agent.login({
     identifier: process.env.BLUESKY_USERNAME,
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     createdAt: new Date().toISOString(),
   });
 
-          const postId = postResponse.uri.split('/').pop();
+  const postId = postResponse.uri.split("/").pop();
 
   const postUrl = `${process.env.BLUESKY_PROFILE_BASE_URL}${postId}`;
 

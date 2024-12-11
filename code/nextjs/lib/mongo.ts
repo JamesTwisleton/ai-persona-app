@@ -1,6 +1,6 @@
-import Persona from '@/models/Persona';
-import { MongoClient, Db } from 'mongodb';
-import { ObjectId } from 'mongodb';
+import Persona from "@/models/Persona";
+import { MongoClient, Db } from "mongodb";
+import { ObjectId } from "mongodb";
 
 // MongoDB connection details
 const uri = process.env.MONGODB_URI;
@@ -8,11 +8,11 @@ const dbName = process.env.MONGODB_DB;
 
 // Ensure environment variables are set
 if (!uri) {
-  throw new Error('Please define the MONGODB_URI environment variable');
+  throw new Error("Please define the MONGODB_URI environment variable");
 }
 
 if (!dbName) {
-  throw new Error('Please define the MONGODB_DB environment variable');
+  throw new Error("Please define the MONGODB_DB environment variable");
 }
 
 // Caching mechanism for MongoDB client and database connection
@@ -77,7 +77,7 @@ export async function addPersonaOrUpdateImages(
   imageUrl: string,
   s3location: string,
 ) {
-  const collection = db.collection('personas');
+  const collection = db.collection("personas");
 
   // Create the image object
   const image = {
@@ -124,10 +124,10 @@ export async function addPersonaOrUpdateImages(
  * @returns {Promise<Persona | false>} The persona object if found, false otherwise.
  */
 export async function getPersona(db: Db, name: string) {
-  const collection = db.collection('personas');
+  const collection = db.collection("personas");
 
-    // Ensure name is a valid UTF-8 string
-    const sanitizedName = Buffer.from(name, 'utf8').toString();
+  // Ensure name is a valid UTF-8 string
+  const sanitizedName = Buffer.from(name, "utf8").toString();
 
   // Check if a document with the given name exists
   const existingDoc = await collection.findOne({ name: sanitizedName });

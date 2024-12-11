@@ -1,6 +1,6 @@
-'use client';
-import ImageDto from '@/models/dto/ImageDto';
-import React, { useState } from 'react';
+"use client";
+import ImageDto from "@/models/dto/ImageDto";
+import React, { useState } from "react";
 
 /**
  * Props for the PersonaImage component
@@ -32,10 +32,10 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
   const generateBlueskySkeet = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/generate-bluesky-skeet', {
-        method: 'POST',
+      const response = await fetch("/api/generate-bluesky-skeet", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, image }),
       });
@@ -45,7 +45,7 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
         setGeneratedSkeet(data.generatedPost);
       } else {
         const errorData = await response.json();
-        setBlueskyUrl(errorData.error || 'Failed to create BlueSky post.');
+        setBlueskyUrl(errorData.error || "Failed to create BlueSky post.");
       }
     } catch (error) {
       console.error(`Error generating BlueSky post for ${name}:`, error);
@@ -63,10 +63,10 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
     setBlueskySkeetSkeeted(true);
     setIsLoading(true);
     try {
-      const response = await fetch('/api/post-to-bluesky', {
-        method: 'POST',
+      const response = await fetch("/api/post-to-bluesky", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, image, skeet }),
       });
@@ -76,7 +76,7 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
         setBlueskyUrl(data.blueskyUrl);
       } else {
         const errorData = await response.json();
-        setBlueskyUrl(errorData.error || 'Failed to create BlueSky post.');
+        setBlueskyUrl(errorData.error || "Failed to create BlueSky post.");
       }
     } catch (error) {
       console.error(`Error generating BlueSky post for ${name}:`, error);
@@ -93,7 +93,7 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
         className="h-auto max-w-full rounded-lg"
         src={image.image_url}
         alt={`Fetched Image ${index + 1}`}
-        style={{ width: '100%', height: 'auto' }}
+        style={{ width: "100%", height: "auto" }}
       />
       <div>
         {/* Display additional prompt if available */}
@@ -106,8 +106,8 @@ const PersonaImage = ({ name, image, index }: PersonaImageProps) => {
         <p className="italic text-center text-xl mb-2">{image.motto}</p>
         {/* Display the model used to create the image */}
         <p className="text-center text-xl text-gray-500 pb-2">
-          Created with{' '}
-          {image.model === 'openjourney' ? 'OpenJourney' : 'Dall-E'}
+          Created with{" "}
+          {image.model === "openjourney" ? "OpenJourney" : "Dall-E"}
         </p>
         <button
           type="submit"

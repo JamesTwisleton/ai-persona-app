@@ -1,6 +1,6 @@
-import Persona from '@/models/Persona';
-import { connectToDatabase, getPersona } from './mongo';
-import { fetchImagesForPersonaFromS3 } from './aws';
+import Persona from "@/models/Persona";
+import { connectToDatabase, getPersona } from "./mongo";
+import { fetchImagesForPersonaFromS3 } from "./aws";
 
 /**
  * Checks if a persona with the given name already exists in the database
@@ -26,7 +26,7 @@ export default async function checkForExistingPersona(name: string) {
     return false;
   } catch (e) {
     // Log any errors that occur during the process
-    console.error('Error checking MongoDB for existing persona: ', e);
+    console.error("Error checking MongoDB for existing persona: ", e);
     return false;
   }
 }

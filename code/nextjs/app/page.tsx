@@ -1,4 +1,4 @@
-import CreatePersonaForm from '@/components/CreatePersonaForm';
+import CreatePersonaForm from "@/components/CreatePersonaForm";
 
 /**
  * Home component - The main landing page of the Persona Composer application

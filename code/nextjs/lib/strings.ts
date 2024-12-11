@@ -7,7 +7,7 @@
  */
 export function prettifyUrlProvidedName(str: string): string {
   // Replace one or more hyphens with a single space, then capitalize
-  return capitalizeFirstLetter(str.replace(/-+/g, ' '));
+  return capitalizeFirstLetter(str.replace(/-+/g, " "));
 }
 
 /**
@@ -20,10 +20,10 @@ export function prettifyUrlProvidedName(str: string): string {
 export function capitalizeFirstLetter(str: string): string {
   return str
     .trim() // Remove any leading or trailing whitespace
-    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-    .split(' ') // Split the string into an array of words
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter, lowercase the rest
-    .join(' '); // Join the words back into a single string
+    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+    .split(" ") // Split the string into an array of words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter, lowercase the rest
+    .join(" "); // Join the words back into a single string
 }
 
 /**
@@ -38,6 +38,6 @@ export function convertToHyphenatedLowercase(str: string): string {
   return str
     .trim() // Remove any leading or trailing whitespace
     .toLowerCase() // Convert the entire string to lowercase
-    .replace(/\s+/g, '-') // Replace one or more spaces with a single hyphen
-    .replace(/[^a-z0-9-]/g, ''); // Remove any characters that are not lowercase letters, numbers, or hyphens
+    .replace(/\s+/g, "-") // Replace one or more spaces with a single hyphen
+    .replace(/[^a-z0-9-]/g, ""); // Remove any characters that are not lowercase letters, numbers, or hyphens
 }

@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 /**
  * Generates a character motto using ChatGPT based on a given prompt and tone.
@@ -22,8 +22,8 @@ export default async function chatWithChatGPT(
 
     // Make the API call to ChatGPT
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4', // Using GPT-4 for better quality responses
-      messages: [{ role: 'user', content: question }],
+      model: "gpt-4", // Using GPT-4 for better quality responses
+      messages: [{ role: "user", content: question }],
       max_tokens: 60, // Limit the response length to ensure a concise motto
       // TODO: @Dean can you explain this please?
       temperature: 0.7, // Adjust for creativity vs. consistency
@@ -33,14 +33,14 @@ export default async function chatWithChatGPT(
     const generatedResponse = completion.choices[0]?.message?.content?.trim();
 
     if (!generatedResponse) {
-      throw new Error('No response generated from ChatGPT');
+      throw new Error("No response generated from ChatGPT");
     }
 
     console.log(`ChatGPT motto response: ${generatedResponse}`);
 
     return generatedResponse;
   } catch (error) {
-    console.error('Error in chatWithChatGPT:', error);
+    console.error("Error in chatWithChatGPT:", error);
     throw error; // Re-throw to allow handling by the caller
   }
 }
@@ -67,8 +67,8 @@ export async function generateBlueskySkeet(
 
     // Make the API call to ChatGPT
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // Using GPT-4 for better quality responses
-      messages: [{ role: 'user', content: question }],
+      model: "gpt-4o", // Using GPT-4 for better quality responses
+      messages: [{ role: "user", content: question }],
       max_tokens: 60, // Limit the response length to ensure a concise motto
       // TODO: @Dean can you explain this please?
       temperature: 0.7, // Adjust for creativity vs. consistency
@@ -78,14 +78,14 @@ export async function generateBlueskySkeet(
     const generatedResponse = completion.choices[0]?.message?.content?.trim();
 
     if (!generatedResponse) {
-      throw new Error('No response generated from ChatGPT');
+      throw new Error("No response generated from ChatGPT");
     }
 
     console.log(`ChatGPT generated BlueSky post: ${generatedResponse}`);
 
     return generatedResponse;
   } catch (error) {
-    console.error('Error in chatWithChatGPT:', error);
+    console.error("Error in chatWithChatGPT:", error);
     throw error; // Re-throw to allow handling by the caller
   }
 }

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { generateBlueskySkeet } from '@/lib/chatgpt';
+import { NextRequest, NextResponse } from "next/server";
+import { generateBlueskySkeet } from "@/lib/chatgpt";
 
 /**
  * Handles requests to create bluesky skeet text via LLM

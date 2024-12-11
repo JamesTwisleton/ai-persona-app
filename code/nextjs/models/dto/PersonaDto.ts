@@ -1,4 +1,4 @@
-import ImageDto from './ImageDto';
+import ImageDto from "./ImageDto";
 
 /**
  * Represents a Data Transfer Object (DTO) for a Persona.
