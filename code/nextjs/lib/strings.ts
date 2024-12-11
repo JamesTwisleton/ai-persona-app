@@ -1,7 +1,7 @@
 /**
  * Converts a hyphenated string (like a URL segment) into a prettified, capitalized version.
  * This function is useful for converting URL-friendly strings into human-readable formats.
- * 
+ *
  * @param {string} str - The hyphenated string to be prettified.
  * @returns {string} A prettified and capitalized version of the input string.
  */
@@ -13,7 +13,7 @@ export function prettifyUrlProvidedName(str: string): string {
 /**
  * Capitalizes the first letter of each word in the string.
  * This function also trims excess whitespace and normalizes spaces between words.
- * 
+ *
  * @param {string} str - The string to be capitalized.
  * @returns {string} A string with the first letter of each word capitalized.
  */
@@ -30,7 +30,7 @@ export function capitalizeFirstLetter(str: string): string {
  * Converts a space-separated string into a hyphenated lowercase string.
  * This function is essentially the reverse of prettifyUrlProvidedName.
  * It's useful for converting human-readable strings into URL-friendly formats.
- * 
+ *
  * @param {string} str - The space-separated string to be converted.
  * @returns {string} A hyphenated lowercase string, suitable for use in URLs.
  */
