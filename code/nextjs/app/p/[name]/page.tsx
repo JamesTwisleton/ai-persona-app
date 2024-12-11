@@ -1,8 +1,8 @@
-import checkForExistingPersona from "@/lib/check-for-existing-persona";
-import { prettifyUrlProvidedName } from "@/lib/strings";
-import PersonaDto from "@/models/dto/PersonaDto";
-import PersonaImage from "@/components/PersonaImage";
-import CreatePersonaForm from "@/components/CreatePersonaForm";
+import checkForExistingPersona from '@/lib/check-for-existing-persona';
+import { prettifyUrlProvidedName } from '@/lib/strings';
+import PersonaDto from '@/models/dto/PersonaDto';
+import PersonaImage from '@/components/PersonaImage';
+import CreatePersonaForm from '@/components/CreatePersonaForm';
 
 /**
  * Page component for displaying and creating personas.
@@ -13,10 +13,10 @@ import CreatePersonaForm from "@/components/CreatePersonaForm";
 export default async function Page({ params }: { params: { name: string } }) {
   // Prettify the name from the URL
   const prettifiedName = prettifyUrlProvidedName(params.name);
-  
+
   // Check if the persona already exists
   const maybeExistingPersona = await checkForExistingPersona(prettifiedName);
-  
+
   // If the persona doesn't exist, show the creation form
   if (maybeExistingPersona === false) {
     return (
@@ -48,13 +48,13 @@ export default async function Page({ params }: { params: { name: string } }) {
           {prettifiedName}
         </h1>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3">
         {/* Left column: Form to create a new persona */}
         <div className="col-span-1 p-2 p-4">
           <CreatePersonaForm force={true} providedName={prettifiedName} />
         </div>
-        
+
         {/* Right column: Display existing persona images */}
         <div className="col-span-2 p-8">
           <h2 className="text-4xl font-extrabold dark:text-white pb-8">
@@ -62,7 +62,12 @@ export default async function Page({ params }: { params: { name: string } }) {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 bg-gray-950">
             {existingPersona.images.map((image, index) => (
-              <PersonaImage key={image.image_url} name={prettifiedName} image={image} index={index} />
+              <PersonaImage
+                key={image.image_url}
+                name={prettifiedName}
+                image={image}
+                index={index}
+              />
             ))}
           </div>
         </div>
