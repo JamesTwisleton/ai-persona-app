@@ -2,22 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { BskyAgent } from '@atproto/api'
 
 /**
- * Handles POST requests to create or retrieve a persona.
+ * Handles requests to post to bluesky
  * @param {NextRequest} request - The incoming request object.
- * @returns {Promise<NextResponse>} A JSON response with the persona data or an error message.
+ * @returns {Promise<NextResponse>} A JSON response including the skeet URL
  */
 export async function POST(request: NextRequest) {
 
     if (!process.env.BLUESKY_USERNAME || !process.env.BLUESKY_PASSWORD || !process.env.BLUESKY_PROFILE_BASE_URL) {
-        throw new Error("Necessary environment variables not set");
+        throw new Error("bluesky environment variables not set");
     }
 
     const data = await request.json();
+    // TODO: use the details in image for something?
     const { name, image, skeet } = data;
 
-    // TODO: use the details in image for something?
 
-    const agent = new BskyAgent({
+        const agent = new BskyAgent({
         service: 'https://bsky.social'
     })
     await agent.login({
