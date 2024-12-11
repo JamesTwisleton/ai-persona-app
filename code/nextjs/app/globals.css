@@ -23,15 +23,11 @@
 body {
   /* Set text color using the foreground CSS variable */
   color: rgb(var(--foreground-rgb));
-  
+
   /* Create a gradient background */
   background: 
     /* Top layer: Gradient from transparent to background-end color */
-    linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    ),
+    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))),
     /* Bottom layer: Solid color using background-start */
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-start-rgb));
 }
