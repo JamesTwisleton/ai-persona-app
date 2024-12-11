@@ -1,8 +1,8 @@
-import { fetchAndUploadImage } from './aws';
-import chatWithChatGPT from './chatgpt';
-import createPersonaWithDalle from './dall-e';
-import { connectToDatabase, addPersonaOrUpdateImages } from './mongo';
-import createPersonaWithOpenjourney from './openjourney';
+import { fetchAndUploadImage } from "./aws";
+import chatWithChatGPT from "./chatgpt";
+import createPersonaWithDalle from "./dall-e";
+import { connectToDatabase, addPersonaOrUpdateImages } from "./mongo";
+import createPersonaWithOpenjourney from "./openjourney";
 
 /**
  * Generates a persona image, motto, and uploads the data to S3 and MongoDB.
@@ -20,20 +20,20 @@ export default async function generateAndUploadPersona(
 ) {
   // Validate and set the AI model to use
   let modelToUse: string = model as string;
-  if (modelToUse !== 'openjourney' && modelToUse !== 'dall-e') {
+  if (modelToUse !== "openjourney" && modelToUse !== "dall-e") {
     console.log(
       `Unsupported model provided: ${model}. Defaulting to 'openjourney'.`,
     );
-    modelToUse = 'openjourney';
+    modelToUse = "openjourney";
   }
 
   // Generate the image URL using the selected AI model
-  let imageUrl: string = '';
+  let imageUrl: string = "";
   switch (modelToUse) {
-    case 'openjourney':
+    case "openjourney":
       imageUrl = await createPersonaWithOpenjourney(name, prompt);
       break;
-    case 'dall-e':
+    case "dall-e":
       imageUrl = await createPersonaWithDalle(name, prompt);
       break;
   }
@@ -60,6 +60,6 @@ export default async function generateAndUploadPersona(
       s3location,
     );
   } catch (e) {
-    console.error('Error uploading image to S3 and updating MongoDB:', e);
+    console.error("Error uploading image to S3 and updating MongoDB:", e);
   }
 }

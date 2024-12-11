@@ -1,7 +1,7 @@
-'use client';
-import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { convertToHyphenatedLowercase } from '@/lib/strings';
+"use client";
+import React, { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { convertToHyphenatedLowercase } from "@/lib/strings";
 
 // Define the structure of the form data
 interface FormData {
@@ -20,13 +20,13 @@ interface FormData {
  * @param {boolean} props.force - Whether to force creation of a new persona
  * @param {string} props.providedName - Pre-filled name for the persona
  */
-const CreatePersonaForm = ({ force = false, providedName = '' }) => {
+const CreatePersonaForm = ({ force = false, providedName = "" }) => {
   // Initialize form data state
   const [formData, setFormData] = useState<FormData>({
     name: providedName,
-    prompt: '',
-    mottoTone: 'neutral',
-    model: '',
+    prompt: "",
+    mottoTone: "neutral",
+    model: "",
     ...(force && { force: true }),
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -54,10 +54,10 @@ const CreatePersonaForm = ({ force = false, providedName = '' }) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('/api/p', {
-        method: 'POST',
+      const response = await fetch("/api/p", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -74,7 +74,7 @@ const CreatePersonaForm = ({ force = false, providedName = '' }) => {
         }
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error("Error submitting form:", error);
       // TODO: Implement proper error handling (e.g., display error message to user)
     } finally {
       setIsLoading(false);
@@ -173,7 +173,7 @@ const CreatePersonaForm = ({ force = false, providedName = '' }) => {
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           disabled={isLoading}
         >
-          {force ? 'Create another' : 'Create'}
+          {force ? "Create another" : "Create"}
         </button>
       </form>
       {/* Loading indicator */}

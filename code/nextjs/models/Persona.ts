@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
-import Image from './Image';
+import { ObjectId } from "mongodb";
+import Image from "./Image";
 
 /**
  * Represents a Persona entity in the application.

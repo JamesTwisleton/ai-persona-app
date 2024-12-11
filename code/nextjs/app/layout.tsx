@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
 // Initialize the Inter font with Latin subset for optimized loading
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 // Define metadata for the application
 export const metadata: Metadata = {
-  title: 'PersonaComposer',
-  description: 'Create and manage social media personalities',
+  title: "PersonaComposer",
+  description: "Create and manage social media personalities",
 };
 
 /**

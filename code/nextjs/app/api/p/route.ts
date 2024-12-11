@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase, getPersona } from '@lib/mongo';
-import { fetchImagesForPersonaFromS3 } from '@/lib/aws';
-import generateAndUploadPersona from '@/lib/generate-and-upload-persona';
-import Persona from '@/models/Persona';
-import { capitalizeFirstLetter } from '@/lib/strings';
+import { NextRequest, NextResponse } from "next/server";
+import { connectToDatabase, getPersona } from "@lib/mongo";
+import { fetchImagesForPersonaFromS3 } from "@/lib/aws";
+import generateAndUploadPersona from "@/lib/generate-and-upload-persona";
+import Persona from "@/models/Persona";
+import { capitalizeFirstLetter } from "@/lib/strings";
 
 /**
  * Handles POST requests to create or retrieve a persona.
@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (e) {
     // Log and return any errors
-    console.error('Error checking MongoDB for existing persona: ', e);
+    console.error("Error checking MongoDB for existing persona: ", e);
     return NextResponse.json(
-      { error: 'Error checking MongoDB for existing persona' },
+      { error: "Error checking MongoDB for existing persona" },
       { status: 500 },
     );
   }

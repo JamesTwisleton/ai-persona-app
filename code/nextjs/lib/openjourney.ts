@@ -1,4 +1,4 @@
-import Replicate from 'replicate';
+import Replicate from "replicate";
 
 // Initialize Replicate client with API token from environment variables
 const replicate = new Replicate({
@@ -24,7 +24,7 @@ export default async function createPersonaWithOpenjourney(
 
     // Call the OpenJourney model using Replicate
     const response: any = await replicate.run(
-      'prompthero/openjourney:ad59ca21177f9e217b9075e7300cf6e14f7e5b4505b87b9689dbd866e9768969',
+      "prompthero/openjourney:ad59ca21177f9e217b9075e7300cf6e14f7e5b4505b87b9689dbd866e9768969",
       {
         input: {
           prompt: `Photorealistic social media profile photo of a person called ${name} with the attributes ${prompt} - Sigma 24mm f/8 — wider angle, smaller focal length`,
@@ -33,7 +33,6 @@ export default async function createPersonaWithOpenjourney(
     );
 
     return response[0];
-
   } catch (error) {
     console.error(
       `Error creating image with OpenJourney for name: ${name} and prompt: ${prompt}`,
