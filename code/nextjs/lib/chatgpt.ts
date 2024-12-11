@@ -46,7 +46,7 @@ export default async function chatWithChatGPT(
 }
 
 /**
- * Generates a character motto using ChatGPT based on a given prompt and tone.
+ * Generates a skeet using ChatGPT based on a given prompt and tone.
  *
  * @param {string} prompt - The description of the character.
  * @param {string} mottoTone - The desired tone of the motto (e.g., 'neutral', 'sarcastic', 'comical', 'sombre').
