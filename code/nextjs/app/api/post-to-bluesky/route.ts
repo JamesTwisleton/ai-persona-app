@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { name, image, skeet } = data;
 
 
-            const agent = new BskyAgent({
+        const agent = new BskyAgent({
         service: 'https://bsky.social'
     })
     await agent.login({
