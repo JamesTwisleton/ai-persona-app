@@ -12,7 +12,8 @@ import CreatePersonaForm from '@/components/CreatePersonaForm';
  */
 export default async function Page({ params }: { params: { name: string } }) {
   // Prettify the name from the URL
-  const prettifiedName = prettifyUrlProvidedName(params.name);
+  var name = await params.name;
+  const prettifiedName = prettifyUrlProvidedName(name);
 
   // Check if the persona already exists
   const maybeExistingPersona = await checkForExistingPersona(prettifiedName);
