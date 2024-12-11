@@ -1,5 +1,5 @@
-import Persona from '@/models/Persona';
-import { MongoClient, Db } from 'mongodb';
+import Persona from "@/models/Persona";
+import { MongoClient, Db } from "mongodb";
 import { ObjectId } from "mongodb";
 
 // MongoDB connection details
@@ -8,11 +8,11 @@ const dbName = process.env.MONGODB_DB;
 
 // Ensure environment variables are set
 if (!uri) {
-    throw new Error('Please define the MONGODB_URI environment variable');
+  throw new Error("Please define the MONGODB_URI environment variable");
 }
 
 if (!dbName) {
-    throw new Error('Please define the MONGODB_DB environment variable');
+  throw new Error("Please define the MONGODB_DB environment variable");
 }
 
 // Caching mechanism for MongoDB client and database connection
@@ -24,21 +24,21 @@ let cachedDb: Db | null = null;
  * @returns {Promise<{client: MongoClient, db: Db}>} The MongoDB client and database instance.
  */
 export async function connectToDatabase() {
-    if (cachedClient && cachedDb) {
-        return { client: cachedClient, db: cachedDb };
-    }
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
 
-    const client = new MongoClient(uri!);
+  const client = new MongoClient(uri!);
 
-    await client.connect();
+  await client.connect();
 
-    const db = client.db(dbName!);
+  const db = client.db(dbName!);
 
-    // Cache the client and db for future use
-    cachedClient = client;
-    cachedDb = db;
+  // Cache the client and db for future use
+  cachedClient = client;
+  cachedDb = db;
 
-    return { client, db };
+  return { client, db };
 }
 
 /**
@@ -47,9 +47,13 @@ export async function connectToDatabase() {
  * @param {string} collectionName - The name of the collection.
  * @param {Record<string, any>} document - The document to be inserted.
  */
-export async function addToCollection(db: Db, collectionName: string, document: Record<string, any>) {
-    const collection = db.collection(collectionName);
-    await collection.insertOne(document);
+export async function addToCollection(
+  db: Db,
+  collectionName: string,
+  document: Record<string, any>,
+) {
+  const collection = db.collection(collectionName);
+  await collection.insertOne(document);
 }
 
 /**
@@ -63,39 +67,54 @@ export async function addToCollection(db: Db, collectionName: string, document: 
  * @param {string} imageUrl - The URL of the generated image.
  * @param {string} s3location - The S3 location where the image is stored.
  */
-export async function addPersonaOrUpdateImages(db: Db, name: string, model: string, additionalPrompt: string, mottoTone: string, motto: string, imageUrl: string, s3location: string) {
-    const collection = db.collection('personas');
+export async function addPersonaOrUpdateImages(
+  db: Db,
+  name: string,
+  model: string,
+  additionalPrompt: string,
+  mottoTone: string,
+  motto: string,
+  imageUrl: string,
+  s3location: string,
+) {
+  const collection = db.collection("personas");
 
-    // Create the image object
-    const image = {
-        generated_image_url: imageUrl,
-        s3_location: s3location,
-        model: model,
-        additional_prompt: additionalPrompt,
-        mottoTone: mottoTone,
-        motto: motto,
-        upvotes: 1,
-        downvotes: 0,
-    };
+  // Create the image object
+  const image = {
+    generated_image_url: imageUrl,
+    s3_location: s3location,
+    model: model,
+    additional_prompt: additionalPrompt,
+    mottoTone: mottoTone,
+    motto: motto,
+    upvotes: 1,
+    downvotes: 0,
+  };
 
-    // Check if a document with the given name exists
-    const existingDoc = await collection.findOne({ name: name });
+  // Check if a document with the given name exists
+  const existingDoc = await collection.findOne({ name: name });
 
-    if (existingDoc) {
-        // Document exists, so update it
-        console.log(`Found persona with name ${name} on mongo, updating images`);
-        const persona = new Persona(existingDoc._id, existingDoc.name, existingDoc.images);
-        persona.addImage(image);
-        await collection.updateOne(
-            { _id: persona._id },
-            { $set: { images: persona.images } }
-        );
-    } else {
-        // Document does not exist, so create a new one
-        console.log(`Didn't find persona with ${name} on mongo, creating new entry`);
-        const newPersona = new Persona(new ObjectId(), name, [image]);
-        await collection.insertOne(newPersona);
-    }
+  if (existingDoc) {
+    // Document exists, so update it
+    console.log(`Found persona with name ${name} on mongo, updating images`);
+    const persona = new Persona(
+      existingDoc._id,
+      existingDoc.name,
+      existingDoc.images,
+    );
+    persona.addImage(image);
+    await collection.updateOne(
+      { _id: persona._id },
+      { $set: { images: persona.images } },
+    );
+  } else {
+    // Document does not exist, so create a new one
+    console.log(
+      `Didn't find persona with ${name} on mongo, creating new entry`,
+    );
+    const newPersona = new Persona(new ObjectId(), name, [image]);
+    await collection.insertOne(newPersona);
+  }
 }
 
 /**
@@ -105,16 +124,19 @@ export async function addPersonaOrUpdateImages(db: Db, name: string, model: stri
  * @returns {Promise<Persona | false>} The persona object if found, false otherwise.
  */
 export async function getPersona(db: Db, name: string) {
-    const collection = db.collection('personas');
+  const collection = db.collection("personas");
 
-    // Check if a document with the given name exists
-    const existingDoc = await collection.findOne({ name: name });
+  // Ensure name is a valid UTF-8 string
+  const sanitizedName = Buffer.from(name, "utf8").toString();
 
-    if (existingDoc) {
-        console.log(`Found persona with name ${name} on mongo`);
-        return new Persona(existingDoc._id, existingDoc.name, existingDoc.images);
-    } else {
-        console.log(`Didn't find persona with name ${name} on mongo`);
-        return false;
-    }
+  // Check if a document with the given name exists
+  const existingDoc = await collection.findOne({ name: sanitizedName });
+
+  if (existingDoc) {
+    console.log(`Found persona with name ${sanitizedName} on mongo`);
+    return new Persona(existingDoc._id, existingDoc.name, existingDoc.images);
+  } else {
+    console.log(`Didn't find persona with name ${sanitizedName} on mongo`);
+    return false;
+  }
 }
