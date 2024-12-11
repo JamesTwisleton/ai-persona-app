@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     createdAt: new Date().toISOString(),
   });
 
-  const postId = postResponse.uri.split('/').pop();
+          const postId = postResponse.uri.split('/').pop();
 
   const postUrl = `${process.env.BLUESKY_PROFILE_BASE_URL}${postId}`;
 
