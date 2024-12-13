@@ -27,3 +27,11 @@
 Pushes to `main` branch will be deployed to:
 
 [personacomposer.app](https://personacomposer.app)
+
+## Persona Compass Application
+Navigate to ./app folder
+Run the bash script 'compose_docker.sh' to build, or if pre-build - to launch the application.
+```bash
+    bash compose_docker.sh
+    ```
+Follow the first of the two browser links that are generated.

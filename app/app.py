@@ -267,4 +267,4 @@ api.add_resource(personify, '/persona')
 
 # Run the server
 if __name__ == '__main__':
-    server.run(debug=True, port=8080, host='0.0.0.0')
+    server.run(debug=False, port=8080, host='0.0.0.0')

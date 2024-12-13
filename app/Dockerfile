@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
 
 
 # Install the dependencies from requirements.txt
+RUN pip install numpy==1.23.5 setuptools==75.6.0
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port on which the Dash app runs (default 8050)
