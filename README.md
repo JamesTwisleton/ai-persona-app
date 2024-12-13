@@ -33,7 +33,7 @@ Pushes to `main` branch will be deployed to:
 
 2. Run the bash script 'compose_docker.sh' to build, or if pre-build - to launch the application.
     ```bash
-        bash compose_docker.sh
-        ```
+    bash compose_docker.sh
+    ```
 
 3. Follow the first of the two browser links that are generated.
