@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - compass-prototype
+      - '**'  # Match pull requests for any branch combination
 
 jobs:
   docker-ci:
