@@ -14,24 +14,13 @@ from dash import dcc, html, dash_table
 import math
 import json
 
-# Import json as dataframe
-with open('persona_axis.json', 'r') as file:
-    j = json.load(file)
-
-df = pd.DataFrame(j['points'])
-
 TABLE_DATA = None
 
-# Predefined points with labels
-points_with_labels = [
-    {"label": "Hitler", "x": 0.8, "y": 0.9},
-    {"label": "Stalin", "x": 0.2, "y": 0.9},
-    {"label": "Thatcher", "x": 0.75, "y": 0.8},
-    {"label": "G.W. Bush", "x": 0.85, "y": 0.7},
-    {"label": "Friedman", "x": 0.9, "y": 0.15},
-    {"label": "Gandhi", "x": 0.3, "y": 0.2},
-    {"label": "Steph", "x": 0.4, "y": 0.1},
-]
+# Import json as dataframe
+with open('persona_axis.json', 'r') as file:
+    points_with_labels = json.load(file)['points']
+
+print(points_with_labels)
 
 # Generate all coordinates in the range [0, 1] rounded to one decimal point
 points_without_labels = [{"x": x, "y": y} for x in [i / 10 for i in range(11)] for y in [i / 10 for i in range(11)]]

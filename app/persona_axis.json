@@ -34,26 +34,6 @@
         "label": "Steph",
         "x": 0.4,
         "y": 0.1
-      },
-      {
-        "label": "Centre Authoritarian Left",
-        "x": 0.25,
-        "y": 0.75
-      },
-      {
-        "label": "Centre Authoritarian Right",
-        "x": 0.75,
-        "y": 0.75
-      },
-      {
-        "label": "Centre Libertarian Left",
-        "x": 0.25,
-        "y": 0.25
-      },
-      {
-        "label": "Centre Libertarian Right",
-        "x": 0.75,
-        "y": 0.25
       }
     ]
   }
