@@ -1,0 +1,46 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+      - compass-prototype
+  pull_request:
+    branches:
+      - main
+      - compass-prototype
+
+jobs:
+  docker-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t persona-compass-app ./code/python
+
+      # Step 4: Run the container
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8080:8080 --name persona-compass-app persona-compass-app
+          sleep 10  # Allow some time for the container to start
+
+      # Step 5: Test the app's health (basic check)
+      - name: Check app health
+        run: |
+          curl -f http://localhost:8080 || (echo "App is not responding!" && exit 1)
+
+      # Step 6: Stop and remove the container
+      - name: Clean up
+        run: |
+          docker stop persona-compass-app
+          docker rm persona-compass-app
