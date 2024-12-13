@@ -72,7 +72,7 @@ def create_scatter_figure(marker_x=0.5, marker_y=0.5):
         x=[0.25, 0.75, 0.25, 0.75],
         y=[0.75, 0.75, 0.25, 0.25],
         mode='text',
-        text=["Authoritarian Left", "Authoritarian Right", "Libertarian Left", "Liberitarian Right"],
+        text=["Authoritarian Left", "Authoritarian Right", "Libertarian Left", "Libertarian Right"],
         textposition="middle center",
         showlegend=False,
         textfont=dict(size=14, color="black"),
