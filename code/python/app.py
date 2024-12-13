@@ -235,7 +235,7 @@ def update_plots(click_data, n_clicks):
     # Return updated figures and table data
     return create_scatter_figure(marker_x, marker_y), create_bar_figure(normalized_affinity), table_data
 
-# Callback to handle redirection when the 'Go to /hello' button is clicked
+# Callback to handle redirection when the 'Go to /persona' button is clicked
 @app.callback(
     Output('url', 'pathname'),
     [Input('go-to-persona-button', 'n_clicks')]
@@ -245,7 +245,7 @@ def redirect_to_persona(n_clicks):
         return '/persona'
     return dash.no_update
 
-# API resource (HelloWorld endpoint)
+# API resource (persona endpoint)
 api = Api(server)
 
 class personify(Resource):
