@@ -53,12 +53,12 @@ def create_scatter_figure(marker_x=0.5, marker_y=0.5):
     fig.add_trace(go.Scatter(
         x=[point['x'] for point in points_without_labels],
         y=[point['y'] for point in points_without_labels],
-        mode='markers',  # No labels (invisible points)
-        text=['' for _ in points_without_labels],  # Empty text (no labels)
-        marker=dict(size=5, color='blue', opacity=0),  # Invisible points
+        mode='markers',
+        text=['' for _ in points_without_labels],
+        marker=dict(size=5, color='blue', opacity=0),
     ))
 
-    # Add draggable marker at the user clicked position (default position)
+    # Add draggable marker at the user clicked position
     fig.add_trace(go.Scatter(
         x=[marker_x],
         y=[marker_y],
@@ -67,7 +67,7 @@ def create_scatter_figure(marker_x=0.5, marker_y=0.5):
         name='Draggable Marker'
     ))
 
-    # Add center labels for each quadrant (for visual understanding)
+    # Add center labels for each quadrant
     fig.add_trace(go.Scatter(
         x=[0.25, 0.75, 0.25, 0.75],
         y=[0.75, 0.75, 0.25, 0.25],
@@ -93,10 +93,10 @@ def create_scatter_figure(marker_x=0.5, marker_y=0.5):
         title='Persona State Space',
         xaxis=dict(title='Economic Axis', range=[0, 1], zeroline=True, showgrid=True),
         yaxis=dict(title='Social Axis', range=[0, 1], zeroline=True, showgrid=True),
-        template='plotly',  # Modern plotly theme
-        autosize=True,  # Allow resizing of the plot
-        width=700,  # Adjust width to ensure it's not too squished
-        height=600,  # Adjust height to give it more space
+        template='plotly',
+        autosize=True,
+        width=700,
+        height=600,
     )
 
     return fig
@@ -118,8 +118,8 @@ def create_bar_figure(distances):
         title='Affinity to Clicked Point',
         xaxis=dict(title='Label'),
         yaxis=dict(title='Affinity'),
-        template='plotly',  # Modern plotly theme
-        height=250,  # Adjust the height for the bar plot
+        template='plotly', 
+        height=250, 
     )
 
     return fig
@@ -134,16 +134,16 @@ app.layout = html.Div([
     # Main container using Flexbox to align elements vertically and center content
     html.Div([
         # Title for the plot (bold and centered)
-        html.H1("Political Compass Plot", style={"fontWeight": "bold", "textAlign": "center", "marginTop": "20px"}),  # Title centered and bold
+        html.H1("Political Compass Plot", style={"fontWeight": "bold", "textAlign": "center", "marginTop": "20px"}),
 
         # Scatter plot container - This should be centered horizontally
         html.Div([
             dcc.Graph(
                 id='political-compass',
-                config={'displayModeBar': False},  # Disable editing tools
-                figure=create_scatter_figure(),  # Initial scatter plot
+                config={'displayModeBar': False}, 
+                figure=create_scatter_figure(),
             ),
-        ], style={'width': '100%', 'maxWidth': '800px', 'marginLeft': '190px'}),  # Center the scatter plot and set a max width
+        ], style={'width': '100%', 'maxWidth': '800px', 'marginLeft': '190px'}),
 
         # Buttons and Table in a centered flex layout
         html.Div([
@@ -158,10 +158,10 @@ app.layout = html.Div([
         html.Div([
             dcc.Graph(
                 id='euclidean-distances',
-                config={'displayModeBar': False},  # Disable editing tools
-                figure=create_bar_figure([]),  # Initially empty bar chart
+                config={'displayModeBar': False},
+                figure=create_bar_figure([]),
             ),
-        ], style={'flex': 1, 'width': '40%', 'height': '100%'}),  # Bar plot should take full width
+        ], style={'flex': 1, 'width': '40%', 'height': '100%'}),
 
         # Table to display the pre-defined labels with distances
         html.Div([
@@ -172,17 +172,17 @@ app.layout = html.Div([
                     {'name': 'Character Affinity (Inverted Euclidean Distance)', 'id': 'affinity'},
                 ],
                 data=[],
-                style_table={'height': '300px', 'overflowY': 'auto'},  # Make the table scrollable
+                style_table={'height': '300px', 'overflowY': 'auto'},
                 style_cell={'textAlign': 'center'},
             ),
-        ], style={'flex': 1, 'width': '40%'}),  # Table should take full width
+        ], style={'flex': 1, 'width': '40%'}),
 
-    ], style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center'}),  # Center everything
+    ], style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center'}),
 
     html.Div("Click anywhere on the plot to place the marker!", style={"textAlign": "center", "marginTop": "20px"}),
 
-    # Location component to manage URL navigation
-    dcc.Location(id='url', refresh=True),  # Set 'refresh' to True to trigger a full page reload
+    # Set 'refresh' to True to trigger a full page reload
+    dcc.Location(id='url', refresh=True),
 ])
 
 # Callback to update scatter plot, bar plot, and table
@@ -190,18 +190,18 @@ app.layout = html.Div([
     [Output('political-compass', 'figure'),
      Output('euclidean-distances', 'figure'),
      Output('distance-table', 'data')],
-    [Input('political-compass', 'clickData'),  # Capture click event
-     Input('randomize-button', 'n_clicks')]  # Capture randomize button click
+    [Input('political-compass', 'clickData'),
+     Input('randomize-button', 'n_clicks')]
 )
 def update_plots(click_data, n_clicks):
-    if n_clicks > 0:  # Randomize marker on button click
+    if n_clicks > 0:
         marker_x = random.uniform(0, 1)
         marker_y = random.uniform(0, 1)
-    elif click_data:  # If there is click data, extract x and y coordinates
+    elif click_data:
         marker_x = click_data['points'][0]['x']
         marker_y = click_data['points'][0]['y']
     else:
-        marker_x = 0.5  # Default center position
+        marker_x = 0.5
         marker_y = 0.5
 
     # Calculate Euclidean distances for each labeled point
