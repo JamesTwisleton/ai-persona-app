@@ -6,6 +6,8 @@ on:
       - main
       - compass-prototype
   pull_request:
+    paths:
+      - 'code/python/**'
     branches:
       - main
       - compass-prototype

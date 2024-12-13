@@ -4,13 +4,15 @@ on:
   pull_request:
     branches:
       - '*'
+    paths:
+      - 'code/nextjs/**'
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     defaults:
-          run:
-            working-directory: ./code/nextjs
+      run:
+        working-directory: ./code/nextjs
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
