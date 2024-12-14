@@ -19,15 +19,25 @@
   }
 }
 
-/* Apply global styles to the body */
-body {
-  /* Set text color using the foreground CSS variable */
-  color: rgb(var(--foreground-rgb));
+/* Add light-mode and dark-mode classes */
+.light-mode {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
 
-  /* Create a gradient background */
-  background: 
-    /* Top layer: Gradient from transparent to background-end color */
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))),
-    /* Bottom layer: Solid color using background-start */
-      rgb(var(--background-start-rgb));
+.dark-mode {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    ),
+    rgb(var(--background-start-rgb));
 }
