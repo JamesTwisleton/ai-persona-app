@@ -42,6 +42,8 @@ export default function Page() {
     name: "Katie",
     age: "27",
     location: "Romford",
+    x: 0.15,
+    y: 0.9,
   };
   const susan = {
     index: 0,
@@ -49,6 +51,8 @@ export default function Page() {
     name: "Susan",
     age: "65",
     location: "Doncaster",
+    x: 0.6,
+    y: 0.52,
   };
   const barry = {
     index: 2,
@@ -56,6 +60,8 @@ export default function Page() {
     name: "Barry",
     age: "49",
     location: "Bristol",
+    x: 0.9,
+    y: 0.2,
   };
   const personas = [katie, susan, barry];
 
@@ -77,6 +83,8 @@ export default function Page() {
             name={persona.name}
             age={persona.age}
             location={persona.location}
+            x={persona.x}
+            y={persona.y}
           />
         ))}
       </div>
