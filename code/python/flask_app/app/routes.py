@@ -6,7 +6,7 @@ bp = Blueprint("routes", __name__)
 
 # Home route (displays "Welcome to my Flask app")
 @bp.route("/", methods=["GET"])
-def home():
+def home_route():
     """
     Home endpoint to display a welcome message.
     """
