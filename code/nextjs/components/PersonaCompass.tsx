@@ -1,18 +1,23 @@
 "use client";
 import React from "react";
+import Compass from "@/models/Compass";
 import styles from "./PersonaCompass.module.css"; // Import CSS module for styling
 
-type PersonaCompassProps = {
-  x: number;
-  y: number;
-};
-
-const PersonaCompass = ({ x, y }: PersonaCompassProps) => {
+const PersonaCompass = ({
+  x,
+  y,
+  name,
+  labelTop,
+  labelBottom,
+  labelLeft,
+  labelRight,
+}: Compass) => {
   // Normalize the coordinates to fit within the grid (0 to 1 scale to 0% to 100%)
   const normalize = (value: number) => Math.min(1, Math.max(0, value)) * 100;
 
   return (
     <div className={styles.container}>
+      <p className="text-center text-xl mb-5">{name}</p>
       {/* Compass grid */}
       <div className={styles.grid}>
         {/* Dot representing the x and y coordinates */}
@@ -23,12 +28,13 @@ const PersonaCompass = ({ x, y }: PersonaCompassProps) => {
             top: `${100 - normalize(y)}%`, // Map y to percentage (invert to align top-bottom correctly)
           }}
         ></div>
+
         {/* Labels */}
         <div className={styles.labelContainer}>
-          <span className={styles.labelTop}>Authoritarian</span>
-          <span className={styles.labelBottom}>Libertarian</span>
-          <span className={styles.labelLeft}>Left</span>
-          <span className={styles.labelRight}>Right</span>
+          <span className={styles.labelTop}>{labelTop}</span>
+          <span className={styles.labelBottom}>{labelBottom}</span>
+          <span className={styles.labelLeft}>{labelLeft}</span>
+          <span className={styles.labelRight}>{labelRight}</span>
         </div>
       </div>
     </div>
