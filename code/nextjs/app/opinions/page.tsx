@@ -6,7 +6,7 @@ import PersonaDescription from "@/components/PersonaDescription";
 export default function Page() {
   // TODO: extract this light/dark mode toggle functionality elsewhere
   const [isLightMode, setIsLightMode] = useState(false);
-  // Toggle light/dark mode by updating the HTML element's class
+
   const toggleDarkMode = () => {
     const htmlElement = document.documentElement;
 
@@ -42,8 +42,26 @@ export default function Page() {
     name: "Katie",
     age: "27",
     location: "Romford",
-    x: 0.15,
-    y: 0.9,
+    compasses: [
+      {
+        name: "Political Compass",
+        labelLeft: "Left",
+        labelRight: "Right",
+        labelTop: "Authoritarian",
+        labelBottom: "Libertarian",
+        x: 0.15,
+        y: 0.9,
+      },
+      {
+        name: "Philosophical Compass",
+        labelLeft: "Egalitarianism",
+        labelRight: "Individualism",
+        labelTop: "Collectivism",
+        labelBottom: "Autonomy",
+        x: 0.85,
+        y: 0.1,
+      },
+    ],
   };
   const susan = {
     index: 0,
@@ -51,8 +69,26 @@ export default function Page() {
     name: "Susan",
     age: "65",
     location: "Doncaster",
-    x: 0.6,
-    y: 0.52,
+    compasses: [
+      {
+        name: "Political Compass",
+        labelLeft: "Left",
+        labelRight: "Right",
+        labelTop: "Authoritarian",
+        labelBottom: "Libertarian",
+        x: 0.6,
+        y: 0.52,
+      },
+      {
+        name: "Philosophical Compass",
+        labelLeft: "Egalitarianism",
+        labelRight: "Individualism",
+        labelTop: "Collectivism",
+        labelBottom: "Autonomy",
+        x: 0.4,
+        y: 0.4,
+      },
+    ],
   };
   const barry = {
     index: 2,
@@ -60,8 +96,26 @@ export default function Page() {
     name: "Barry",
     age: "49",
     location: "Bristol",
-    x: 0.9,
-    y: 0.2,
+    compasses: [
+      {
+        name: "Political Compass",
+        labelLeft: "Left",
+        labelRight: "Right",
+        labelTop: "Authoritarian",
+        labelBottom: "Libertarian",
+        x: 0.9,
+        y: 0.2,
+      },
+      {
+        name: "Philosophical Compass",
+        labelLeft: "Egalitarianism",
+        labelRight: "Individualism",
+        labelTop: "Collectivism",
+        labelBottom: "Autonomy",
+        x: 0.1,
+        y: 0.8,
+      },
+    ],
   };
   const personas = [katie, susan, barry];
 
@@ -78,13 +132,13 @@ export default function Page() {
       <div className="grid grid-cols-1 md:grid-cols-3 mb-10">
         {personas.map((persona) => (
           <PersonaDescription
+            key={persona.index}
             index={persona.index}
             image_id={persona.image_id}
             name={persona.name}
             age={persona.age}
             location={persona.location}
-            x={persona.x}
-            y={persona.y}
+            compasses={persona.compasses}
           />
         ))}
       </div>
