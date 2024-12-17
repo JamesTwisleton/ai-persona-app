@@ -41,7 +41,8 @@ export default function QueryBox({ onSearch }: QueryBoxProps) {
         type="submit"
         className="p-3 rounded-r-full bg-blue-500 hover:bg-blue-700 transition duration-300"
       >
-        🔍
+        {/* TODO: replace this with an icon */}
+        <span dangerouslySetInnerHTML={{ __html: "&#128269;" }} />
       </button>
     </form>
   );
