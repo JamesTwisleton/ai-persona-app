@@ -27,3 +27,17 @@
 Pushes to `main` branch will be deployed to:
 
 [personacomposer.app](https://personacomposer.app)
+
+## Persona Compass Application
+1. Navigate to [python](./code/python/) folder. 
+
+2. Run the bash script 'compose_docker.sh' to build, or if already built - to launch the application.
+    ```bash
+    ./compose_docker.sh
+    ```
+    To rebuild the app after code changes, run:
+    ```bash
+    ./compose_docker.sh --rebuild
+    ```
+
+3. Follow the first of the two browser links that are generated. Press CTRL+C in the terminal to stop the app.
