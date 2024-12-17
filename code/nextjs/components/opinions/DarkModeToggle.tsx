@@ -38,9 +38,9 @@ export default function DarkModeToggle() {
   return (
     <button
       onClick={toggleDarkMode}
-      className="mt-4 mb-5 mr-5 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-700"
+      className="rounded-l-full rounded-r-full bg-blue-500 text-white hover:bg-blue-700 transition duration-300 w-24"
     >
-      Toggle to {isLightMode ? "Dark" : "Light"} Mode
+      {isLightMode ? "Dark" : "Light"} Mode
     </button>
   );
 }

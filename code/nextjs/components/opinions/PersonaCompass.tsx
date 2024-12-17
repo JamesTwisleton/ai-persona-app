@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Compass from "@/models/Compass";
+import Compass from "@/models/opinions/Compass";
 import styles from "./PersonaCompass.module.css"; // Import CSS module for styling
 
 const PersonaCompass = ({
