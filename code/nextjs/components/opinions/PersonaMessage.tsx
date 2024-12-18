@@ -17,10 +17,10 @@ const PersonaMessage = ({
   return (
     <div
       key={index}
-      className="mt-5 mb-5 mx-10 rounded-3xl p-4 border border-gray-400 flex items-center gap-4"
+      className="mt-5 mb-5 mx-5 rounded-3xl p-4 border border-gray-400 flex items-center"
     >
       {/* Left Column: Image and Name */}
-      <div className="flex flex-col items-center w-1/3 ml-5 mr-5">
+      <div className="flex flex-col items-center ml-5 mr-5">
         <img
           className="h-auto max-w-full border border-gray-400 rounded-full"
           src={`/images/${image_id}`}
