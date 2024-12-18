@@ -135,7 +135,7 @@ export default async function Page({
 
       {/* Messages Grid */}
       <div className="text-center text-2xl">
-        Thoughts on "{conversation.topic}"
+        Thoughts on &quot;{conversation.topic}&quot;
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 mb-10">
         {conversation.messages.map((message) => (
