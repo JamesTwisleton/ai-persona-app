@@ -6,28 +6,43 @@
 /* Define global CSS variables for light mode */
 :root {
   --foreground-rgb: 0, 0, 0; /* Black text */
-  --background-start-rgb: 214, 219, 220; /* Light gray background start */
-  --background-end-rgb: 255, 255, 255; /* White background end */
+  --background-start-rgb: 255, 255, 255; /* White at the top */
+  --background-end-rgb: 230, 230, 230; /* Light gray at the bottom */
 }
 
 /* Override CSS variables for dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255; /* White text */
-    --background-start-rgb: 0, 0, 0; /* Black background start */
-    --background-end-rgb: 0, 0, 0; /* Black background end */
+    --background-start-rgb: 20, 20, 20; /* Slight off-black at top */
+    --background-end-rgb: 0, 0, 0; /* Black at the bottom */
   }
 }
 
-/* Apply global styles to the body */
-body {
-  /* Set text color using the foreground CSS variable */
-  color: rgb(var(--foreground-rgb));
+/* Add light-mode and dark-mode classes */
+.light-mode {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 185, 185, 185;
+}
 
-  /* Create a gradient background */
-  background: 
-    /* Top layer: Gradient from transparent to background-end color */
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))),
-    /* Bottom layer: Solid color using background-start */
-      rgb(var(--background-start-rgb));
+.dark-mode {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 70, 70, 70;
+  --background-end-rgb: 0, 0, 0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    ),
+    rgb(var(--background-start-rgb));
+
+  /* Prevent the gradient from repeating and scrolling */
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
 }

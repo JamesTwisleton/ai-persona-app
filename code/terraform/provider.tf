@@ -1,4 +1,11 @@
 terraform {
+    backend "s3" {
+    bucket         = "ai-persona-app-terraform-state-bucket"
+    key            = "terraform/state/ai-persona-app.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-lock"
+    encrypt        = true
+  }
   required_providers {
     mongodbatlas = {
       source = "mongodb/mongodbatlas"
