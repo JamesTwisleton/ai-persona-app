@@ -25,8 +25,8 @@ const PersonaDescription = ({
   onToggleSelect,
 }: PersonaDescriptionProps) => {
   const borderClasses = isSelected
-    ? "border-4 border-blue-500"
-    : "border border-gray-400";
+    ? "outline outline-4 outline-blue-500 border border-transparent"
+    : "border border-gray-400 outline-none";
 
   return (
     <div
