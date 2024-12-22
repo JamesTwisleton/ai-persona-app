@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import PersonaCompass from "./PersonaCompass";
-import Compass from "../../models/opinions/Compass";
+import Slider from "../../models/opinions/Slider";
+import PersonaSlider from "./PersonaSlider";
 
 type PersonaDescriptionProps = {
   index: number;
@@ -9,7 +9,7 @@ type PersonaDescriptionProps = {
   name: string;
   age: string;
   location: string;
-  compasses: Compass[];
+  sliders: Slider[];
   isSelected: boolean;
   onToggleSelect: (id: number) => void;
 };
@@ -20,28 +20,10 @@ const PersonaDescription = ({
   name,
   age,
   location,
-  compasses,
+  sliders,
   isSelected,
   onToggleSelect,
 }: PersonaDescriptionProps) => {
-  const [currentCompassIndex, setCurrentCompassIndex] = useState(0);
-
-  const handlePrevious = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentCompassIndex((prevIndex) =>
-      prevIndex === 0 ? compasses.length - 1 : prevIndex - 1,
-    );
-  };
-
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentCompassIndex((prevIndex) =>
-      prevIndex === compasses.length - 1 ? 0 : prevIndex + 1,
-    );
-  };
-
-  const currentCompass = compasses[currentCompassIndex];
-
   const borderClasses = isSelected
     ? "border-4 border-blue-500"
     : "border border-gray-400";
@@ -69,25 +51,16 @@ const PersonaDescription = ({
         <p className="text-center text-gray-500">{location}</p>
       </div>
 
-      {/* Compass with Navigation */}
       <div className="mt-5 mb-5">
-        <PersonaCompass {...currentCompass} />
-
-        {/* Navigation Arrows */}
-        <div className="flex justify-center items-center mt-5 space-x-5">
-          <button
-            onClick={handlePrevious}
-            className="px-2 py-2 rounded text-black bg-gray-300 hover:bg-gray-400 transition duration-200"
-          >
-            Previous
-          </button>
-          <button
-            onClick={handleNext}
-            className="px-6 py-2 rounded text-black bg-gray-300 hover:bg-gray-400 transition duration-200"
-          >
-            Next
-          </button>
-        </div>
+        {sliders.map((slider) => (
+          <PersonaSlider
+            key={slider.name}
+            name={slider.name}
+            labelLeft={slider.labelLeft}
+            labelRight={slider.labelRight}
+            value={slider.value}
+          />
+        ))}
       </div>
     </div>
   );

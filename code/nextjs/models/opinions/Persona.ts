@@ -1,4 +1,4 @@
-import Compass from "./Compass";
+import Slider from "./Slider";
 
 type Persona = {
   id: number;
@@ -6,7 +6,7 @@ type Persona = {
   name: string;
   age: string;
   location: string;
-  compasses: Compass[];
+  sliders: Slider[];
 };
 
 export default Persona;
