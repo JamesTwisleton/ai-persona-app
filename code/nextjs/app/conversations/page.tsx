@@ -15,24 +15,18 @@ export default function Page() {
     name: "Katie",
     age: "27",
     location: "Romford",
-    compasses: [
+    sliders: [
       {
-        name: "Political Compass",
+        name: "Political Leaning",
         labelLeft: "Left",
         labelRight: "Right",
-        labelTop: "Authoritarian",
-        labelBottom: "Libertarian",
-        x: 0.15,
-        y: 0.9,
+        value: 0.15,
       },
       {
-        name: "Philosophical Compass",
+        name: "Authoritarian Leaning",
         labelLeft: "Egalitarianism",
         labelRight: "Individualism",
-        labelTop: "Collectivism",
-        labelBottom: "Autonomy",
-        x: 0.85,
-        y: 0.1,
+        value: 0.85,
       },
     ],
   };
@@ -43,24 +37,18 @@ export default function Page() {
     name: "Susan",
     age: "65",
     location: "Doncaster",
-    compasses: [
+    sliders: [
       {
-        name: "Political Compass",
+        name: "Political Leaning",
         labelLeft: "Left",
         labelRight: "Right",
-        labelTop: "Authoritarian",
-        labelBottom: "Libertarian",
-        x: 0.6,
-        y: 0.52,
+        value: 0.6,
       },
       {
-        name: "Philosophical Compass",
+        name: "Authoritarian Leaning",
         labelLeft: "Egalitarianism",
         labelRight: "Individualism",
-        labelTop: "Collectivism",
-        labelBottom: "Autonomy",
-        x: 0.4,
-        y: 0.4,
+        value: 0.4,
       },
     ],
   };
@@ -71,24 +59,18 @@ export default function Page() {
     name: "Barry",
     age: "49",
     location: "Bristol",
-    compasses: [
+    sliders: [
       {
-        name: "Political Compass",
+        name: "Political Leaning",
         labelLeft: "Left",
         labelRight: "Right",
-        labelTop: "Authoritarian",
-        labelBottom: "Libertarian",
-        x: 0.9,
-        y: 0.2,
+        value: 0.9,
       },
       {
-        name: "Philosophical Compass",
+        name: "Authoritarian Leaning",
         labelLeft: "Egalitarianism",
         labelRight: "Individualism",
-        labelTop: "Collectivism",
-        labelBottom: "Autonomy",
-        x: 0.1,
-        y: 0.8,
+        value: 0.1,
       },
     ],
   };
@@ -157,7 +139,7 @@ export default function Page() {
             name={persona.name}
             age={persona.age}
             location={persona.location}
-            compasses={persona.compasses}
+            sliders={persona.sliders}
             // Check if this persona is selected
             isSelected={selectedPersonas.some((p) => p.id === persona.id)}
             onToggleSelect={togglePersonaSelection}
