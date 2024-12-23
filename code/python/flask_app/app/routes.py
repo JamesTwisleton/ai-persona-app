@@ -1,3 +1,22 @@
+# CHANGES
+# 
+
+# TODO: 
+# load DB from database.db on app init. if database.db is empty, create initial tables in the style of post_archetype_attributes, adding in
+# creation of personas as well as archetypes (split out the persona creation from the init_conversations route)
+
+# ensure database.db is persisted in container on app close, and is compatible with ECS
+
+# add "get-personas" route
+
+# add "create-conversation" route using init-conversations as a basis
+
+# get it working with frontend locally
+
+# create docker-compose to run the frontend and backend together locally
+
+# add terraform to deploy to ECS and get it working online
+
 import os
 from datetime import date, datetime
 from flask import Blueprint, request, jsonify
@@ -122,7 +141,7 @@ def init_conversations():
 
                     # Modify the pre-prompt based on the persona affinities
                     pre_prompt = PRE_PROMPT
-                    pre_prompt['persona']['affinities'] = persona_affinities
+                    pre_prompt['persona_affinities'] = persona_affinities
 
                     # Check that the attribute type exists
                     attribute_type_id = attr_data["attribute_type_id"]

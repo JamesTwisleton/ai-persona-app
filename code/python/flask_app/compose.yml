@@ -1,13 +1,10 @@
+version: '3.8'
 services:
-  python_backend:
-    build:
-      context: . # Points to the directory containing the Dockerfile
-      dockerfile: Dockerfile
+  application:
+    build: .
+    volumes:
+      - ./data:/data  # Map the database folder for persistence
     ports:
-      - "8050:8050" # Maps port 8050 on the host to port 8050 in the container
-    
-    # volumes:
-    # TODO: remove if not necessary
-      # - .:/app # Mounts the entire current directory to /app in the container
-      # - ./app/database.db:/app/database.db # Ensures app.db is shared between the host and container
-    
+      - "8050:8050"   # Map the container's port to the host machine
+    environment:
+      - FLASK_ENV=development  # Use "production" for production environments
