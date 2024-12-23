@@ -3,6 +3,7 @@
 # dependencies
 code/python/flask_app/app/.env
 code/python/flask_app/README.md
+code/python/flask_app/compose_docker.sh
 **/node_modules
 /.pnp
 .pnp.js
