@@ -41,3 +41,6 @@ Pushes to `main` branch will be deployed to:
     ```
 
 3. Follow the first of the two browser links that are generated. Press CTRL+C in the terminal to stop the app.
+
+### Miro
+https://miro.com/app/board/o9J_l3Gv7S0=/

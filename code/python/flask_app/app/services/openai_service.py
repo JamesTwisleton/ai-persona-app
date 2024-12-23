@@ -1,41 +1,64 @@
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 from flask import current_app
+import json
+import os
+
+# Load environment variables
 load_dotenv()
 
-def generate_character_motto(prompt, motto_tone):
+def generate_character_motto(pre_prompt, prompt):
     """
     Generate a short character motto based on the given description and tone.
     
-    :param prompt: The description of the character
-    :param motto_tone: The desired tone/style of the motto
-    :return: The generated motto as a string
+    :param pre_prompt: The pre-defined context to give the LLM.
+    :param prompt: The description of the character.
+    :return: The generated motto as a string.
     """
-    # openai.api_key 
-    print(current_app.config['OPENAI_API_KEY'])
+    # OpenAI API key setup
+    client = OpenAI(api_key=current_app.config['OPENAI_API_KEY'])
 
     try:
-        # Construct the question for ChatGPT
-        question = f"Generate a short character motto with the description: {prompt} in a {motto_tone} tone."
-        print(f"Calling ChatGPT with prompt: {question}")
+        # Combine pre_prompt and prompt
+        question = f"{pre_prompt}\n{prompt}"
+
+        # print(f"Calling ChatGPT with prompt: {question}")
 
         # Make the API call to ChatGPT
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Using GPT-4 for better quality responses
-            messages=[{"role": "user", "content": question}],
-            max_tokens=60,  # Limit the response length to ensure a concise motto
-            temperature=0.7  # Adjust for creativity vs. consistency
-        )
-        
+        response = client.chat.completions.create(model="gpt-4",  # Using GPT-4 for better quality responses
+        messages=[{"role": "user", "content": question}],
+        max_tokens=60,  # Limit the response length to ensure a concise motto
+        temperature=0.7)  # Adjust for creativity vs. consistency)
+
         # Extract and return the content of the response
-        return response['choices'][0]['message']['content'].strip()
+        return response.choices[0].message.content.strip()
 
     except Exception as e:
         return f"Error generating motto: {e}"
 
 # Example usage
 if __name__ == "__main__":
-    prompt = "brave knight who protects the weak"
-    motto_tone = "heroic"
-    motto = generate_character_motto(prompt, motto_tone)
+
+    # Load pre-prompt from JSON file
+    file_name = 'preprompt_v_0.1.json'
+    with open(os.path.join(os.path.dirname(__file__), '..', 'static', 'preprompts', file_name)) as f:
+        pre_prompt = json.load(f)
+
+    # Modify the pre-prompt persona affinities
+    new_affinities = {
+        'economic': 0.7,
+        'freedom': 0.5,
+        'tone': 0.4,
+        'culture': 0.8,
+        'conflict': 0.6,
+        'optimism': 0.9}
+
+    # Update the pre-prompt
+    pre_prompt['persona']['affinities'] = new_affinities
+
+    # Example character description prompt
+    prompt = "A wise, strategic leader with a focus on pragmatic solutions for global peace."
+
+    # Generate the motto
+    motto = generate_character_motto(pre_prompt, prompt)
     print(f"Generated Motto: {motto}")
