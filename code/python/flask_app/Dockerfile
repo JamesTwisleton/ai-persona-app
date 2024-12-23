@@ -1,31 +1,31 @@
-# Use an official Python runtime as a parent image
+# Use a Python base image
 FROM python:3.11-slim
 
-# Set the working directory inside the container
-WORKDIR /work_dir
+# Set the working directory
+WORKDIR /app
 
-# Copy run_app.py and requirements.txt to the working directory
-COPY run_app.py requirements.txt /work_dir/
-
-# Copy the entire app directory into the container
-COPY app /work_dir/app
-
-# Install required system packages
-RUN apt-get update && apt-get install -y \
-    build-essential \
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
     libgmp-dev \
     libmpfr-dev \
     libmpc-dev \
-    gcc \
-    g++ \
-    && apt-get clean
+    python3-dev \
+    build-essential \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# TODO: make base image with all dependencies installed
+# Create a directory for persistent data
+RUN mkdir -p /app/app/data && chmod -R 777 /app/app/data
+
+# Copy application files
+COPY . /app
+
 # Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port on which the app runs
+# Expose the port for the Flask app
 EXPOSE 8050
 
-# Define the command to run the app
+# Define the default command to run the app
 CMD ["python", "run_app.py"]
