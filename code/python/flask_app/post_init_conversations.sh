@@ -64,31 +64,7 @@ DATA='{
             { "name": "optimism", "value": 1.0, "attribute_type_id": 6 }
           ]
         }
-      ],
-      "messages": [
-        {
-          "id": 1,
-          "persona_id": 1,
-          "toxicity": 0.2,
-          "content": "I believe in balanced economic reforms.",
-          "created": "2024-12-22T10:05:00"
-        },
-        {
-          "id": 2,
-          "persona_id": 2,
-          "toxicity": 0.1,
-          "content": "Freedom is essential for innovation.",
-          "created": "2024-12-22T10:10:00"
-        },
-        {
-          "id": 3,
-          "persona_id": 3,
-          "toxicity": 0.3,
-          "content": "Compromise leads to better outcomes.",
-          "created": "2024-12-22T10:15:00"
-        }
-      ]
-    },
+      ]},
     {
       "id": 2,
       "topic": "Cultural Values Discussion",
@@ -147,31 +123,7 @@ DATA='{
             { "name": "optimism", "value": 0.4, "attribute_type_id": 6 }
           ]
         }
-      ],
-      "messages": [
-        {
-          "id": 1,
-          "persona_id": 1,
-          "toxicity": 0.3,
-          "content": "Traditional values are the foundation of our society.",
-          "created": "2024-12-23T15:10:00"
-        },
-        {
-          "id": 2,
-          "persona_id": 2,
-          "toxicity": 0.4,
-          "content": "Progressive ideas help us move forward.",
-          "created": "2024-12-23T15:15:00"
-        },
-        {
-          "id": 3,
-          "persona_id": 3,
-          "toxicity": 0.2,
-          "content": "Finding common ground is essential.",
-          "created": "2024-12-23T15:20:00"
-        }
-      ]
-    }
+      ]}
   ]
 }'
 
