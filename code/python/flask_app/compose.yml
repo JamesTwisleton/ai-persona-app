@@ -1,5 +1,5 @@
 services:
-  app:
+  python_backend:
     build:
       context: . # Points to the directory containing the Dockerfile
       dockerfile: Dockerfile
@@ -7,6 +7,7 @@ services:
       - "8050:8050" # Maps port 8050 on the host to port 8050 in the container
     
     # volumes:
-      - .:/app # Mounts the entire current directory to /app in the container
-      - ./app/database.db:/app/database.db # Ensures app.db is shared between the host and container
+    # TODO: remove if not necessary
+      # - .:/app # Mounts the entire current directory to /app in the container
+      # - ./app/database.db:/app/database.db # Ensures app.db is shared between the host and container
     
