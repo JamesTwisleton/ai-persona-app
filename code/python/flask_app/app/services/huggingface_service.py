@@ -7,43 +7,26 @@ def toxicity_classification(sentences):
 
     Parameters
     ----------
-    sentences : list of str
-        The sentences to classify
+    sentences : list
+        List containing sentences to classify
 
     Returns
     -------
-    toxicity : str
-        The toxicity label ("toxic" or "non-toxic")
     score : float
-        The confidence score of the toxicity classification
+        The probability score of toxic classification
     """
     
-    
-    toxicity_classifier = pipeline("text-classification", 
+    # Load the pre-trained toxicity classification model
+    toxicity_classifier = pipeline("text-classification",
                                    model="unitary/toxic-bert")
-    
-
-    # Define the cutoff for classifying as toxic (e.g., 0.7)
-    toxicity_cutoff = 0.7
 
     # Perform toxicity classification
     results = toxicity_classifier(sentences)
+    score = results[0]['score']
 
-    # Print the results
-    for sentence, result in zip(sentences, results):
-        label = result['label']
-        score = result['score']
-
-        # Apply the toxicity cutoff
-        if score >= toxicity_cutoff:
-            toxicity = label
-        else:
-            toxicity = "non-toxic"
-
-        print(f"Sentence: {sentence}")
-        print(f"Toxicity: {toxicity} (Confidence: {score:.4f})\n")
-
-        return toxicity, round(score, 3)
+    return round(score, 3)
 
 if __name__ == "__main__":
-    toxicity_classification()
+    inputs = ["I love my dog", "I hate my cat", "This is a fucking toxic shit"]
+    toxicity = toxicity_classification(inputs)
+    print(toxicity)

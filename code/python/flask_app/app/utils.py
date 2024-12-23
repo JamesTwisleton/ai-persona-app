@@ -1,7 +1,6 @@
-import math
 import json
-import random
-
+import numpy as np
+from sqlalchemy.sql import text
 
 # read json file
 def read_json(file_path):
@@ -13,93 +12,186 @@ def read_json(file_path):
     file_path : str
         The path to the JSON file
 
-    Returns
-    -------
-    list
-        A list of points in the format [{'x': float, 'y': float, 'label': str}]
+    Returns: ???
     """
     with open(file_path, 'r') as file:
-        return json.load(file)['points']
+        return json.load(file)
 
-# Get the euclidean distance for each point
-def euclidean_distance(x1, y1, x2, y2):
-    """
-    Calculate the Euclidean distance between two points (x1, y1) and (x2, y2)
+def get_archetype_as_list(db):
 
-    Parameters
-    ----------
-    x1 : float
-    y1 : float
-    x2 : float
-    y2 : float
+    query = text("""
+        SELECT 
+            arch.name AS archetype_name, 
+            arch.value AS value, 
+            att.name AS attribute_name, 
+            arch.attribute_type_id AS attribute_type_id,
+            att.id AS attribute_id
+        FROM archetypes AS arch
+        JOIN attribute_types AS att 
+        ON arch.attribute_type_id = att.id
+        ORDER BY arch.name, att.id
+    """)
 
-    Returns
-    -------
-    float
-        The Euclidean distance between the two points
-    """
-    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    # Execute the query
+    result = db.session.execute(query)
 
-# Function to calculate Euclidean distance from a point to all predefined points
-def calculate_distances(x, y, persona_scape):
-    """
-    Calculate Euclidean distance from (x, y) to all predefined points
-    
-    Parameters
-    ----------
-    x : float
-    y : float
-    persona_scape : list(dict)
-    
-    Returns
-    -------
-    list
-        A list of Euclidean distances from (x, y) to each predefined point
-        A list of labels for each predefined point
-    """
-    distances = []
-    labels = []
-    for point in persona_scape:
-        distances.append(euclidean_distance(x, y, point['x'], point['y']))
-        labels.append(point['label'])
-    return distances, labels
+    # Initialize a dictionary to organize data
+    archetype_data = {}
 
-# Function to calculate affinity of a point to all predefined points
-def calculate_affinity(x, y, persona_compass):
-    """
-    Calculate affinity of (x, y) to all predefined points
-    
-    Parameters
-    ----------
-    x : float
-    y : float
-    
-    Returns
-    -------
-    list
-        A list of affinities from (x, y) to each predefined point
-    """
-    distances, labels = calculate_distances(x, y, persona_compass)
-    max_distance = max(distances)
-    inverted_distances = [max_distance - dist for dist in distances]
-    sum_inverted_distances = sum(inverted_distances)
-    normalized_affinity = [round(dist / sum_inverted_distances, 3) for dist in inverted_distances]
+    # Process the query result
+    for row in result:
+        archetype_name = row.archetype_name
+        attribute_name = row.attribute_name.lower()  # Dynamically handle all attribute names
+        value = row.value
 
-    # Zip the labels and normalized affinities
-    affinity_dict = dict(zip(labels, normalized_affinity))
-    return affinity_dict
+        # Check if the archetype_name is already added
+        if archetype_name not in archetype_data:
+            # Initialize the archetype's dictionary with name and empty coordinates
+            archetype_data[archetype_name] = {
+                "name": archetype_name,
+                "coordinates": {}  # Empty dictionary for coordinates
+            }
 
-# Generate random point
-def generate_random_point():
-    """
-    Generate a random point within the unit square [0, 1] x [0, 1].
+        # Add the attribute name and value to coordinates
+        archetype_data[archetype_name]["coordinates"][attribute_name] = value
 
-    Returns
-    -------
-    dict
-        A dictionary with 'x' and 'y' keys, where the values are 
-        the x and y coordinates of the point, rounded to one decimal place.
-    """
+    # Convert the dictionary to a list of dictionaries
+    archetype_list = list(archetype_data.values())
 
-    return {"x": round(random.uniform(0, 1), 1), "y": round(random.uniform(0, 1), 1)}
+    return archetype_list
 
+class PersonaSpace:
+    def __init__(self, persona_attributes, archetype_attributes):
+        self.persona_state = persona_attributes
+        self.archetype_states = archetype_attributes
+        self.archetype_names = self.get_archetype_names()
+        self.persona_vector = None
+        self.archetype_vector = None
+
+    def get_vectors(self):
+        p_vec = list(self.persona_state.values())
+        a_vec = []
+        
+        for archetype in self.archetype_states:
+            coordinates = list(archetype['coordinates'].values())
+            a_vec.append(coordinates)
+            self.archetype_vectors = np.array(a_vec)
+            self.persona_vector = np.array(p_vec)  
+
+    def get_archetype_names(self):    
+        archetype_names = []
+        for archetype in self.archetype_states:
+            archetype_names.append(archetype['name'])
+        return archetype_names
+ 
+    def calculate_similarity(self):
+
+        self.get_vectors()
+
+        # Calculate the cosine similarity between the persona vector and each archetype vector
+        d_cos = np.dot(self.archetype_vectors, self.persona_vector) / (
+            np.linalg.norm(self.archetype_vectors, axis=1) * np.linalg.norm(self.persona_vector))
+
+        # Normalize the cosine similarities
+        d_cos_norm = (d_cos - np.min(d_cos)) / (
+            np.max(d_cos) - np.min(d_cos))
+        
+        # Their normalized cosine similarities should together sum to 1
+        d_cos_norm = d_cos_norm / np.sum(d_cos_norm)
+
+        # Add back the archetype names as a dictionary
+        archetype_similarity = {}
+        for i, archetype_name in enumerate(self.archetype_names):
+            archetype_similarity[archetype_name] = round(d_cos_norm[i], 3)
+
+        # return archetype_similarity
+        return archetype_similarity
+
+if __name__ == "__main__":
+    print("This module is not intended to be run as a standalone script.")
+    print("Please import the module in another script.")
+
+    # Example usage:
+    archetype_dicts = [
+    {
+        "name": "The visionary Rebel",
+        "coordinates": {
+            "economic": 0.1,
+            "freedom": 0.9,
+            "tone": 0.2,
+            "culture": 0.9,
+            "conflict": 0.3,
+            "optimism": 0.8
+            }
+        },
+
+    {
+        "name": "The Authoritarian Realist",
+        "coordinates": {
+            "economic": 0.8,
+            "freedom": 0.1,
+            "tone": 0.3,
+            "culture": 0.1,
+            "conflict": 0.8,
+            "optimism": 0.2
+        }
+    },
+    {
+        "name": "The Diplomatic Centrist",
+        "coordinates": {
+            "economic": 0.5,
+            "freedom": 0.5,
+            "tone": 0.9,
+            "culture": 0.5,
+            "conflict": 0.7,
+            "optimism": 0.6
+        }
+    },
+    {
+        "name": "The Cynical Firebrand",
+        "coordinates": {
+            "economic": 0.2,
+            "freedom": 0.4,
+            "tone": 0.1,
+            "culture": 0.7,
+            "conflict": 0.2,
+            "optimism": 0.3
+        }
+    },
+    {
+        "name": "The Progressive Idealist",
+        "coordinates": {
+            "economic": 0.3,
+            "freedom": 0.8,
+            "tone": 0.8,
+            "culture": 1,
+            "conflict": 0.6,
+            "optimism": 1.6
+        }
+    },
+    {
+        "name": "The Pragmatic Traditionalist",
+        "coordinates": {
+            "economic": 0.9,
+            "freedom": 0.3,
+            "tone": 0.5,
+            "culture": 0.2,
+            "conflict": 0.4,
+            "optimism": 0.4
+            }   
+        },
+    ]
+
+    persona_dict = {
+        "economic": 0.7,
+        "freedom": 0.5,
+        "tone": 0.4,
+        "culture": 0.8,
+        "conflict": 0.6,
+        "optimism": 0.9
+    }
+
+    # Generate the persona affinities
+    persona_space = PersonaSpace(persona_dict, archetype_dicts)
+    archetype_similarity = persona_space.calculate_similarity()
+    print(archetype_similarity)
