@@ -1,19 +1,22 @@
-# CHANGES
-# 
-
 # TODO: 
-# load DB from database.db on app init. if database.db is empty, create initial tables in the style of post_archetype_attributes, adding in
-# creation of personas as well as archetypes (split out the persona creation from the init_conversations route)
+# DONE! load DB from database.db on app init. if database.db is empty, create initial tables in the style of post_archetype_attributes.
+# DONE! Ensure database.db is persisted on app close/re-open
 
-# ensure database.db is persisted in container on app close, and is compatible with ECS
+# refactor populate_database_with_initial_data to read from static directory
+
+# initialize personas on app init (split out the persona creation from the init_conversations route)
 
 # add "get-personas" route
 
 # add "create-conversation" route using init-conversations as a basis
 
+# split logic in routes into separate files, so routes simply calls functions elsewhere
+
 # get it working with frontend locally
 
 # create docker-compose to run the frontend and backend together locally
+
+# ensure database.db persistence is compatible with ECS
 
 # add terraform to deploy to ECS and get it working online
 
@@ -41,33 +44,6 @@ def home_route():
     Home endpoint to display a welcome message.
     """
     return "Welcome to my Flask app", 200
-
-# Route to populate initial attributes and archetypes
-@bp.route('/populate_attributes_and_archetypes', methods=['POST', 'GET'])
-def populate_attributes_and_archetypes():
-
-    from .models import db
-
-    data = request.json
-    for attribute_type in data["AttributeTypes"]:
-        attribute_type_instance = AttributeType(
-            name=attribute_type['name'],
-            left_name=attribute_type['left_name'],
-            right_name=attribute_type['right_name']
-        )
-        db.session.add(attribute_type_instance)
-        db.session.commit()
-
-        for archetype in attribute_type["archetypes"]:
-            archetype_instance = Archetype(
-                name=archetype['name'],
-                value=archetype['value'],
-                attribute_type_id=attribute_type_instance.id
-            )
-            db.session.add(archetype_instance)
-            db.session.commit()
-
-    return jsonify({'status': 'success', 'message': 'Data created successfully!'}), 201
 
 # Route to initialize conversations objects
 @bp.route('/init-conversations', methods=['POST', 'GET'])

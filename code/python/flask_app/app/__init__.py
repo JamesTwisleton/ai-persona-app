@@ -18,18 +18,12 @@ def create_app():
 
     with app.app_context():
 
-        # Ensure the data directory exists
+        # Ensure the data directory and DB file exist, creating them if they don't
         os.makedirs("app/data", exist_ok=True)
-
-        # Create data directory if it doesn't exist
         database_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
         os.makedirs(os.path.dirname(database_path), exist_ok=True)
+        
         db.create_all()
-
-    # # Create database tables
-    # with app.app_context():
-    
-        # db.create_all()
 
         # Check if data is already populated
         if not AttributeType.query.first():
