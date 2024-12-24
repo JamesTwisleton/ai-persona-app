@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 import json
-from .models import db, AttributeType, Archetype, Persona
+from .models import db, Attribute, AttributeType, Archetype, Persona
 from .routes import bp
 from .config import Config
 from datetime import date, datetime
@@ -79,10 +79,13 @@ def populate_initial_attribute_types():
 
     except FileNotFoundError:
         print(f"Error: The file {archetypes_file_path} was not found.")
+        db.session.rollback()
     except json.JSONDecodeError as e:
         print(f"Error: Failed to decode JSON - {e}")
+        db.session.rollback()
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        db.session.rollback()
 
 def populate_initial_personas():
     """
@@ -110,8 +113,18 @@ def populate_initial_personas():
                         location=persona["location"],
                         profile_picture_s3_bucket_address=persona["profile_picture_s3_bucket_address"],
                         creation_date=current_timestamp)
-            
             db.session.add(persona_instance)
+            
+            # Add Attributes
+            for attr_data in persona.get("attributes", []):
+                
+                # Add the Attribute
+                attribute = Attribute(
+                    persona_id=persona_instance.id,
+                    attribute_type_id=attr_data["attribute_type_id"],
+                    value=attr_data["value"])
+                
+                db.session.add(attribute)
 
         # Commit all changes to the database
         db.session.commit()
@@ -120,7 +133,10 @@ def populate_initial_personas():
 
     except FileNotFoundError:
         print(f"Error: The file {personas_file_path} was not found.")
+        db.session.rollback()
     except json.JSONDecodeError as e:
         print(f"Error: Failed to decode JSON - {e}")
+        db.session.rollback()
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        db.session.rollback()
