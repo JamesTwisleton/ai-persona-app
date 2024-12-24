@@ -21,8 +21,6 @@ def create_app():
 
         # Ensure the data directory and DB file exist, creating them if they don't
         os.makedirs("app/data", exist_ok=True)
-        database_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
-        os.makedirs(os.path.dirname(database_path), exist_ok=True)
         
         db.create_all()
 
