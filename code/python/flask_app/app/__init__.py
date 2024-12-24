@@ -18,13 +18,10 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-
-        # Ensure the data directory and DB file exist, creating them if they don't
-        os.makedirs("app/data", exist_ok=True)
-        
+        # Create the database tables
         db.create_all()
 
-        # Check if data is already populated
+        # Check if data is already populated, if its not then populate it
         if not AttributeType.query.first():
             print("Populating database with initial data...")
             populate_database_with_initial_data()
