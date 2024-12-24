@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+import json
 from .models import db, AttributeType, Archetype
 from .routes import bp
 from .config import Config
@@ -38,112 +39,44 @@ def create_app():
 
 def populate_database_with_initial_data():
     """
-    Populate the database with initial data.
-    This function includes all the data from the `post_archetypes_attributes.sh` script.
+    Populate the database with initial data from archetypes.json.
     """
-    from .models import db
+    # Path to the archetypes.json file
+    archetypes_file_path = os.path.join(os.path.dirname(__file__), 'static', 'archetypes', 'archetypes.json')
 
-    # Define the initial data for the database
-    initial_data = [
-        {
-            "name": "economic",
-            "left_name": "left",
-            "right_name": "right",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.1},
-                {"name": "The Authoritarian Realist", "value": 0.8},
-                {"name": "The Diplomatic Centrist", "value": 0.5},
-                {"name": "The Traditionalist", "value": 0.5},
-                {"name": "The Progressive Idealist", "value": 0.3},
-                {"name": "The Pragmatic Traditionalist", "value": 0.9},
-            ],
-        },
-        {
-            "name": "freedom",
-            "left_name": "Authoritarian",
-            "right_name": "Libertarian",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.9},
-                {"name": "The Authoritarian Realist", "value": 0.1},
-                {"name": "The Diplomatic Centrist", "value": 0.5},
-                {"name": "The Traditionalist", "value": 0.5},
-                {"name": "The Progressive Idealist", "value": 0.8},
-                {"name": "The Pragmatic Traditionalist", "value": 0.3},
-            ],
-        },
-        {
-            "name": "tone",
-            "left_name": "Negative",
-            "right_name": "Positive",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.2},
-                {"name": "The Authoritarian Realist", "value": 0.3},
-                {"name": "The Diplomatic Centrist", "value": 0.9},
-                {"name": "The Traditionalist", "value": 0.5},
-                {"name": "The Progressive Idealist", "value": 0.8},
-                {"name": "The Pragmatic Traditionalist", "value": 0.5},
-            ],
-        },
-        {
-            "name": "cultural",
-            "left_name": "Traditional",
-            "right_name": "Progressive",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.9},
-                {"name": "The Authoritarian Realist", "value": 0.1},
-                {"name": "The Diplomatic Centrist", "value": 0.5},
-                {"name": "The Traditionalist", "value": 0.9},
-                {"name": "The Progressive Idealist", "value": 1.0},
-                {"name": "The Pragmatic Traditionalist", "value": 0.2},
-            ],
-        },
-        {
-            "name": "conflict",
-            "left_name": "Avoidant",
-            "right_name": "Confrontational",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.3},
-                {"name": "The Authoritarian Realist", "value": 0.8},
-                {"name": "The Diplomatic Centrist", "value": 0.5},
-                {"name": "The Traditionalist", "value": 0.5},
-                {"name": "The Progressive Idealist", "value": 0.6},
-                {"name": "The Pragmatic Traditionalist", "value": 0.4},
-            ],
-        },
-        {
-            "name": "optimism",
-            "left_name": "Pessimistic",
-            "right_name": "Optimistic",
-            "archetypes": [
-                {"name": "The Visionary Rebel", "value": 0.8},
-                {"name": "The Authoritarian Realist", "value": 0.2},
-                {"name": "The Diplomatic Centrist", "value": 0.5},
-                {"name": "The Traditionalist", "value": 0.5},
-                {"name": "The Progressive Idealist", "value": 1.0},
-                {"name": "The Pragmatic Traditionalist", "value": 0.4},
-            ],
-        },
-    ]
+    try:
+        # Load the JSON data from the file
+        with open(archetypes_file_path, 'r') as file:
+            data = json.load(file)
 
-    # Populate the database with the data
-    for attribute_type in initial_data:
-        # Create an instance of AttributeType and add it to the database
-        attribute_type_instance = AttributeType(
-            name=attribute_type["name"],
-            left_name=attribute_type["left_name"],
-            right_name=attribute_type["right_name"],
-        )
-        db.session.add(attribute_type_instance)
-        db.session.commit()
-
-        # Add the archetypes associated with the current attribute type
-        for archetype in attribute_type["archetypes"]:
-            archetype_instance = Archetype(
-                name=archetype["name"],
-                value=archetype["value"],
-                attribute_type_id=attribute_type_instance.id,
+        # Iterate over each attribute type in the JSON data
+        for attribute_type in data.get("AttributeTypes", []):
+            # Create an instance of AttributeType and add it to the database
+            attribute_type_instance = AttributeType(
+                name=attribute_type["name"],
+                left_name=attribute_type["left_name"],
+                right_name=attribute_type["right_name"]
             )
-            db.session.add(archetype_instance)
+            db.session.add(attribute_type_instance)
             db.session.commit()
 
-    print("The database has been populated with all the initial data successfully.")
+            # Add the archetypes associated with the current attribute type
+            for archetype in attribute_type.get("archetypes", []):
+                archetype_instance = Archetype(
+                    name=archetype["name"],
+                    value=archetype["value"],
+                    attribute_type_id=attribute_type_instance.id
+                )
+                db.session.add(archetype_instance)
+
+        # Commit all changes to the database
+        db.session.commit()
+
+        print("The database has been populated with data from archetypes.json successfully.")
+
+    except FileNotFoundError:
+        print(f"Error: The file {archetypes_file_path} was not found.")
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to decode JSON - {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
