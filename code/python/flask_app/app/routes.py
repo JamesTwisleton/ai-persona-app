@@ -45,6 +45,42 @@ def home_route():
     """
     return "Welcome to my Flask app", 200
 
+@bp.route('/get-personas', methods=['GET'])
+def get_personas():
+    """
+    Get all personas from the database.
+    """
+    from .models import db
+
+    # Query all personas
+    personas_query = db.session.query(Persona).all()
+
+    # Format the results
+    personas_data = []
+    for persona in personas_query:
+        persona_data = {
+            "id": str(persona.id),
+            "name": persona.name,
+            "dob": persona.dob,
+            "location": persona.location,
+            "profile_picture_s3_bucket_address": persona.profile_picture_s3_bucket_address,
+            "attributes": []
+        }
+
+        # Add attributes for this persona
+        for attribute in persona.attributes_relation:
+            attribute_data = {
+                "id": str(attribute.id),
+                "name": attribute.attribute_type_relation.name,
+                "value": attribute.value
+            }
+            persona_data["attributes"].append(attribute_data)
+
+        personas_data.append(persona_data)
+
+    # Return as JSON
+    return jsonify({"personas": personas_data})
+
 # Route to initialize conversations objects
 @bp.route('/init-conversations', methods=['POST', 'GET'])
 def init_conversations():
@@ -199,6 +235,7 @@ def init_conversations():
 @bp.route('/get-conversations', methods=['GET'])
 def get_conversations():
 
+    # TODO: why does this need to be imported here? any way around it? shouldn't it be imported at the top?
     from .models import db
 
     # Query conversations, including related users, personas, and messages
