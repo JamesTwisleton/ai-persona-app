@@ -1,128 +1,51 @@
 {
-    "Conversations": [
+    "Personas": [
         {
-            "id": 1,
-            "topic": "Philosophy Discussion",
-            "created": "2024-12-10T12:00:00Z",
-            "user": {
-                "id": 1,
-                "username": "user1",
-                "creation_date": "2024-12-01T12:00:00Z"
-            },
-            "personas": [
-                {
-                    "id": 1,
-                    "name": "Persona A",
-                    "dob": "1990-01-01",
-                    "location": "New York",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileA.jpg",
-                    "creation_date": "2024-12-01T12:00:00Z",
-                    "role": "Participant"
-                },
-                {
-                    "id": 2,
-                    "name": "Persona B",
-                    "dob": "1985-05-15",
-                    "location": "London",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileB.jpg",
-                    "creation_date": "2024-11-20T12:00:00Z",
-                    "role": "Participant"
-                },
-                {
-                    "id": 3,
-                    "name": "Persona C",
-                    "dob": "1995-06-10",
-                    "location": "Tokyo",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileC.jpg",
-                    "creation_date": "2024-11-25T12:00:00Z",
-                    "role": "Participant"
-                }
-            ],
-            "messages": [
-                {
-                    "id": 1,
-                    "toxicity": 0.1,
-                    "content": "I believe in free will.",
-                    "created": "2024-12-10T12:05:00Z",
-                    "persona_id": 1
-                },
-                {
-                    "id": 2,
-                    "toxicity": 0.2,
-                    "content": "Determinism is more logical.",
-                    "created": "2024-12-10T12:06:00Z",
-                    "persona_id": 2
-                },
-                {
-                    "id": 3,
-                    "toxicity": 0.0,
-                    "content": "Maybe it’s a mix of both.",
-                    "created": "2024-12-10T12:07:00Z",
-                    "persona_id": 3
-                }
-            ]
+          "id": 1,
+          "name": "Barry",
+          "dob": "1990-06-15",
+          "location": "New York",
+          "profile_picture_s3_bucket_address": "https://example.com/images/barry.jpg",
+          "creation_date": "2024-06-01T10:30:00",
+          "attributes": [
+                { "name": "economic", "value": 0.2, "attribute_type_id": 1 },
+                { "name": "freedom", "value": 0.85, "attribute_type_id": 2 },
+                { "name": "tone", "value": 0.8, "attribute_type_id": 3 },
+                { "name": "cultural", "value": 1.0, "attribute_type_id": 4 },
+                { "name": "conflict", "value": 0.3, "attribute_type_id": 5 },
+                { "name": "optimism", "value": 1.0, "attribute_type_id": 6 }
+          ]
         },
         {
-            "id": 2,
-            "topic": "Future of Technology",
-            "created": "2024-12-15T12:00:00Z",
-            "user": {
-                "id": 2,
-                "username": "user2",
-                "creation_date": "2024-12-05T12:00:00Z"
-            },
-            "personas": [
-                {
-                    "id": 4,
-                    "name": "Persona D",
-                    "dob": "1988-03-20",
-                    "location": "Berlin",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileD.jpg",
-                    "creation_date": "2024-11-25T12:00:00Z",
-                    "role": "Participant"
-                },
-                {
-                    "id": 5,
-                    "name": "Persona E",
-                    "dob": "1993-09-12",
-                    "location": "San Francisco",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileE.jpg",
-                    "creation_date": "2024-11-30T12:00:00Z",
-                    "role": "Participant"
-                },
-                {
-                    "id": 6,
-                    "name": "Persona F",
-                    "dob": "1997-07-22",
-                    "location": "Singapore",
-                    "profile_picture_s3_bucket_address": "https://example.com/profileF.jpg",
-                    "creation_date": "2024-11-28T12:00:00Z",
-                    "role": "Participant"
-                }
-            ],
-            "messages": [
-                {
-                    "id": 4,
-                    "toxicity": 0.3,
-                    "content": "AI is the future.",
-                    "created": "2024-12-15T12:05:00Z",
-                    "persona_id": 4
-                },
-                {
-                    "id": 5,
-                    "toxicity": 0.0,
-                    "content": "But we need regulations.",
-                    "created": "2024-12-15T12:06:00Z",
-                    "persona_id": 5
-                },
-                {
-                    "id": 6,
-                    "toxicity": 0.2,
-                    "content": "I agree, it’s a double-edged sword.",
-                    "created": "2024-12-15T12:07:00Z",
-                    "persona_id": 6
-                }
-            ]
+          "id": 2,
+          "name": "Susan",
+          "dob": "1985-04-20",
+          "location": "Los Angeles",
+          "profile_picture_s3_bucket_address": "https://example.com/images/susan.jpg",
+          "creation_date": "2024-06-01T10:35:00",
+          "attributes": [
+                { "name": "economic", "value": 0.5, "attribute_type_id": 1 },
+                { "name": "freedom", "value": 0.5, "attribute_type_id": 2 },
+                { "name": "tone", "value": 0.7, "attribute_type_id": 3 },
+                { "name": "cultural", "value": 0.6, "attribute_type_id": 4 },
+                { "name": "conflict", "value": 0.4, "attribute_type_id": 5 },
+                { "name": "optimism", "value": 0.7, "attribute_type_id": 6 }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Alex",
+          "dob": "1995-08-10",
+          "location": "Chicago",
+          "profile_picture_s3_bucket_address": "https://example.com/images/alex.jpg",
+          "creation_date": "2024-06-01T10:40:00",
+          "attributes": [
+            { "name": "economic", "value": 0.3, "attribute_type_id": 1 },
+            { "name": "freedom", "value": 0.9, "attribute_type_id": 2 },
+            { "name": "tone", "value": 0.9, "attribute_type_id": 3 },
+            { "name": "cultural", "value": 0.9, "attribute_type_id": 4 },
+            { "name": "conflict", "value": 0.5, "attribute_type_id": 5 },
+            { "name": "optimism", "value": 1.0, "attribute_type_id": 6 }
+          ]
         }
-    ]
-}
+      ]}
