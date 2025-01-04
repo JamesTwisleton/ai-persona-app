@@ -8,6 +8,7 @@ code/python/flask_app/compose_docker.sh
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+database.db
 
 # testing
 /coverage
