@@ -45,7 +45,6 @@ def create_app():
 
     return app
 
-
 def populate_initial_attribute_types():
     """
     Populate the database with initial data from archetypes.json.
