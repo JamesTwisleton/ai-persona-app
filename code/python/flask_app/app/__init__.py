@@ -1,9 +1,9 @@
 from flask import Flask
 import logging
-from .models import db, AttributeType, Persona
+from .models import db
 from .routes import bp
 from .config import Config
-from .functions.database import populate_initial_attribute_types, populate_initial_personas
+from .functions.database import init_database
 
 def create_app():
     app = Flask(__name__)
@@ -17,28 +17,19 @@ def create_app():
     # Validate configuration
     Config.validate()
 
-    # Set up the DB
+    # Set up the DB (SQLAlchemy)
     db.init_app(app)
 
-    with app.app_context():
-        # Create the database tables
-        db.create_all()
+    # Initialize the DB (create tables & populate if needed)
+    init_database(app)
 
-        # Check if archetypes are already populated, if not then populate them
-        if not AttributeType.query.first():
-            app.logger.info("Populating database with initial archetypes...")
-            populate_initial_attribute_types()
-
-        # Check if personas are already populated, if not then populate them
-        if not Persona.query.first():
-            app.logger.info("Populating database with initial personas...")
-            populate_initial_personas()
-
-    # Register routes    
+    # Register routes
     app.register_blueprint(bp)
 
     debug_mode = Config.DEBUG
     port = Config.FLASK_PORT
+
+    # Run the app
     app.run(debug=debug_mode, host="0.0.0.0", port=port)
 
     return app

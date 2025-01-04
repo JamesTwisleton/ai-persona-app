@@ -6,7 +6,23 @@ from flask import Flask, jsonify
 from sqlalchemy.orm import joinedload
 from ..models import db, Persona, Conversation, Message, ConversationParticipants, AttributeType, Archetype, Attribute
 
-app = Flask(__name__)
+def init_database(app):
+    """
+    Create database tables (if they don't exist), then populate with initial data
+    if archetypes and/or personas are missing.
+    """
+    with app.app_context():
+        db.create_all()
+
+        # Check if archetypes are already populated, if not then populate them
+        if not AttributeType.query.first():
+            app.logger.info("Populating database with initial archetypes...")
+            populate_initial_attribute_types()
+
+        # Check if personas are already populated, if not then populate them
+        if not Persona.query.first():
+            app.logger.info("Populating database with initial personas...")
+            populate_initial_personas()
 
 def populate_initial_attribute_types():
     """
@@ -67,7 +83,7 @@ def populate_initial_personas():
 
     # Load personas
     personas_file_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),  # Move up one directory to 'app'
+        os.path.dirname(os.path.dirname(__file__)),
         'static', 'personas', 'personas.json'
     )
 
@@ -120,6 +136,8 @@ def retrieve_personas_from_database():
     """
     Get all personas from the database.
     """
+
+    app = Flask(__name__)
     # Query all personas
     personas_query = db.session.query(Persona).all()
 
@@ -146,33 +164,32 @@ def retrieve_personas_from_database():
 
         personas_data.append(persona_data)
 
-    # Return as JSON
-    app.logger.info("Personas returned from get-personas: ", personas_data)
+    app.logger.info("Personas returned from get-personas: ")
+    app.logger.info(personas_data)
     return jsonify({"personas": personas_data})
 
 def retrieve_conversations_from_database():
-    # Query conversations, including related users, personas, and messages
+    """
+    Get all conversations from the database, including related users, personas, and messages.
+    """
     conversations_query = db.session.query(Conversation).options(
-        joinedload(Conversation.user_relation),  # Include the related user
-        joinedload(Conversation.messages_relation).joinedload(Message.persona_relation),  # Include messages and their related personas
-        joinedload(Conversation.conversation_participants_relation).joinedload(ConversationParticipants.persona_relation)  # Include conversation participants (personas)
+        joinedload(Conversation.user_relation),
+        joinedload(Conversation.messages_relation).joinedload(Message.persona_relation),
+        joinedload(Conversation.conversation_participants_relation).joinedload(ConversationParticipants.persona_relation)
     ).all()
 
     # Format the results
     conversations_data = []
     for conversation in conversations_query:
         conversation_data = {
-            "conversation_id": str(conversation.id),  # You can replace this with UUID if your ID is UUID
-            "user_id": str(conversation.user_relation.id),  # Replace with the user_id
+            "conversation_id": str(conversation.id),
+            "user_id": str(conversation.user_relation.id),
             "topic": conversation.topic,
             "created": conversation.created,
             "personas": []
         }
-
-        # Process personas for the conversation (both participants and those who sent messages)
-        personas = {str(participant.persona_relation.id): participant.persona_relation for participant in conversation.conversation_participants_relation}
-        
-        # Add personas from messages as well
+        personas = {str(p.persona_relation.id): p.persona_relation
+                    for p in conversation.conversation_participants_relation}
         for message in conversation.messages_relation:
             personas[str(message.persona_relation.id)] = message.persona_relation
 
