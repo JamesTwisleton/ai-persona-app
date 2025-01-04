@@ -1,5 +1,7 @@
 # TODO: 
+
 # DONE! load DB from database.db on app init. if database.db is empty, create initial tables in the style of post_archetype_attributes.
+
 # DONE! Ensure database.db is persisted on app close/re-open
 
 # DONE! refactor populate_database_with_initial_data to read from static directory
@@ -7,6 +9,8 @@
 # DONE! initialize personas on app init (split out the persona creation from the init_conversations route)
 
 # DONE! add "get-personas" route
+
+# DONE! split logic in routes into separate files, so routes simply calls functions elsewhere
 
 # Add UUIDs to personas and conversations
 
@@ -21,8 +25,6 @@
 # ensure database.db persistence is compatible with ECS
 
 # add terraform to deploy to ECS and get it working online
-
-# split logic in routes into separate files, so routes simply calls functions elsewhere
 
 import os
 from datetime import datetime
@@ -55,6 +57,15 @@ def get_personas():
 @bp.route('/get-conversations', methods=['GET'])
 def get_conversations():
     return retrieve_conversations_from_database()
+
+# @bp.route('/create-conversation', methods=['POST'])
+# def create_conversation():
+#     # Parse topic and persona IDs from request
+#     # Calculate affinities for all personas
+#     # Send prompt to OpenAI to generate messages
+#     # Perform toxicity check on messages
+#     # Create new conversation object in DB
+#     # Yield conversation ID as response json, or return 500 if error
 
 # Route to initialize conversations objects
 @bp.route('/init-conversations', methods=['POST', 'GET'])
@@ -207,12 +218,3 @@ def init_conversations():
         return jsonify({"status": "error", "message": str(e)}), 500
     
     return jsonify({"status": "success", "message": "Data inserted successfully"}), 201
-
-# @bp.route('/create-conversation', methods=['POST'])
-# def create_conversation():
-#     # Parse topic and persona IDs from request
-#     # Calculate affinities for all personas
-#     # Send prompt to OpenAI to generate messages
-#     # Perform toxicity check on messages
-#     # Create new conversation object in DB
-#     # Yield conversation ID as response json, or return 500 if error

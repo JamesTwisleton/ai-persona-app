@@ -1,10 +1,32 @@
-from flask import Flask
+import os
 import logging
+from flask import Flask
+from dotenv import load_dotenv
 from .models import db
 from .routes import bp
-from .config import Config
 from .functions.database import init_database
 
+##################################################
+# 1. Load environment variables & define Config
+##################################################
+load_dotenv()
+
+class Config:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    DEBUG = os.getenv("DEBUG", "False").lower() in ["true", "1", "t", "yes"]
+    FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))  # Default port is 5000
+
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'database.db')}"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    @staticmethod
+    def validate():
+        if not Config.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY is not set in the environment or .env file.")
+
+##################################################
+# 2. Create the Flask application
+##################################################
 def create_app():
     app = Flask(__name__)
 
@@ -12,28 +34,25 @@ def create_app():
     app.logger.setLevel(logging.INFO)
 
     # Load configuration
-    app.config.from_object('app.config.Config')
+    app.config.from_object(Config)
 
     # Validate configuration
     Config.validate()
 
-    # Set up the DB (SQLAlchemy)
+    # Initialize the database
     db.init_app(app)
-
-    # Initialize the DB (create tables & populate if needed)
     init_database(app)
 
     # Register routes
     app.register_blueprint(bp)
 
-    debug_mode = Config.DEBUG
-    port = Config.FLASK_PORT
-
     # Run the app
-    app.run(debug=debug_mode, host="0.0.0.0", port=port)
+    app.run(debug=Config.DEBUG, host="0.0.0.0", port=Config.FLASK_PORT)
 
     return app
 
-# Entry point
+##################################################
+# 3. Entry point
+##################################################
 if __name__ == "__main__":
     create_app()
