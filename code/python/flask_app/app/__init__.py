@@ -1,13 +1,17 @@
 import os
 from flask import Flask
+import logging
 import json
 from .models import db, Attribute, AttributeType, Archetype, Persona
 from .routes import bp
 from .config import Config
-from datetime import date, datetime
+from datetime import datetime
 
 def create_app():
     app = Flask(__name__)
+
+    # Set logging level to INFO
+    app.logger.setLevel(logging.INFO)
 
     # Load configuration
     app.config.from_object('app.config.Config')
@@ -24,16 +28,20 @@ def create_app():
 
         # Check if archetypes are already populated, if not then populate them
         if not AttributeType.query.first():
-            print("Populating database with initial archetypes...")
+            app.logger.info("Populating database with initial archetypes...")
             populate_initial_attribute_types()
 
         # Check if personas are already populated, if not then populate them
         if not Persona.query.first():
-            print("Populating database with initial personas...")
+            app.logger.info("Populating database with initial personas...")
             populate_initial_personas()
 
     # Register routes    
-    app.register_blueprint(bp)            
+    app.register_blueprint(bp)
+
+    debug_mode = Config.DEBUG
+    port = Config.FLASK_PORT
+    app.run(debug=debug_mode, host="0.0.0.0", port=port)
 
     return app
 
@@ -74,7 +82,6 @@ def populate_initial_attribute_types():
 
         # Commit all changes to the database
         db.session.commit()
-
         print("The database has been populated with data from archetypes.json successfully.")
 
     except FileNotFoundError:
@@ -106,15 +113,16 @@ def populate_initial_personas():
         for persona in data.get("Personas", []):
             # Create an instance of AttributeType and add it to the database
             persona_instance = Persona(
-                        id=persona["id"],
-                        user_id=persona["id"],
-                        name=persona["name"],
-                        dob=persona["dob"],
-                        location=persona["location"],
-                        profile_picture_s3_bucket_address=persona["profile_picture_s3_bucket_address"],
-                        creation_date=current_timestamp)
+                id=persona["id"],
+                user_id=persona["id"],
+                name=persona["name"],
+                dob=persona["dob"],
+                location=persona["location"],
+                profile_picture_s3_bucket_address=persona["profile_picture_s3_bucket_address"],
+                creation_date=current_timestamp
+            )
             db.session.add(persona_instance)
-            
+
             # Add Attributes
             for attr_data in persona.get("attributes", []):
                 
@@ -122,13 +130,12 @@ def populate_initial_personas():
                 attribute = Attribute(
                     persona_id=persona_instance.id,
                     attribute_type_id=attr_data["attribute_type_id"],
-                    value=attr_data["value"])
-                
+                    value=attr_data["value"]
+                )
                 db.session.add(attribute)
 
         # Commit all changes to the database
         db.session.commit()
-
         print("The database has been populated with data from personas.json successfully.")
 
     except FileNotFoundError:
@@ -140,3 +147,7 @@ def populate_initial_personas():
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         db.session.rollback()
+
+# Entry point
+if __name__ == "__main__":
+    create_app()

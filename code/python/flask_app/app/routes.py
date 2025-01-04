@@ -25,21 +25,21 @@
 # split logic in routes into separate files, so routes simply calls functions elsewhere
 
 import os
-from datetime import date, datetime
-from flask import Blueprint, request, jsonify
+from datetime import datetime
+from flask import Blueprint, request, jsonify, Flask
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from sqlalchemy.orm import joinedload
 from .services.openai_service import generate_character_motto
 from .services.huggingface_service import toxicity_classification
 from .utils import read_json, get_archetype_as_list, PersonaSpace
-from .models import User, Persona, AttributeType, Attribute, Archetype, Conversation, Message, ConversationParticipants
-
+from .models import User, Persona, Attribute, Conversation, Message, ConversationParticipants, db
 
 # Global variables
 bp = Blueprint("routes", __name__)
 PROMPT_PATH = os.path.join(os.path.dirname(__file__), 'static', 'preprompts', 'preprompt_v_0.1.json')
 PRE_PROMPT = read_json(PROMPT_PATH)
+app = Flask(__name__)
 
 # Home route
 @bp.route("/", methods=["GET"])
@@ -54,8 +54,6 @@ def get_personas():
     """
     Get all personas from the database.
     """
-    from .models import db
-
     # Query all personas
     personas_query = db.session.query(Persona).all()
 
@@ -83,6 +81,7 @@ def get_personas():
         personas_data.append(persona_data)
 
     # Return as JSON
+    app.logger.info("Personas returned from get-personas: ", personas_data)
     return jsonify({"personas": personas_data})
 
 # Route to initialize conversations objects
@@ -99,7 +98,8 @@ def init_conversations():
 
     try:
         for conversation_data in data.get("conversations", []):
-            print(conversation_data["topic"])
+            app.logger.info("Topic: ")
+            app.logger.info(conversation_data["topic"])
 
             # Extract the user
             user_data = conversation_data.get("user", {})
@@ -175,7 +175,8 @@ def init_conversations():
 
                 # Contact OPENAI to generate message
                 generated_message = generate_character_motto(PRE_PROMPT, conversation_data["topic"])
-                print(generated_message)
+                app.logger.info("Generated message")
+                app.logger.info(generated_message)
 
                 # Compute the message toxicity
                 toxicity = toxicity_classification([generated_message])
@@ -235,15 +236,14 @@ def init_conversations():
     
     return jsonify({"status": "success", "message": "Data inserted successfully"}), 201
 
-@bp.route('/create-conversation', methods=['POST'])
-def create_conversation():
-    # Parse topic and persona IDs from request
-    # Calculate affinities for all personas
-    # Send prompt to OpenAI to generate messages
-    # Perform toxicity check on messages
-    # Create new conversation object in DB
-    # Yield conversation ID as response json, or return 500 if error
-
+# @bp.route('/create-conversation', methods=['POST'])
+# def create_conversation():
+#     # Parse topic and persona IDs from request
+#     # Calculate affinities for all personas
+#     # Send prompt to OpenAI to generate messages
+#     # Perform toxicity check on messages
+#     # Create new conversation object in DB
+#     # Yield conversation ID as response json, or return 500 if error
 
 # Get all conversations
 @bp.route('/get-conversations', methods=['GET'])
