@@ -170,16 +170,6 @@ def create_conversation():
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
-# @bp.route('/create-conversation', methods=['POST'])
-# def create_conversation():
-#     # Parse topic and persona IDs from request
-#     # Calculate affinities for all personas
-#     # Send prompt to OpenAI to generate messages
-#     # Perform toxicity check on messages
-#     # Create new conversation object in DB
-#     # Yield conversation ID as response json, or return 500 if error
-
 # Route to initialize conversations objects
 @bp.route('/init-conversations', methods=['POST', 'GET'])
 def init_conversations():
