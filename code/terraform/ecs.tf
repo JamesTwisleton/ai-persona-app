@@ -345,7 +345,7 @@ resource "aws_cloudwatch_log_group" "ai_persona_app_log_group" {
 resource "aws_ecs_service" "ai_persona_app_service" {
   name            = "ai-persona-app-service"
   cluster         = aws_ecs_cluster.ai_persona_app_cluster.id
-  task_definition = aws_ecs_task_definition.ai_persona_app_task.arn
+  task_definition = "${aws_ecs_task_definition.ai_persona_app_task.family}:${aws_ecs_task_definition.ai_persona_app_task.revision}"
   launch_type     = "FARGATE"
 
   # Network configuration for the service
