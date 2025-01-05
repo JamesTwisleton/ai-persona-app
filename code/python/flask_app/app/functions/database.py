@@ -135,7 +135,7 @@ def populate_initial_personas():
         print(f"An unexpected error occurred: {e}")
         db.session.rollback()
 
-def retrieve_personas_from_database():
+def retrieve_personas():
     """
     Get all personas from the database.
     """
@@ -173,7 +173,7 @@ def retrieve_personas_from_database():
     # Use json.dumps to serialize and maintain order
     return Response(json.dumps({"personas": personas_data}, sort_keys=False), mimetype="application/json")
 
-def retrieve_conversations_from_database():
+def retrieve_conversations():
     """
     Get all conversations from the database, including related users, personas, and messages.
     """
@@ -224,3 +224,68 @@ def retrieve_conversations_from_database():
 
     # Use json.dumps to serialize and maintain order
     return Response(json.dumps({"conversations": conversations_data}, sort_keys=False), mimetype="application/json")
+
+def retrieve_conversation(conversation_uuid):
+    """
+    Get one conversation by UUID from the database, including related users, personas, and messages.
+    Returns a JSON response (flask Response).
+    """
+
+    # Eager-load user, messages & their personas, and conversation participants & their personas
+    conversation = (
+        db.session.query(Conversation)
+        .options(
+            joinedload(Conversation.user_relation),
+            joinedload(Conversation.messages_relation).joinedload(Message.persona_relation),
+            joinedload(Conversation.conversation_participants_relation).joinedload(ConversationParticipants.persona_relation),
+        )
+        .filter(Conversation.uuid == conversation_uuid)
+        .first()
+    )
+
+    # If no conversation was found, return a 404-like structure
+    if not conversation:
+        return Response(json.dumps({"error": "Conversation not found"}), status=404, mimetype="application/json")
+
+    conversation_data = {
+        "uuid": conversation.uuid,
+        # TODO: revisit user handling if needed, e.g. "user_uuid": conversation.user_relation.uuid
+        "topic": conversation.topic,
+        "created": conversation.created,
+        "personas": []
+    }
+
+    # Build a dictionary of all personas in this conversation (via participants and messages)
+    persona_map = {}
+    for participant in conversation.conversation_participants_relation:
+        persona_map[participant.persona_relation.id] = participant.persona_relation
+    for msg in conversation.messages_relation:
+        persona_map[msg.persona_relation.id] = msg.persona_relation
+
+    # For each persona, include their attributes in the conversation_data
+    for persona_obj in persona_map.values():
+        persona_data = {
+            "uuid": persona_obj.uuid,
+            "name": persona_obj.name,
+            "age": calculate_age(persona_obj.dob),
+            "location": persona_obj.location,
+            "profile_picture_filename": persona_obj.profile_picture_filename,
+            "messages": []
+        }
+
+        # Gather that persona's messages in this conversation
+        persona_messages = []
+        for msg in conversation.messages_relation:
+            if msg.persona_id == persona_obj.id:
+                persona_messages.append({
+                    "uuid": msg.uuid,
+                    "content": msg.content,
+                    "toxicity": msg.toxicity,
+                    "created": msg.created
+                })
+        persona_data["messages"] = persona_messages
+        conversation_data["personas"].append(persona_data)
+
+    # Return a JSON response
+    return Response(json.dumps({"conversation": conversation_data}, sort_keys=False),
+                    mimetype="application/json")

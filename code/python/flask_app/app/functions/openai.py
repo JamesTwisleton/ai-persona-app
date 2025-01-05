@@ -7,13 +7,13 @@ import os
 # Load environment variables
 load_dotenv()
 
-def generate_character_motto(pre_prompt, prompt):
+def generate_response(pre_prompt, prompt):
     """
-    Generate a short character motto based on the given description and tone.
+    Generate a response from OpenAI given a pre_prompt and a prompt
     
-    :param pre_prompt: The pre-defined context to give the LLM.
-    :param prompt: The description of the character.
-    :return: The generated motto as a string.
+    :param pre_prompt: The pre-defined context to give the LLM, including the persona attributes
+    :param prompt: The topic of discussion
+    :return: The generated response as a string
     """
     # OpenAI API key setup
     client = OpenAI(api_key=current_app.config['OPENAI_API_KEY'])
@@ -21,8 +21,6 @@ def generate_character_motto(pre_prompt, prompt):
     try:
         # Combine pre_prompt and prompt
         question = f"{pre_prompt}\n{prompt}"
-
-        # print(f"Calling ChatGPT with prompt: {question}")
 
         # Make the API call to ChatGPT
         response = client.chat.completions.create(model="gpt-4",  # Using GPT-4 for better quality responses
@@ -60,5 +58,5 @@ if __name__ == "__main__":
     prompt = "A wise, strategic leader with a focus on pragmatic solutions for global peace."
 
     # Generate the motto
-    motto = generate_character_motto(pre_prompt, prompt)
+    motto = generate_response(pre_prompt, prompt)
     print(f"Generated Motto: {motto}")
