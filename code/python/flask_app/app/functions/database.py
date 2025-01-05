@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from flask import Flask, jsonify, Response
+from flask import Flask, Response
 from sqlalchemy.orm import joinedload
 import uuid
 
@@ -188,7 +188,7 @@ def retrieve_conversations_from_database():
     for conversation in conversations_query:
         conversation_data = {
             "uuid": conversation.uuid,
-            "user_uuid": str(conversation.user_relation.uuid),
+            # TODO: revisit when we have user handling # "user_uuid": str(conversation.user_relation.uuid),
             "topic": conversation.topic,
             "created": conversation.created,
             "personas": []
