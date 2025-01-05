@@ -108,7 +108,6 @@ def generate_conversation():
         db.session.commit()
 
         return jsonify({
-            "status": "success",
             "conversation_uuid": new_conversation.uuid,
             "topic": new_conversation.topic,
             "generated_messages_count": len(generated_messages)
