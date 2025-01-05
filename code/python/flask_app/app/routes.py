@@ -28,6 +28,7 @@
 
 import os
 from datetime import datetime
+import uuid
 from flask import Blueprint, request, jsonify, Flask
 from sqlalchemy.exc import IntegrityError
 from .models import User, Persona, Attribute, Conversation, Message, ConversationParticipants
@@ -35,7 +36,6 @@ from .functions.openai import generate_character_motto
 from .functions.huggingface import toxicity_classification
 from .functions.database import retrieve_personas_from_database, retrieve_conversations_from_database
 from .functions.utils import read_json, get_archetype_as_list, PersonaSpace
-
 # Global variables
 bp = Blueprint("routes", __name__)
 PROMPT_PATH = os.path.join(os.path.dirname(__file__), 'static', 'preprompts', 'preprompt_v_0.1.json')
@@ -92,6 +92,7 @@ def init_conversations():
             if not user:
                 user = User(
                     id=user_data["id"],
+                    uuid=str(uuid.uuid4())[:6],
                     username=user_data["username"],
                     creation_date=current_timestamp)
                 db.session.add(user)
@@ -101,6 +102,7 @@ def init_conversations():
             if not conversation:
                 conversation = Conversation(
                     id=conversation_data["id"],
+                    uuid=str(uuid.uuid4())[:6],
                     topic=conversation_data["topic"],
                     created=current_timestamp,
                     user_id=user.id)
@@ -119,6 +121,7 @@ def init_conversations():
                     # Add the Persona
                     persona = Persona(
                         id=persona_data["id"],
+                        uuid=str(uuid.uuid4())[:6],
                         user_id=user_data["id"],
                         name=persona_data["name"],
                         dob=persona_data["dob"],
@@ -189,6 +192,7 @@ def init_conversations():
                 if not message:
                     message = Message(
                         persona_id=persona.id,
+                        uuid=str(uuid.uuid4())[:6],
                         content=generated_message,
                         toxicity=toxicity,
                         created=current_timestamp,

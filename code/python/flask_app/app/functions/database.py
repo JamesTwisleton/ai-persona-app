@@ -98,11 +98,10 @@ def populate_initial_personas():
 
         # Iterate over each attribute type in the JSON data
         for persona in data.get("Personas", []):
-            persona_uuid = str(uuid.uuid4())[:6]
             # Create an instance of AttributeType and add it to the database
             persona_instance = Persona(
                 id=persona["id"],
-                uuid=persona_uuid,
+                uuid=str(uuid.uuid4())[:6],
                 user_id=persona["id"],
                 name=persona["name"],
                 dob=persona["dob"],
@@ -188,8 +187,8 @@ def retrieve_conversations_from_database():
     conversations_data = []
     for conversation in conversations_query:
         conversation_data = {
-            "conversation_id": str(conversation.id),
-            "user_id": str(conversation.user_relation.id),
+            "uuid": conversation.uuid,
+            "user_uuid": str(conversation.user_relation.uuid),
             "topic": conversation.topic,
             "created": conversation.created,
             "personas": []
@@ -201,11 +200,11 @@ def retrieve_conversations_from_database():
 
         for persona in personas.values():
             persona_data = {
-                "id": str(persona.id),
+                "uuid": str(persona.uuid),
                 "name": persona.name,
-                "dob": persona.dob,
+                "age": calculate_age(persona.dob),
                 "location": persona.location,
-                "profile_picture_s3_bucket_address": persona.profile_picture_s3_bucket_address,
+                "profile_picture_filename": persona.profile_picture_filename,
                 "messages": []
             }
 
@@ -213,7 +212,7 @@ def retrieve_conversations_from_database():
             for message in conversation.messages_relation:
                 if message.persona_relation.id == persona.id:
                     message_data = {
-                        "id": str(message.id),
+                        "uuid": str(message.uuid),
                         "content": message.content,
                         "created": message.created
                     }
@@ -223,5 +222,5 @@ def retrieve_conversations_from_database():
 
         conversations_data.append(conversation_data)
 
-    # Return as JSON
-    return jsonify({"conversations": conversations_data})
+    # Use json.dumps to serialize and maintain order
+    return Response(json.dumps({"conversations": conversations_data}, sort_keys=False), mimetype="application/json")
