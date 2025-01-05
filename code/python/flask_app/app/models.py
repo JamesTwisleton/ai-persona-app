@@ -7,6 +7,7 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(), nullable=False)
     username = db.Column(db.String(255), unique=True, nullable=False)
     creation_date = db.Column(db.String(255), nullable=False)
 
@@ -22,11 +23,12 @@ class User(db.Model):
 class Persona(db.Model):
     __tablename__ = 'personas'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(), unique=False, nullable=False)
     dob = db.Column(db.String(255), nullable=False)
     location = db.Column(db.String(), nullable=False)
-    profile_picture_s3_bucket_address = db.Column(db.String(), nullable=True)
+    profile_picture_filename = db.Column(db.String(), nullable=False)
     creation_date = db.Column(db.String(255), nullable=False)
 
     # Relationships
@@ -86,6 +88,7 @@ class Archetype(db.Model):
 class Conversation(db.Model):
     __tablename__ = 'conversations'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     topic = db.Column(db.String(255), unique=False, nullable=False)
     created = db.Column(db.String(255), nullable=False)
@@ -104,6 +107,7 @@ class Conversation(db.Model):
 class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(), nullable=False)
     persona_id = db.Column(db.Integer, db.ForeignKey('personas.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     conversation_id = db.Column(db.Integer, db.ForeignKey('conversations.id'), nullable=False)
@@ -119,7 +123,7 @@ class Message(db.Model):
     conversation_relation = db.relationship(
         'Conversation', back_populates='messages_relation', lazy=True)
 
-# ConversationParticiapnts table
+# ConversationParticipants table
 class ConversationParticipants(db.Model):
     __tablename__ = 'conversation_participants'
     id = db.Column(db.Integer, primary_key=True)

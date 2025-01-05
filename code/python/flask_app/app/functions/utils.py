@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from datetime import datetime
 from sqlalchemy.sql import text
 
 # read json file
@@ -59,6 +60,15 @@ def get_archetype_as_list(db):
     archetype_list = list(archetype_data.values())
 
     return archetype_list
+
+def calculate_age(dob):
+    """
+    Calculate age from the date of birth.
+    """
+    birth_date = datetime.strptime(dob, "%Y-%m-%d")
+    today = datetime.now()
+    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    return age
 
 class PersonaSpace:
     def __init__(self, persona_attributes, archetype_attributes):
