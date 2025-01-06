@@ -1,12 +1,12 @@
-import Slider from "./Slider";
+import Attribute from "./Attribute";
 
 type Persona = {
-  id: number;
-  image_id: string;
+  uuid: string;
   name: string;
-  age: string;
+  age: number;
   location: string;
-  sliders: Slider[];
+  profile_picture_filename: string;
+  attributes: Attribute[];
 };
 
 export default Persona;

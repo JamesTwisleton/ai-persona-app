@@ -10,67 +10,121 @@ export default function Page() {
   // TODO: replace with call to get-personas
   // Example persona data
   const katie: Persona = {
-    id: 1,
-    image_id: "katie.png",
+    uuid: "22eaf9",
     name: "Katie",
-    age: "27",
+    age: 26,
     location: "Romford",
-    sliders: [
+    profile_picture_filename: "katie.png",
+    attributes: [
       {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
-        value: 0.15,
+        id: "13",
+        name: "economic",
+        value: 0.3,
       },
       {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
-        value: 0.85,
+        id: "14",
+        name: "freedom",
+        value: 0.9,
+      },
+      {
+        id: "15",
+        name: "tone",
+        value: 0.9,
+      },
+      {
+        id: "16",
+        name: "cultural",
+        value: 0.9,
+      },
+      {
+        id: "17",
+        name: "conflict",
+        value: 0.5,
+      },
+      {
+        id: "18",
+        name: "optimism",
+        value: 1.0,
       },
     ],
   };
 
   const susan: Persona = {
-    id: 0,
-    image_id: "susan.png",
+    uuid: "5892b1",
     name: "Susan",
-    age: "65",
+    age: 68,
     location: "Doncaster",
-    sliders: [
+    profile_picture_filename: "susan.png",
+    attributes: [
       {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
+        id: "7",
+        name: "economic",
+        value: 0.5,
+      },
+      {
+        id: "8",
+        name: "freedom",
+        value: 0.5,
+      },
+      {
+        id: "9",
+        name: "tone",
+        value: 0.7,
+      },
+      {
+        id: "10",
+        name: "cultural",
         value: 0.6,
       },
       {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
+        id: "11",
+        name: "conflict",
         value: 0.4,
+      },
+      {
+        id: "12",
+        name: "optimism",
+        value: 0.7,
       },
     ],
   };
 
   const barry: Persona = {
-    id: 2,
-    image_id: "barry.png",
+    uuid: "5ef276",
     name: "Barry",
-    age: "49",
+    age: 43,
     location: "Bristol",
-    sliders: [
+    profile_picture_filename: "barry.png",
+    attributes: [
       {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
-        value: 0.9,
+        id: "1",
+        name: "economic",
+        value: 0.2,
       },
       {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
-        value: 0.1,
+        id: "2",
+        name: "freedom",
+        value: 0.85,
+      },
+      {
+        id: "3",
+        name: "tone",
+        value: 0.8,
+      },
+      {
+        id: "4",
+        name: "cultural",
+        value: 1.0,
+      },
+      {
+        id: "5",
+        name: "conflict",
+        value: 0.3,
+      },
+      {
+        id: "6",
+        name: "optimism",
+        value: 1.0,
       },
     ],
   };
@@ -79,13 +133,13 @@ export default function Page() {
   const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const togglePersonaSelection = (id: number) => {
+  const togglePersonaSelection = (uuid: string) => {
     setSelectedPersonas((prevSelected) => {
-      const alreadySelected = prevSelected.some((p) => p.id === id);
+      const alreadySelected = prevSelected.some((p) => p.uuid === uuid);
       if (alreadySelected) {
-        return prevSelected.filter((p) => p.id !== id);
+        return prevSelected.filter((p) => p.uuid !== uuid);
       } else {
-        const newPersona = personas.find((p) => p.id === id);
+        const newPersona = personas.find((p) => p.uuid === uuid);
         return newPersona ? [...prevSelected, newPersona] : prevSelected;
       }
     });
@@ -133,15 +187,15 @@ export default function Page() {
       <div className="grid grid-cols-1 md:grid-cols-3 mb-10">
         {personas.map((persona) => (
           <PersonaDescription
-            key={persona.id}
-            index={persona.id}
-            image_id={persona.image_id}
+            key={persona.uuid}
+            uuid={persona.uuid}
+            profile_picture_filename={persona.profile_picture_filename}
             name={persona.name}
             age={persona.age}
             location={persona.location}
-            sliders={persona.sliders}
+            attributes={persona.attributes}
             // Check if this persona is selected
-            isSelected={selectedPersonas.some((p) => p.id === persona.id)}
+            isSelected={selectedPersonas.some((p) => p.uuid === persona.uuid)}
             onToggleSelect={togglePersonaSelection}
           />
         ))}

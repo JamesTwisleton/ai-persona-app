@@ -1,26 +1,26 @@
 "use client";
 import React, { useState } from "react";
-import Slider from "../../models/opinions/Slider";
-import PersonaSlider from "./PersonaSlider";
+import Attribute from "../../models/opinions/Attribute";
+import PersonaAttributeSlider from "./PersonaAttributeSlider";
 
 type PersonaDescriptionProps = {
-  index: number;
-  image_id: string;
+  uuid: string;
+  profile_picture_filename: string;
   name: string;
-  age: string;
+  age: number;
   location: string;
-  sliders: Slider[];
+  attributes: Attribute[];
   isSelected: boolean;
-  onToggleSelect: (id: number) => void;
+  onToggleSelect: (id: string) => void;
 };
 
 const PersonaDescription = ({
-  index,
-  image_id,
+  uuid,
+  profile_picture_filename,
   name,
   age,
   location,
-  sliders,
+  attributes,
   isSelected,
   onToggleSelect,
 }: PersonaDescriptionProps) => {
@@ -30,15 +30,15 @@ const PersonaDescription = ({
 
   return (
     <div
-      key={index}
-      onClick={() => onToggleSelect(index)}
+      key={uuid}
+      onClick={() => onToggleSelect(uuid)}
       className={`mt-5 mb-5 ml-10 mr-10 rounded-3xl p-4 cursor-pointer ${borderClasses}`}
     >
       {/* Persona Image */}
       <div className="flex justify-center items-center">
         <img
           className="h-auto max-w-full border border-gray-400 rounded-full"
-          src={`/images/${image_id}`}
+          src={`/images/${profile_picture_filename}`}
           style={{ width: "40%", height: "auto" }}
           alt={name}
         />
@@ -52,13 +52,13 @@ const PersonaDescription = ({
       </div>
 
       <div className="mt-5 mb-5">
-        {sliders.map((slider) => (
-          <PersonaSlider
-            key={slider.name}
-            name={slider.name}
-            labelLeft={slider.labelLeft}
-            labelRight={slider.labelRight}
-            value={slider.value}
+        <p className="text-center font-bold mb-1">Views</p>
+        {attributes.map((attribute) => (
+          <PersonaAttributeSlider
+            key={attribute.id}
+            id={attribute.id}
+            name={attribute.name}
+            value={attribute.value}
           />
         ))}
       </div>
