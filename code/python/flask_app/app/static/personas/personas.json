@@ -5,15 +5,15 @@
           "name": "Barry",
           "dob": "1981-11-10",
           "location": "Bristol",
-          "profile_picture_filename": "barry.jpg",
+          "profile_picture_filename": "barry.png",
           "creation_date": "2024-06-01T10:30:00",
           "attributes": [
-                { "name": "economic", "value": 0.2, "attribute_type_id": 1 },
-                { "name": "freedom", "value": 0.85, "attribute_type_id": 2 },
-                { "name": "tone", "value": 0.8, "attribute_type_id": 3 },
-                { "name": "cultural", "value": 1.0, "attribute_type_id": 4 },
-                { "name": "conflict", "value": 0.3, "attribute_type_id": 5 },
-                { "name": "optimism", "value": 1.0, "attribute_type_id": 6 }
+                { "name": "Economic Freedom", "value": 0.2, "attribute_type_id": 1 },
+                { "name": "Personal Freedom", "value": 0.85, "attribute_type_id": 2 },
+                { "name": "Emotionality", "value": 0.8, "attribute_type_id": 3 },
+                { "name": "Cultural Openness", "value": 1.0, "attribute_type_id": 4 },
+                { "name": "Conflict Intensity", "value": 0.3, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 1.0, "attribute_type_id": 6 }
           ]
         },
         {
@@ -21,15 +21,15 @@
           "name": "Susan",
           "dob": "1956-06-18",
           "location": "Doncaster",
-          "profile_picture_filename": "susan.jpg",
+          "profile_picture_filename": "susan.png",
           "creation_date": "2024-06-01T10:35:00",
           "attributes": [
-                { "name": "economic", "value": 0.5, "attribute_type_id": 1 },
-                { "name": "freedom", "value": 0.5, "attribute_type_id": 2 },
-                { "name": "tone", "value": 0.7, "attribute_type_id": 3 },
-                { "name": "cultural", "value": 0.6, "attribute_type_id": 4 },
-                { "name": "conflict", "value": 0.4, "attribute_type_id": 5 },
-                { "name": "optimism", "value": 0.7, "attribute_type_id": 6 }
+                { "name": "Economic Freedom", "value": 0.5, "attribute_type_id": 1 },
+                { "name": "Personal Freedom", "value": 0.5, "attribute_type_id": 2 },
+                { "name": "Emotionality", "value": 0.7, "attribute_type_id": 3 },
+                { "name": "Cultural Openness", "value": 0.6, "attribute_type_id": 4 },
+                { "name": "Conflict Intensity", "value": 0.4, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 0.7, "attribute_type_id": 6 }
           ]
         },
         {
@@ -37,15 +37,15 @@
           "name": "Katie",
           "dob": "1998-04-28",
           "location": "Romford",
-          "profile_picture_filename": "katie.jpg",
+          "profile_picture_filename": "katie.png",
           "creation_date": "2024-06-01T10:40:00",
           "attributes": [
-            { "name": "economic", "value": 0.3, "attribute_type_id": 1 },
-            { "name": "freedom", "value": 0.9, "attribute_type_id": 2 },
-            { "name": "tone", "value": 0.9, "attribute_type_id": 3 },
-            { "name": "cultural", "value": 0.9, "attribute_type_id": 4 },
-            { "name": "conflict", "value": 0.5, "attribute_type_id": 5 },
-            { "name": "optimism", "value": 1.0, "attribute_type_id": 6 }
+                { "name": "Economic Freedom", "value": 0.3, "attribute_type_id": 1 },
+                { "name": "Personal Freedom", "value": 0.9, "attribute_type_id": 2 },
+                { "name": "Emotionality", "value": 0.9, "attribute_type_id": 3 },
+                { "name": "Cultural Openness", "value": 0.9, "attribute_type_id": 4 },
+                { "name": "Conflict Intensity", "value": 0.5, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 1.0, "attribute_type_id": 6 }
           ]
         }
       ]}
