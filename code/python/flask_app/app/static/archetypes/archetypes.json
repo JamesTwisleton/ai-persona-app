@@ -1,7 +1,7 @@
 {
     "AttributeTypes": [
         {
-            "name": "economic",
+            "name": "Economic Freedom",
             "left_name": "left",
             "right_name": "Right",
             "archetypes": [
@@ -14,7 +14,7 @@
             ]
         },
         {
-            "name": "freedom",
+            "name": "Personal Freedom",
             "left_name": "Authoritarian",
             "right_name": "Libertarian",
             "archetypes": [
@@ -27,7 +27,7 @@
             ]
         },
         {
-            "name": "tone",
+            "name": "Emotionality",
             "left_name": "Negative",
             "right_name": "Positive",
             "archetypes": [
@@ -40,7 +40,7 @@
             ]
         },
         {
-            "name": "cultural",
+            "name": "Cultural Openness",
             "left_name": "Traditional",
             "right_name": "Progressive",
             "archetypes": [
@@ -53,7 +53,7 @@
             ]
         },
         {
-            "name": "conflict",
+            "name": "Conflict Intensity",
             "left_name": "Avoidant",
             "right_name": "Confrontational",
             "archetypes": [
@@ -66,7 +66,7 @@
             ]
         },
         {
-            "name": "optimism",
+            "name": "Optimism",
             "left_name": "Pessimistic",
             "right_name": "Optimistic",
             "archetypes": [

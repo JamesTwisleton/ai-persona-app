@@ -39,19 +39,19 @@ app = Flask(__name__)
 def home():
     return "ai-persona-app backend is alive!", 200
 
-@bp.route('/personas', methods=['GET'])
+@bp.route('/api/backend/personas', methods=['GET'])
 def get_personas():
     return retrieve_personas()
 
-@bp.route('/conversations/create', methods=['POST'])
+@bp.route('/api/backend/conversations/create', methods=['POST'])
 def create_conversation():
     return generate_conversation()
 
-@bp.route('/conversation/<string:conversation_uuid>', methods=['GET'])
+@bp.route('/api/backend/conversation/<string:conversation_uuid>', methods=['GET'])
 def get_conversation(conversation_uuid):
     return retrieve_conversation(conversation_uuid)
 
-@bp.route('/conversations', methods=['GET'])
+@bp.route('/api/backend/conversations', methods=['GET'])
 def get_conversations():
     return retrieve_conversations()
 

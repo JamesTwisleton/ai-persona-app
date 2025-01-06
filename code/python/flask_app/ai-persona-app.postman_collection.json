@@ -33,11 +33,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{LOCAL_URL}}/personas",
+					"raw": "{{LOCAL_URL}}/api/backend/personas",
 					"host": [
 						"{{LOCAL_URL}}"
 					],
 					"path": [
+						"api",
+						"backend",
 						"personas"
 					]
 				}
@@ -79,11 +81,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{LOCAL_URL}}/conversations/create",
+					"raw": "{{LOCAL_URL}}/api/backend/conversations/create",
 					"host": [
 						"{{LOCAL_URL}}"
 					],
 					"path": [
+						"api",
+						"backend",
 						"conversations",
 						"create"
 					]
@@ -97,11 +101,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{LOCAL_URL}}/conversation/{{conversationUuid}}",
+					"raw": "{{LOCAL_URL}}/api/backend/conversation/{{conversationUuid}}",
 					"host": [
 						"{{LOCAL_URL}}"
 					],
 					"path": [
+						"api",
+						"backend",
 						"conversation",
 						"{{conversationUuid}}"
 					]
@@ -127,11 +133,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{LOCAL_URL}}/conversations",
+					"raw": "{{LOCAL_URL}}/api/backend/conversations",
 					"host": [
 						"{{LOCAL_URL}}"
 					],
 					"path": [
+						"api",
+						"backend",
 						"conversations"
 					]
 				}
@@ -162,7 +170,7 @@
 	"variable": [
 		{
 			"key": "LOCAL_URL",
-			"value": "localhost:8050",
+			"value": "http://localhost:8050",
 			"type": "string"
 		},
 		{

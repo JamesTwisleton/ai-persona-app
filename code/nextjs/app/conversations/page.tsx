@@ -1,137 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PersonaDescription from "@/components/opinions/PersonaDescription";
 import QueryBox from "@/components/opinions/QueryBox";
 import DarkModeToggle from "@/components/opinions/DarkModeToggle";
 import Persona from "@/models/opinions/Persona";
 
 export default function Page() {
-  // TODO: replace with call to get-personas
-  // Example persona data
-  const katie: Persona = {
-    uuid: "22eaf9",
-    name: "Katie",
-    age: 26,
-    location: "Romford",
-    profile_picture_filename: "katie.png",
-    attributes: [
-      {
-        id: "13",
-        name: "economic",
-        value: 0.3,
-      },
-      {
-        id: "14",
-        name: "freedom",
-        value: 0.9,
-      },
-      {
-        id: "15",
-        name: "tone",
-        value: 0.9,
-      },
-      {
-        id: "16",
-        name: "cultural",
-        value: 0.9,
-      },
-      {
-        id: "17",
-        name: "conflict",
-        value: 0.5,
-      },
-      {
-        id: "18",
-        name: "optimism",
-        value: 1.0,
-      },
-    ],
-  };
-
-  const susan: Persona = {
-    uuid: "5892b1",
-    name: "Susan",
-    age: 68,
-    location: "Doncaster",
-    profile_picture_filename: "susan.png",
-    attributes: [
-      {
-        id: "7",
-        name: "economic",
-        value: 0.5,
-      },
-      {
-        id: "8",
-        name: "freedom",
-        value: 0.5,
-      },
-      {
-        id: "9",
-        name: "tone",
-        value: 0.7,
-      },
-      {
-        id: "10",
-        name: "cultural",
-        value: 0.6,
-      },
-      {
-        id: "11",
-        name: "conflict",
-        value: 0.4,
-      },
-      {
-        id: "12",
-        name: "optimism",
-        value: 0.7,
-      },
-    ],
-  };
-
-  const barry: Persona = {
-    uuid: "5ef276",
-    name: "Barry",
-    age: 43,
-    location: "Bristol",
-    profile_picture_filename: "barry.png",
-    attributes: [
-      {
-        id: "1",
-        name: "economic",
-        value: 0.2,
-      },
-      {
-        id: "2",
-        name: "freedom",
-        value: 0.85,
-      },
-      {
-        id: "3",
-        name: "tone",
-        value: 0.8,
-      },
-      {
-        id: "4",
-        name: "cultural",
-        value: 1.0,
-      },
-      {
-        id: "5",
-        name: "conflict",
-        value: 0.3,
-      },
-      {
-        id: "6",
-        name: "optimism",
-        value: 1.0,
-      },
-    ],
-  };
-
-  const personas = [katie, susan, barry];
+  const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Fetch personas from the API
+  useEffect(() => {
+    const fetchPersonas = async () => {
+      try {
+        const response = await fetch(
+          "/api/conversations/frontend/get-personas",
+        );
+        if (response.ok) {
+          const data: Persona[] = await response.json();
+          setPersonas(data);
+        } else {
+          console.error("Failed to fetch personas:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching personas:", error);
+      }
+    };
+
+    fetchPersonas();
+  }, []);
 
   const togglePersonaSelection = (uuid: string) => {
     setSelectedPersonas((prevSelected) => {
