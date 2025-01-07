@@ -1,8 +1,7 @@
-import Persona from "../Persona";
 type Message = {
-  message_id: string;
-  message: string;
-  persona: Persona;
+  uuid: string;
+  content: string;
+  created: string;
 };
 
 export default Message;

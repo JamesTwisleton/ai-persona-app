@@ -3,14 +3,14 @@ import React from "react";
 
 type PersonaMessageProps = {
   index: string;
-  image_id: string;
+  profile_picture_filename: string;
   name: string;
   message: string;
 };
 
 const PersonaMessage = ({
   index,
-  image_id,
+  profile_picture_filename,
   name,
   message,
 }: PersonaMessageProps) => {
@@ -23,7 +23,7 @@ const PersonaMessage = ({
       <div className="flex flex-col items-center ml-5 mr-5">
         <img
           className="h-auto max-w-full border border-gray-400 rounded-full"
-          src={`/images/${image_id}`}
+          src={`/images/${profile_picture_filename}`}
           style={{ width: "100%", height: "auto" }}
           alt={name}
         />
