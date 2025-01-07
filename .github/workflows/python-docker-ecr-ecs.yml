@@ -1,38 +1,52 @@
-name: Build & Deploy to ECR
+name: Build and Push to ECR and Deploy to ECS
 
 on:
   push:
-    branches: [ "main" ]  # or whichever branch you want to trigger on
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-push-and-deploy:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./code/python/flask_app
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Log in to ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-          | docker login --username AWS --password-stdin ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: Set up Docker Build Arguments
+      run: |
+        echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+        echo "MONGODB_DB=${{ secrets.MONGODB_DB }}" >> .env  
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}:$GITHUB_SHA code/python/flask_app
+    - name: Build, Tag, and Push Image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        source .env
+        docker build --build-arg MONGODB_URI=$MONGODB_URI --build-arg MONGODB_DB=$MONGODB_DB -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+        aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Push to ECR
-        run: |
-          # Optionally tag as 'latest' in addition to using the commit SHA
-          docker tag ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}:$GITHUB_SHA \
-                     ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}:latest
-
-          docker push ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}:$GITHUB_SHA
-          docker push ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}:latest
+    # - name: Deploy to ECS
+    #   env:
+    #     ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+    #     ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+    #   run: |
+    #     aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
