@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // or "next/router" if using the pages router
 import PersonaDescription from "@/components/opinions/PersonaDescription";
 import QueryBox from "@/components/opinions/QueryBox";
 import DarkModeToggle from "@/components/opinions/DarkModeToggle";
 import Persona from "@/models/opinions/Persona";
 
 export default function Page() {
+  const router = useRouter();
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,22 +46,43 @@ export default function Page() {
     });
   };
 
-  const handleSearch = (query: string) => {
-    console.log("Search query:", query);
-    console.log("Selected personas:", selectedPersonas);
-
-    // Show a loading state
+  const handleCreateConversation = async (topic: string) => {
+    // Show loading spinner (or similar)
     setLoading(true);
 
-    // Simulate an API call or processing
-    setTimeout(() => {
-      setLoading(false);
-      alert(
-        `Query: ${query}\nSelected Personas: ${selectedPersonas
-          .map((p) => p.name)
-          .join(", ")}`,
+    try {
+      const personaUuids =
+        selectedPersonas.length > 0
+          ? selectedPersonas.map((p) => p.uuid)
+          : personas.map((p) => p.uuid);
+
+      const response = await fetch(
+        "/api/conversations/frontend/create-conversation",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            persona_uuids: personaUuids,
+          }),
+        },
       );
-    }, 1000);
+
+      if (!response.ok) {
+        console.error("Failed to create conversation:", response.statusText);
+        return;
+      }
+
+      // Parse the JSON response; e.g. { "conversation_uuid": "...", ... }
+      const data = await response.json();
+
+      // Redirect to /conversations/{conversation_uuid}
+      router.push(`/conversations/${data.conversation_uuid}`);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +91,7 @@ export default function Page() {
       <div className="relative w-full mt-5">
         {/* Centered Search Box */}
         <div className="flex justify-center">
-          <QueryBox onSearch={handleSearch} />
+          <QueryBox onSearch={handleCreateConversation} />
         </div>
 
         <div className="absolute top-1/2 right-5 -translate-y-1/2">
@@ -93,7 +116,6 @@ export default function Page() {
             age={persona.age}
             location={persona.location}
             attributes={persona.attributes}
-            // Check if this persona is selected
             isSelected={selectedPersonas.some((p) => p.uuid === persona.uuid)}
             onToggleSelect={togglePersonaSelection}
           />

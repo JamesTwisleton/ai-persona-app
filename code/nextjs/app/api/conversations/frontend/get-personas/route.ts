@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const backend_url = process.env.BACKEND_URL; // Fetch the backend URL from environment variables
+const backend_url = process.env.BACKEND_URL;
 
 export async function GET() {
   try {
