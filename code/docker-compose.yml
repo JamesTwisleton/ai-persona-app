@@ -20,6 +20,9 @@ services:
       - "8050:8050"
     env_file:
       - ./python/flask_app/.env
+    environment:
+      BACKEND_URL: http://backend:8050
+
     volumes:
       - ./python/flask_app:/usr/src/app
 

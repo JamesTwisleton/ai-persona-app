@@ -57,3 +57,38 @@ resource "aws_ecr_repository_policy" "ai_persona_app_ecr_repo_policy" {
     ]
   })
 }
+
+resource "aws_ecr_repository" "backend_ecr_repo" {
+  name                 = "backend"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+resource "aws_ecr_repository_policy" "backend_ecr_repo_policy" {
+  repository = aws_ecr_repository.backend_ecr_repo.name
+  policy     = jsonencode({
+    Version = "2008-10-17",
+    Statement = [
+      {
+        Sid    = "ECRAccess",
+        Effect = "Allow",
+        Principal = {
+          AWS = aws_iam_role.ai_persona_app_ecs_execution_role.arn
+        },
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetLifecyclePolicy",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
+        ]
+      }
+    ]
+  })
+}
