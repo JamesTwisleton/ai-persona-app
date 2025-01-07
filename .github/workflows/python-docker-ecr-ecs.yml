@@ -7,35 +7,40 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-push-and-deploy:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./code/nextjs
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      # Log in to Amazon ECR
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: Build, Tag, and Push Image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+        aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      # Build and push the Docker image to ECR
-      - name: Build and Push Docker Image
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          ECR_REPOSITORY: ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}
-          IMAGE_TAG: "latest"
-        run: |
-          # Define the full image name
-          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-
-          # Build the Docker image
-          docker build -t "$IMAGE_URI" ./code/python/flask_app
-
-          # Push the Docker image to ECR
-          docker push "$IMAGE_URI"
+    # - name: Deploy to ECS
+    #   env:
+    #     ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+    #     ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+    #   run: |
+    #     aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
