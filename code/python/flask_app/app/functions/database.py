@@ -191,7 +191,7 @@ def retrieve_conversations():
             # TODO: revisit when we have user handling # "user_uuid": str(conversation.user_relation.uuid),
             "topic": conversation.topic,
             "created": conversation.created,
-            "personas": []
+            "persona_messages": []
         }
         personas = {str(p.persona_relation.id): p.persona_relation
                     for p in conversation.conversation_participants_relation}
@@ -218,7 +218,7 @@ def retrieve_conversations():
                     }
                     persona_data["messages"].append(message_data)
 
-            conversation_data["personas"].append(persona_data)
+            conversation_data["persona_messages"].append(persona_data)
 
         conversations_data.append(conversation_data)
 
@@ -252,7 +252,7 @@ def retrieve_conversation(conversation_uuid):
         # TODO: revisit user handling if needed, e.g. "user_uuid": conversation.user_relation.uuid
         "topic": conversation.topic,
         "created": conversation.created,
-        "personas": []
+        "persona_messages": []
     }
 
     # Build a dictionary of all personas in this conversation (via participants and messages)
@@ -284,7 +284,7 @@ def retrieve_conversation(conversation_uuid):
                     "created": msg.created
                 })
         persona_data["messages"] = persona_messages
-        conversation_data["personas"].append(persona_data)
+        conversation_data["persona_messages"].append(persona_data)
 
     # Return a JSON response
     return Response(json.dumps({"conversation": conversation_data}, sort_keys=False),

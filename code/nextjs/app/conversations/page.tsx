@@ -77,7 +77,7 @@ export default function Page() {
       const data = await response.json();
 
       // Redirect to /conversations/{conversation_uuid}
-      router.push(`/conversations/${data.conversation_uuid}`);
+      router.push(`/conversation/${data.conversation_uuid}`);
     } catch (error) {
       console.error("Error creating conversation:", error);
     } finally {
@@ -102,7 +102,7 @@ export default function Page() {
       {/* Loading State */}
       {loading && (
         <div className="text-center mt-5">
-          <p className="text-xl">Loading...</p>
+          <p className="text-xl">Loading...this will take a minute!</p>
         </div>
       )}
 
