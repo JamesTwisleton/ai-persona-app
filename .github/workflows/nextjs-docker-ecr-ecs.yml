@@ -1,10 +1,10 @@
 name: Build and Push frontend to ECR and Deploy to ECS
 
 on:
-  # # TODO: revert
-  # push:
-  #   branches:
-  #     - main
+  # TODO: revert
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
