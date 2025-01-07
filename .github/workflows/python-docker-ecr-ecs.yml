@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./code/nextjs
+        working-directory: ./code/python/flask_app
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
