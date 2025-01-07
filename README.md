@@ -1,6 +1,19 @@
 # ai-persona-app
 
-## Running locally
+## Running conversations locally
+
+### Requirements
+* [docker](http://docker.com/)
+
+### Instructions
+
+1. Create a `.env.local` file for the frontend - check out [.env.local.example](./code/nextjs/.env.local.example) for the format.
+2. Create a `.env` file for the backend - check out [.env.example](./code/python/flask_app/.env) for the format.
+3. Navigate to the [code](./code/) folder.
+4. Run `docker compose up`
+5. Open http://localhost:3000/conversations with your browser to see the result.
+
+## Running frontend locally
 
 ### Requirements
 * [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
@@ -29,7 +42,7 @@ Pushes to `main` branch will be deployed to:
 [personacomposer.app](https://personacomposer.app)
 
 ## Persona Compass Application
-1. Navigate to [python](./code/python/) folder. 
+1. Navigate to [dash_app](./code/python/dash_app) folder. 
 
 2. Run the bash script 'compose_docker.sh' to build, or if already built - to launch the application.
     ```bash
