@@ -7,11 +7,15 @@ on:
   #     - main
 
 jobs:
-  build-and-push-and-dfeploy:
+  build-and-push-and-deploy:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./code/python/flask_app
+
+    permissions:
+        id-token: write
+        contents: read
 
     steps:
     # Step 1: Checkout the repository
