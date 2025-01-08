@@ -70,7 +70,7 @@ resource "aws_security_group" "ai_persona_app_sg" {
   # TODO: figure out why simply doing port 80 doesn't work?
   ingress {
     from_port   = 0
-    to_port     = 3000
+    to_port     = 8050
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]                      # Allow traffic from any IP
   }
@@ -232,6 +232,43 @@ resource "aws_lb_listener" "ai_persona_app_alb_https_listener" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ai_persona_app_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "backend_tg" {
+  name        = "ai-persona-app-backend-tg"
+  port        = 80              # The ALB will connect to port 80 at the Target Group level
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.ai_persona_app_vpc.id
+  target_type = "ip"
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    interval            = 30
+    matcher             = "200-299"
+    path                = "/api/backend/health"
+  }
+
+  depends_on = [
+    aws_lb.ai_persona_app_alb
+  ]
+}
+
+resource "aws_lb_listener_rule" "backend_rule" {
+  listener_arn = aws_lb_listener.ai_persona_app_alb_https_listener.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/backend/*"]
+    }
   }
 }
 
@@ -439,9 +476,8 @@ resource "aws_ecs_service" "backend_service" {
     assign_public_ip = true
   }
 
-  # Load balancer configuration
   load_balancer {
-    target_group_arn = aws_lb_target_group.ai_persona_app_tg.arn
+    target_group_arn = aws_lb_target_group.backend_tg.arn
     container_name   = "backend"
     container_port   = 8050
   }
