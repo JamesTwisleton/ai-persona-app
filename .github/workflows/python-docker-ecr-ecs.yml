@@ -14,8 +14,8 @@ jobs:
         working-directory: ./code/python/flask_app
 
     permissions:
-        id-token: write
-        contents: read
+      id-token: write
+      contents: read
 
     steps:
     # Step 1: Checkout the repository
@@ -38,7 +38,7 @@ jobs:
     - name: Build, Tag, and Push Image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.BACKEND_ECR_REPOSITORY_NAME }}
+        ECR_REPOSITORY: backend
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
@@ -46,12 +46,12 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-    # # Step 6: Deploy to Amazon ECS
-    # - name: Deploy to Amazon ECS
-    #   env:
-    #     ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
-    #     ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
-    #   run: |
-    #     aws ecs update-service --cluster $ECS_CLUSTER_NAME \
-    #                            --service $ECS_SERVICE_NAME \
-    #                            --force-new-deployment
+    # Step 5: Deploy to Amazon ECS
+    - name: Deploy to Amazon ECS
+      env:
+        ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+        ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+      run: |
+        aws ecs update-service --cluster $ECS_CLUSTER_NAME \
+                               --service $ECS_SERVICE_NAME \
+                               --force-new-deployment
