@@ -1,0 +1,79 @@
+{
+    "axis": {
+      "Economic Views": "Left (0) ↔ Right (1)",
+      "Freedom Spectrum": "Authoritarian (0) ↔ Libertarian (1)",
+      "Tone of Communication": "Direct (0) ↔ Diplomatic (1)",
+      "Cultural Values": "Traditionalist (0) ↔ Progressive (1)",
+      "Conflict Style": "Confrontational (0) ↔ Avoidant (1)",
+      "Optimism Spectrum": "Cynical (0) ↔ Idealistic (1)"
+    },
+    "archetypes": [
+      {
+        "name": "The Visionary Rebel",
+        "coordinates": {
+          "Economic Views": 0.1,
+          "Freedom Spectrum": 0.9,
+          "Tone of Communication": 0.2,
+          "Cultural Values": 0.9,
+          "Conflict Style": 0.3,
+          "Optimism Spectrum": 0.8
+        }
+      },
+      {
+        "name": "The Authoritarian Realist",
+        "coordinates": {
+          "Economic Views": 0.8,
+          "Freedom Spectrum": 0.1,
+          "Tone of Communication": 0.3,
+          "Cultural Values": 0.1,
+          "Conflict Style": 0.8,
+          "Optimism Spectrum": 0.2
+        }
+      },
+      {
+        "name": "The Diplomatic Centrist",
+        "coordinates": {
+          "Economic Views": 0.5,
+          "Freedom Spectrum": 0.5,
+          "Tone of Communication": 0.9,
+          "Cultural Values": 0.5,
+          "Conflict Style": 0.7,
+          "Optimism Spectrum": 0.6
+        }
+      },
+      {
+        "name": "The Cynical Firebrand",
+        "coordinates": {
+          "Economic Views": 0.2,
+          "Freedom Spectrum": 0.4,
+          "Tone of Communication": 0.1,
+          "Cultural Values": 0.7,
+          "Conflict Style": 0.2,
+          "Optimism Spectrum": 0.3
+        }
+      },
+      {
+        "name": "The Progressive Idealist",
+        "coordinates": {
+          "Economic Views": 0.3,
+          "Freedom Spectrum": 0.8,
+          "Tone of Communication": 0.8,
+          "Cultural Values": 1.0,
+          "Conflict Style": 0.6,
+          "Optimism Spectrum": 1.0
+        }
+      },
+      {
+        "name": "The Pragmatic Traditionalist",
+        "coordinates": {
+          "Economic Views": 0.9,
+          "Freedom Spectrum": 0.3,
+          "Tone of Communication": 0.5,
+          "Cultural Values": 0.2,
+          "Conflict Style": 0.4,
+          "Optimism Spectrum": 0.4
+        }
+      }
+    ]
+  }
+  

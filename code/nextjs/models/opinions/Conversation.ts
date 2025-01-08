@@ -1,8 +1,9 @@
-import Message from "./Message";
+import PersonaMessage from "./PersonaMessage";
 type Conversation = {
-  id: string;
+  uuid: string;
   topic: string;
-  messages: Message[];
+  created: string;
+  persona_messages: PersonaMessage[];
 };
 
 export default Conversation;

@@ -1,4 +1,4 @@
-import Attribute from "./Attribute";
+import Message from "./Message";
 
 type Persona = {
   uuid: string;
@@ -6,7 +6,7 @@ type Persona = {
   age: number;
   location: string;
   profile_picture_filename: string;
-  attributes: Attribute[];
+  messages: Message[];
 };
 
 export default Persona;

@@ -1,112 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // or "next/router" if using the pages router
 import PersonaDescription from "@/components/opinions/PersonaDescription";
 import QueryBox from "@/components/opinions/QueryBox";
 import DarkModeToggle from "@/components/opinions/DarkModeToggle";
 import Persona from "@/models/opinions/Persona";
 
 export default function Page() {
-  // TODO: replace with call to get-personas
-  // Example persona data
-  const katie: Persona = {
-    id: 1,
-    image_id: "katie.png",
-    name: "Katie",
-    age: "27",
-    location: "Romford",
-    sliders: [
-      {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
-        value: 0.15,
-      },
-      {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
-        value: 0.85,
-      },
-    ],
-  };
-
-  const susan: Persona = {
-    id: 0,
-    image_id: "susan.png",
-    name: "Susan",
-    age: "65",
-    location: "Doncaster",
-    sliders: [
-      {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
-        value: 0.6,
-      },
-      {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
-        value: 0.4,
-      },
-    ],
-  };
-
-  const barry: Persona = {
-    id: 2,
-    image_id: "barry.png",
-    name: "Barry",
-    age: "49",
-    location: "Bristol",
-    sliders: [
-      {
-        name: "Political Leaning",
-        labelLeft: "Left",
-        labelRight: "Right",
-        value: 0.9,
-      },
-      {
-        name: "Authoritarian Leaning",
-        labelLeft: "Egalitarianism",
-        labelRight: "Individualism",
-        value: 0.1,
-      },
-    ],
-  };
-
-  const personas = [katie, susan, barry];
+  const router = useRouter();
+  const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const togglePersonaSelection = (id: number) => {
+  // Fetch personas from the API
+  useEffect(() => {
+    const fetchPersonas = async () => {
+      try {
+        const response = await fetch(
+          "/api/conversations/frontend/get-personas",
+        );
+        if (response.ok) {
+          const data: Persona[] = await response.json();
+          setPersonas(data);
+        } else {
+          console.error("Failed to fetch personas:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching personas:", error);
+      }
+    };
+
+    fetchPersonas();
+  }, []);
+
+  const togglePersonaSelection = (uuid: string) => {
     setSelectedPersonas((prevSelected) => {
-      const alreadySelected = prevSelected.some((p) => p.id === id);
+      const alreadySelected = prevSelected.some((p) => p.uuid === uuid);
       if (alreadySelected) {
-        return prevSelected.filter((p) => p.id !== id);
+        return prevSelected.filter((p) => p.uuid !== uuid);
       } else {
-        const newPersona = personas.find((p) => p.id === id);
+        const newPersona = personas.find((p) => p.uuid === uuid);
         return newPersona ? [...prevSelected, newPersona] : prevSelected;
       }
     });
   };
 
-  const handleSearch = (query: string) => {
-    console.log("Search query:", query);
-    console.log("Selected personas:", selectedPersonas);
-
-    // Show a loading state
+  const handleCreateConversation = async (topic: string) => {
+    // Show loading spinner (or similar)
     setLoading(true);
 
-    // Simulate an API call or processing
-    setTimeout(() => {
-      setLoading(false);
-      alert(
-        `Query: ${query}\nSelected Personas: ${selectedPersonas
-          .map((p) => p.name)
-          .join(", ")}`,
+    try {
+      const personaUuids =
+        selectedPersonas.length > 0
+          ? selectedPersonas.map((p) => p.uuid)
+          : personas.map((p) => p.uuid);
+
+      const response = await fetch(
+        "/api/conversations/frontend/create-conversation",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            persona_uuids: personaUuids,
+          }),
+        },
       );
-    }, 1000);
+
+      if (!response.ok) {
+        console.error("Failed to create conversation:", response.statusText);
+        return;
+      }
+
+      // Parse the JSON response; e.g. { "conversation_uuid": "...", ... }
+      const data = await response.json();
+
+      // Redirect to /conversations/{conversation_uuid}
+      router.push(`/conversation/${data.conversation_uuid}`);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -115,7 +91,7 @@ export default function Page() {
       <div className="relative w-full mt-5">
         {/* Centered Search Box */}
         <div className="flex justify-center">
-          <QueryBox onSearch={handleSearch} />
+          <QueryBox onSearch={handleCreateConversation} />
         </div>
 
         <div className="absolute top-1/2 right-5 -translate-y-1/2">
@@ -126,22 +102,21 @@ export default function Page() {
       {/* Loading State */}
       {loading && (
         <div className="text-center mt-5">
-          <p className="text-xl">Loading...</p>
+          <p className="text-xl">Loading...this will take a minute!</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 mb-10">
         {personas.map((persona) => (
           <PersonaDescription
-            key={persona.id}
-            index={persona.id}
-            image_id={persona.image_id}
+            key={persona.uuid}
+            uuid={persona.uuid}
+            profile_picture_filename={persona.profile_picture_filename}
             name={persona.name}
             age={persona.age}
             location={persona.location}
-            sliders={persona.sliders}
-            // Check if this persona is selected
-            isSelected={selectedPersonas.some((p) => p.id === persona.id)}
+            attributes={persona.attributes}
+            isSelected={selectedPersonas.some((p) => p.uuid === persona.uuid)}
             onToggleSelect={togglePersonaSelection}
           />
         ))}

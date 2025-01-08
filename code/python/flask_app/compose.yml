@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  application:
+    build: .
+    volumes:
+      - ./data:/data  # Map the database folder for persistence
+    ports:
+      - "8050:8050"   # Map the container's port to the host machine
+    environment:
+      - FLASK_ENV=development  # Use "production" for production environments
