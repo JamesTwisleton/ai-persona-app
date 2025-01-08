@@ -181,83 +181,6 @@ resource "aws_iam_role" "ai_persona_app_ecs_task_role" {
   }
 }
 
-# Define the Amazon Elastic Container Service (ECS) task definition.
-# This specifies the container configuration for the application.
-resource "aws_ecs_task_definition" "ai_persona_app_task" {
-  family                   = "ai-persona-app-task"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]            # Use Fargate for serverless container management
-  cpu                      = "256"                  # CPU units for the task
-  memory                   = "512"                  # Memory for the task
-  execution_role_arn       = aws_iam_role.ai_persona_app_ecs_execution_role.arn
-  task_role_arn            = aws_iam_role.ai_persona_app_ecs_task_role.arn
-
-  # Container definition: Specifies the docker container configuration
-  container_definitions = jsonencode([
-    {
-      name  = "ai-persona-app",
-      image = "${aws_ecr_repository.ai_persona_app_ecr_repo.repository_url}:latest",
-      portMappings = [
-        {
-          containerPort = 3000,
-          hostPort      = 3000
-        }
-      ],
-      logConfiguration = {
-        logDriver = "awslogs",
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ai_persona_app_log_group.name,
-          awslogs-region        = "us-east-1",          # Replace with your AWS region
-          awslogs-stream-prefix = "ecs"
-        }
-      },
-      # TODO: put these in secret manager
-      environment = [
-        {
-          name = "OPENAI_API_KEY",
-          value = var.openai_api_key
-        },
-        {
-          name = "REPLICATE_API_TOKEN",
-          value = var.replicate_api_token
-        },
-        {
-          name = "MONGODB_URI",
-          value = var.mongodb_uri
-        },
-        {
-          name = "MONGODB_DB",
-          value = var.mongodb_db
-        },
-        {
-          name = "AWS_ACCESS_KEY_ID",
-          value = var.aws_access_key
-        },
-        {
-          name = "AWS_SECRET_ACCESS_KEY",
-          value = var.aws_secret_access_key
-        },
-        {
-          name = "S3_BUCKET_NAME",
-          value = aws_s3_bucket.ai_persona_app_bucket.bucket
-        },
-        {
-          name = "BLUESKY_USERNAME",
-          value = var.bluesky_username
-        },
-        {
-          name = "BLUESKY_PASSWORD",
-          value = var.bluesky_password
-        },
-        {
-          name = "BLUESKY_PROFILE_BASE_URL",
-          value = var.bluesky_profile_base_url
-        }
-      ]
-    }
-  ])
-}
-
 # Define an Application Load Balancer (ALB).
 # The ALB will distribute incoming application traffic across multiple targets.
 resource "aws_lb" "ai_persona_app_alb" {
@@ -340,6 +263,93 @@ resource "aws_cloudwatch_log_group" "ai_persona_app_log_group" {
   }
 }
 
+# Define an Amazon Elastic Container Service (ECS) cluster.
+# A cluster is a grouping of tasks or services.
+resource "aws_ecs_cluster" "ai_persona_app_cluster" {
+  name = "ai-persona-app-cluster"                       # Name for the ECS cluster
+}
+
+# Define the Amazon Elastic Container Service (ECS) task definition.
+# This specifies the container configuration for the application.
+resource "aws_ecs_task_definition" "ai_persona_app_task" {
+  family                   = "ai-persona-app-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]            # Use Fargate for serverless container management
+  cpu                      = "256"                  # CPU units for the task
+  memory                   = "512"                  # Memory for the task
+  execution_role_arn       = aws_iam_role.ai_persona_app_ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ai_persona_app_ecs_task_role.arn
+
+  # Container definition: Specifies the docker container configuration
+  container_definitions = jsonencode([
+    {
+      name  = "ai-persona-app",
+      image = "${aws_ecr_repository.ai_persona_app_ecr_repo.repository_url}:latest",
+      portMappings = [
+        {
+          containerPort = 3000,
+          hostPort      = 3000
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ai_persona_app_log_group.name,
+          awslogs-region        = "us-east-1",          # Replace with your AWS region
+          awslogs-stream-prefix = "ecs"
+        }
+      },
+      # TODO: put these in secret manager
+      environment = [
+        {
+          name = "OPENAI_API_KEY",
+          value = var.openai_api_key
+        },
+        {
+          name = "REPLICATE_API_TOKEN",
+          value = var.replicate_api_token
+        },
+        {
+          name = "MONGODB_URI",
+          value = var.mongodb_uri
+        },
+        {
+          name = "MONGODB_DB",
+          value = var.mongodb_db
+        },
+        {
+          name = "AWS_ACCESS_KEY_ID",
+          value = var.aws_access_key
+        },
+        {
+          name = "AWS_SECRET_ACCESS_KEY",
+          value = var.aws_secret_access_key
+        },
+        {
+          name = "S3_BUCKET_NAME",
+          value = aws_s3_bucket.ai_persona_app_bucket.bucket
+        },
+        {
+          name = "BLUESKY_USERNAME",
+          value = var.bluesky_username
+        },
+        {
+          name = "BLUESKY_PASSWORD",
+          value = var.bluesky_password
+        },
+        {
+          name = "BLUESKY_PROFILE_BASE_URL",
+          value = var.bluesky_profile_base_url
+        },
+        {
+          name = "BACKEND_URL",
+          value = var.backend_url
+        }
+      ]
+    }
+  ])
+}
+
 # Define an Amazon Elastic Container Service (ECS) service.
 # This service maintains the desired count of tasks and restarts tasks if they fail.
 resource "aws_ecs_service" "ai_persona_app_service" {
@@ -370,11 +380,78 @@ resource "aws_ecs_service" "ai_persona_app_service" {
   ]
 }
 
+resource "aws_ecs_task_definition" "backend_task" {
+  family                   = "backend-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ai_persona_app_ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ai_persona_app_ecs_task_role.arn
 
-# Define an Amazon Elastic Container Service (ECS) cluster.
-# A cluster is a grouping of tasks or services.
-resource "aws_ecs_cluster" "ai_persona_app_cluster" {
-  name = "ai-persona-app-cluster"                       # Name for the ECS cluster
+  container_definitions = jsonencode([
+    {
+      name  = "backend",
+      image = "${aws_ecr_repository.backend_ecr_repo.repository_url}:latest",
+      portMappings = [
+        {
+          containerPort = 8050,
+          hostPort      = 8050
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ai_persona_app_log_group.name,
+          awslogs-region        = "us-east-1",
+          awslogs-stream-prefix = "ecs"
+        }
+      },
+      # TODO: put these in secret manager
+      environment = [
+        {
+          name = "OPENAI_API_KEY",
+          value = var.openai_api_key
+        },
+        {
+          name = "DEBUG",
+          value = var.backend_debug
+        },
+        {
+          name = "FLASK_PORT",
+          value = var.backend_port
+        }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "backend_service" {
+  name            = "backend-service"
+  cluster         = aws_ecs_cluster.ai_persona_app_cluster.id
+  task_definition = "${aws_ecs_task_definition.backend_task.family}:${aws_ecs_task_definition.backend_task.revision}"
+  launch_type     = "FARGATE"
+
+  # Network configuration for the service
+  network_configuration {
+    subnets = [aws_subnet.ai_persona_app_subnet0.id, aws_subnet.ai_persona_app_subnet1.id]
+    security_groups = [aws_security_group.ai_persona_app_sg.id]
+    assign_public_ip = true
+  }
+
+  # Load balancer configuration
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ai_persona_app_tg.arn
+    container_name   = "backend"
+    container_port   = 8050
+  }
+
+  desired_count = 1
+  depends_on = [
+    aws_lb_listener.ai_persona_app_alb_https_listener,
+    aws_lb_listener.ai_persona_app_alb_http_listener,
+    aws_ecs_task_definition.backend_task
+  ]
 }
 
 # Output the DNS name of the ALB.
