@@ -66,11 +66,11 @@ resource "aws_security_group" "ai_persona_app_sg" {
   description = "Allow inbound traffic"
   vpc_id      = aws_vpc.ai_persona_app_vpc.id        # Associate with the created VPC
 
-  # Ingress rule: Allow inbound traffic from 0 to port 3000 (for the Next.js application).
+  # Ingress rule: Allow inbound traffic from 0 to port 9000 (for the Next.js application and python application).
   # TODO: figure out why simply doing port 80 doesn't work?
   ingress {
     from_port   = 0
-    to_port     = 8050
+    to_port     = 9000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]                      # Allow traffic from any IP
   }
@@ -237,7 +237,7 @@ resource "aws_lb_listener" "ai_persona_app_alb_https_listener" {
 
 resource "aws_lb_target_group" "backend_tg" {
   name        = "ai-persona-app-backend-tg"
-  port        = 80              # The ALB will connect to port 80 at the Target Group level
+  port        = 8050
   protocol    = "HTTP"
   vpc_id      = aws_vpc.ai_persona_app_vpc.id
   target_type = "ip"
@@ -245,10 +245,10 @@ resource "aws_lb_target_group" "backend_tg" {
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 2
-    timeout             = 3
+    timeout             = 20
     interval            = 30
     matcher             = "200-299"
-    path                = "/api/backend/health"
+    path                = "/api/backend/personas"
   }
 
   depends_on = [
@@ -422,7 +422,7 @@ resource "aws_ecs_task_definition" "backend_task" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
-  memory                   = "512"
+  memory                   = "2048"
   execution_role_arn       = aws_iam_role.ai_persona_app_ecs_execution_role.arn
   task_role_arn            = aws_iam_role.ai_persona_app_ecs_task_role.arn
 
