@@ -35,7 +35,7 @@ bp = Blueprint("routes", __name__)
 app = Flask(__name__)
 
 # Home route
-@bp.route("/", methods=["GET"])
+@bp.route("/api/backend/health", methods=["GET"])
 def home():
     return "ai-persona-app backend is alive!", 200
 
