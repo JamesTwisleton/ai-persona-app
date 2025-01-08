@@ -57,3 +57,18 @@ variable "bluesky_profile_base_url" {
   description = "BlueSky profile base url"
   type        = string
 }
+
+variable "backend_debug" {
+  description = "Backend debug"
+  type        = string
+}
+
+variable "backend_port" {
+  description = "Backend port"
+  type       = string
+}
+
+variable "backend_url" {
+  description = "Backend URL"
+  type        = string
+}
