@@ -65,11 +65,13 @@ def generate_conversation():
 
             # Calculate similarity/affinities
             persona_space = PersonaSpace(persona_vector, archetype_attributes)
+            print(persona_space)
             persona_affinities = persona_space.calculate_similarity()
 
             # Prepare the pre-prompt (copy or clone your static preprompt dict)
             pre_prompt = PRE_PROMPT.copy()
             pre_prompt["persona_affinities"] = persona_affinities
+            app.logger.info(f"Affinities for {persona.name}: {pre_prompt['persona_affinities']}")
 
             # Generate the persona's message from OpenAI
             generated_text = generate_response(pre_prompt, topic)

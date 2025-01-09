@@ -37,17 +37,19 @@ def generate_response(pre_prompt, prompt):
 
     try:
         # Make the API call to ChatGPT
+        message_payload = [{
+            "role": "system", "content": pre_prompt_content},
+            {"role": "user", "content": prompt}]
+        
         response = client.chat.completions.create(
             model="gpt-4",  # Use GPT-4 for better quality responses
-            messages=[
-                {"role": "system", "content": pre_prompt_content},
-                {"role": "user", "content": prompt}
-            ],
+            messages=message_payload,
             max_tokens=500,  # Limit the response length
             temperature=0.7  # Adjust for creativity vs. consistency
         )
 
         # Return the generated response directly
+        # print(message_payload, flush=True)
         return response.choices[0].message.content.strip()
 
     except Exception as e:

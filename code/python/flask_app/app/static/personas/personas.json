@@ -8,12 +8,12 @@
           "profile_picture_filename": "barry.png",
           "creation_date": "2024-06-01T10:30:00",
           "attributes": [
-                { "name": "Economic Freedom", "value": 0.2, "attribute_type_id": 1 },
-                { "name": "Personal Freedom", "value": 0.85, "attribute_type_id": 2 },
-                { "name": "Emotionality", "value": 0.8, "attribute_type_id": 3 },
-                { "name": "Cultural Openness", "value": 1.0, "attribute_type_id": 4 },
-                { "name": "Conflict Intensity", "value": 0.3, "attribute_type_id": 5 },
-                { "name": "Optimism", "value": 1.0, "attribute_type_id": 6 }
+                { "name": "Economic Freedom", "value": 0.99, "attribute_type_id": 1 },
+                { "name": "Personal Freedom", "value": 0.05, "attribute_type_id": 2 },
+                { "name": "Emotionality", "value": 0.01, "attribute_type_id": 3 },
+                { "name": "Cultural Openness", "value": 0.01, "attribute_type_id": 4 },
+                { "name": "Conflict Intensity", "value": 0.999, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 0.001, "attribute_type_id": 6 }
           ]
         },
         {
@@ -40,12 +40,12 @@
           "profile_picture_filename": "katie.png",
           "creation_date": "2024-06-01T10:40:00",
           "attributes": [
-                { "name": "Economic Freedom", "value": 0.3, "attribute_type_id": 1 },
-                { "name": "Personal Freedom", "value": 0.9, "attribute_type_id": 2 },
-                { "name": "Emotionality", "value": 0.9, "attribute_type_id": 3 },
-                { "name": "Cultural Openness", "value": 0.9, "attribute_type_id": 4 },
-                { "name": "Conflict Intensity", "value": 0.5, "attribute_type_id": 5 },
-                { "name": "Optimism", "value": 1.0, "attribute_type_id": 6 }
+                { "name": "Economic Freedom", "value": 0.01, "attribute_type_id": 1 },
+                { "name": "Personal Freedom", "value": 0.99, "attribute_type_id": 2 },
+                { "name": "Emotionality", "value": 0.99, "attribute_type_id": 3 },
+                { "name": "Cultural Openness", "value": 0.99, "attribute_type_id": 4 },
+                { "name": "Conflict Intensity", "value": 0.01, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 0.001, "attribute_type_id": 6 }
           ]
         }
       ]}
