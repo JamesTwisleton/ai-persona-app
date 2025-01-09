@@ -1,8 +1,7 @@
 import os
-from datetime import date, datetime
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import text
 from sqlalchemy.orm import joinedload
 from .services.openai_service import generate_character_motto
 from .services.huggingface_service import toxicity_classification
