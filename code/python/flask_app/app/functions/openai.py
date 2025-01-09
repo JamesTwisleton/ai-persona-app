@@ -7,32 +7,52 @@ import os
 # Load environment variables
 load_dotenv()
 
+import json
+from openai import OpenAI
+from flask import current_app
+
+
 def generate_response(pre_prompt, prompt):
     """
-    Generate a response from OpenAI given a pre_prompt and a prompt
+    Generate a response from OpenAI given a pre_prompt and a prompt.
     
-    :param pre_prompt: The pre-defined context to give the LLM, including the persona attributes
+    :param pre_prompt: The pre-defined context to give the LLM, including persona attributes (JSON object or string)
     :param prompt: The topic of discussion
     :return: The generated response as a string
     """
+    # Ensure the pre_prompt is properly formatted as a string
+    if isinstance(pre_prompt, dict):
+        pre_prompt_content = json.dumps(pre_prompt, ensure_ascii=False, indent=None)
+    elif isinstance(pre_prompt, str):
+        try:
+            # Validate the JSON structure if pre_prompt is a string
+            pre_prompt_content = json.dumps(json.loads(pre_prompt), ensure_ascii=False, indent=None)
+        except json.JSONDecodeError:
+            return "Error: Invalid JSON format for pre_prompt."
+    else:
+        return "Error: pre_prompt must be a dictionary or JSON string."
+
     # OpenAI API key setup
     client = OpenAI(api_key=current_app.config['OPENAI_API_KEY'])
 
     try:
-        # Combine pre_prompt and prompt
-        question = f"{pre_prompt}\n{prompt}"
-
         # Make the API call to ChatGPT
-        response = client.chat.completions.create(model="gpt-4",  # Using GPT-4 for better quality responses
-        messages=[{"role": "user", "content": question}],
-        max_tokens=60,  # Limit the response length to ensure a concise motto
-        temperature=0.7)  # Adjust for creativity vs. consistency)
+        response = client.chat.completions.create(
+            model="gpt-4",  # Use GPT-4 for better quality responses
+            messages=[
+                {"role": "system", "content": pre_prompt_content},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,  # Limit the response length
+            temperature=0.7  # Adjust for creativity vs. consistency
+        )
 
-        # Extract and return the content of the response
+        # Return the generated response directly
         return response.choices[0].message.content.strip()
 
     except Exception as e:
-        return f"Error generating motto: {e}"
+        return f"Error generating response: {e}"
+
 
 # Example usage
 if __name__ == "__main__":
