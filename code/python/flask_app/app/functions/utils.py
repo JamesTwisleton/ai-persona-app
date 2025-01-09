@@ -81,41 +81,47 @@ class PersonaSpace:
     def get_vectors(self):
         p_vec = list(self.persona_state.values())
         a_vec = []
-        
+
         for archetype in self.archetype_states:
             coordinates = list(archetype['coordinates'].values())
             a_vec.append(coordinates)
             self.archetype_vectors = np.array(a_vec)
-            self.persona_vector = np.array(p_vec)  
+            self.persona_vector = np.array(p_vec)
 
-    def get_archetype_names(self):    
+    def get_archetype_names(self):
         archetype_names = []
         for archetype in self.archetype_states:
             archetype_names.append(archetype['name'])
         return archetype_names
- 
-    def calculate_similarity(self):
 
+    def calculate_similarity(self, temperature=0.3):
+        """
+        Calculate similarities and normalize using a non-linear method (softmax).
+        
+        :param temperature: Controls how concentrated the affinities are around the closest archetypes.
+                            Lower temperature (< 1) sharpens differences, higher temperature (> 1) smooths them.
+        :return: Dictionary with archetype names and their normalized affinities.
+        """
         self.get_vectors()
 
         # Calculate the cosine similarity between the persona vector and each archetype vector
         d_cos = np.dot(self.archetype_vectors, self.persona_vector) / (
-            np.linalg.norm(self.archetype_vectors, axis=1) * np.linalg.norm(self.persona_vector))
+            np.linalg.norm(self.archetype_vectors, axis=1) * np.linalg.norm(self.persona_vector)
+        )
 
-        # Normalize the cosine similarities
-        d_cos_norm = (d_cos - np.min(d_cos)) / (
-            np.max(d_cos) - np.min(d_cos))
-        
-        # Their normalized cosine similarities should together sum to 1
-        d_cos_norm = d_cos_norm / np.sum(d_cos_norm)
+        # Apply a softmax-like non-linear normalization
+        exp_d_cos = np.exp(d_cos / temperature)  # Scale by temperature
+
+        # Make sure all values are scaled between 0 and 1 (but don't sum to one)
+        d_softmax = (exp_d_cos - np.min(exp_d_cos)) / (np.max(exp_d_cos) - np.min(exp_d_cos))
 
         # Add back the archetype names as a dictionary
         archetype_similarity = {}
         for i, archetype_name in enumerate(self.archetype_names):
-            archetype_similarity[archetype_name] = round(d_cos_norm[i], 3)
+            archetype_similarity[archetype_name] = round(d_softmax[i], 3)
 
-        # return archetype_similarity
         return archetype_similarity
+
 
 if __name__ == "__main__":
     print("This module is not intended to be run as a standalone script.")
@@ -123,72 +129,71 @@ if __name__ == "__main__":
 
     # Example usage:
     archetype_dicts = [
-    {
-        "name": "The visionary Rebel",
-        "coordinates": {
-            "economic": 0.1,
-            "freedom": 0.9,
-            "tone": 0.2,
-            "culture": 0.9,
-            "conflict": 0.3,
-            "optimism": 0.8
-            }
+        {
+            "name": "The Visionary Rebel",
+            "coordinates": {
+                "economic": 0.1,
+                "freedom": 0.9,
+                "tone": 0.2,
+                "culture": 0.9,
+                "conflict": 0.3,
+                "optimism": 0.8,
+            },
         },
-
-    {
-        "name": "The Authoritarian Realist",
-        "coordinates": {
-            "economic": 0.8,
-            "freedom": 0.1,
-            "tone": 0.3,
-            "culture": 0.1,
-            "conflict": 0.8,
-            "optimism": 0.2
-        }
-    },
-    {
-        "name": "The Diplomatic Centrist",
-        "coordinates": {
-            "economic": 0.5,
-            "freedom": 0.5,
-            "tone": 0.9,
-            "culture": 0.5,
-            "conflict": 0.7,
-            "optimism": 0.6
-        }
-    },
-    {
-        "name": "The Cynical Firebrand",
-        "coordinates": {
-            "economic": 0.2,
-            "freedom": 0.4,
-            "tone": 0.1,
-            "culture": 0.7,
-            "conflict": 0.2,
-            "optimism": 0.3
-        }
-    },
-    {
-        "name": "The Progressive Idealist",
-        "coordinates": {
-            "economic": 0.3,
-            "freedom": 0.8,
-            "tone": 0.8,
-            "culture": 1,
-            "conflict": 0.6,
-            "optimism": 1.6
-        }
-    },
-    {
-        "name": "The Pragmatic Traditionalist",
-        "coordinates": {
-            "economic": 0.9,
-            "freedom": 0.3,
-            "tone": 0.5,
-            "culture": 0.2,
-            "conflict": 0.4,
-            "optimism": 0.4
-            }   
+        {
+            "name": "The Authoritarian Realist",
+            "coordinates": {
+                "economic": 0.8,
+                "freedom": 0.1,
+                "tone": 0.3,
+                "culture": 0.1,
+                "conflict": 0.8,
+                "optimism": 0.2,
+            },
+        },
+        {
+            "name": "The Diplomatic Centrist",
+            "coordinates": {
+                "economic": 0.5,
+                "freedom": 0.5,
+                "tone": 0.9,
+                "culture": 0.5,
+                "conflict": 0.7,
+                "optimism": 0.6,
+            },
+        },
+        {
+            "name": "The Cynical Firebrand",
+            "coordinates": {
+                "economic": 0.2,
+                "freedom": 0.4,
+                "tone": 0.1,
+                "culture": 0.7,
+                "conflict": 0.2,
+                "optimism": 0.3,
+            },
+        },
+        {
+            "name": "The Progressive Idealist",
+            "coordinates": {
+                "economic": 0.3,
+                "freedom": 0.8,
+                "tone": 0.8,
+                "culture": 1,
+                "conflict": 0.6,
+                "optimism": 1.6,
+            },
+        },
+        {
+            "name": "The Pragmatic Traditionalist",
+            "coordinates": {
+                "economic": 0.9,
+                "freedom": 0.3,
+                "tone": 0.5,
+                "culture": 0.2,
+                "conflict": 0.4,
+                "optimism": 0.4,
+            },
         },
     ]
 
@@ -198,10 +203,10 @@ if __name__ == "__main__":
         "tone": 0.4,
         "culture": 0.8,
         "conflict": 0.6,
-        "optimism": 0.9
+        "optimism": 0.9,
     }
 
     # Generate the persona affinities
     persona_space = PersonaSpace(persona_dict, archetype_dicts)
-    archetype_similarity = persona_space.calculate_similarity()
+    archetype_similarity = persona_space.calculate_similarity(temperature=0.7)
     print(archetype_similarity)
