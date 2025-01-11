@@ -89,13 +89,12 @@ export default function Page() {
     <div>
       {/* Top bar */}
       <div className="relative w-full mt-5">
-        {/* Centered Search Box */}
-        <div className="flex justify-center">
+        {/* Centered Search Box with DarkModeToggle */}
+        <div className="flex flex-col items-center sm:flex-row sm:justify-center">
           <QueryBox onSearch={handleCreateConversation} />
-        </div>
-
-        <div className="absolute top-1/2 right-5 -translate-y-1/2">
-          <DarkModeToggle />
+          <div className="mt-3 sm:mt-0 sm:ml-5 lg:mr-5">
+            <DarkModeToggle />
+          </div>
         </div>
       </div>
 
