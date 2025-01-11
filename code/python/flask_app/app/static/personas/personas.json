@@ -10,7 +10,7 @@
           "attributes": [
                 { "name": "Economic Freedom", "value": 0.99, "attribute_type_id": 1 },
                 { "name": "Personal Freedom", "value": 0.05, "attribute_type_id": 2 },
-                { "name": "Emotionality", "value": 0.01, "attribute_type_id": 3 },
+                { "name": "Emotionality", "value": 0.999, "attribute_type_id": 3 },
                 { "name": "Cultural Openness", "value": 0.01, "attribute_type_id": 4 },
                 { "name": "Conflict Intensity", "value": 0.999, "attribute_type_id": 5 },
                 { "name": "Optimism", "value": 0.001, "attribute_type_id": 6 }
@@ -44,8 +44,8 @@
                 { "name": "Personal Freedom", "value": 0.99, "attribute_type_id": 2 },
                 { "name": "Emotionality", "value": 0.99, "attribute_type_id": 3 },
                 { "name": "Cultural Openness", "value": 0.99, "attribute_type_id": 4 },
-                { "name": "Conflict Intensity", "value": 0.01, "attribute_type_id": 5 },
-                { "name": "Optimism", "value": 0.001, "attribute_type_id": 6 }
+                { "name": "Conflict Intensity", "value": 0.99, "attribute_type_id": 5 },
+                { "name": "Optimism", "value": 0.99, "attribute_type_id": 6 }
           ]
         }
       ]}
