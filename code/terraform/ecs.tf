@@ -248,7 +248,7 @@ resource "aws_lb_target_group" "backend_tg" {
     timeout             = 20
     interval            = 30
     matcher             = "200-299"
-    path                = "/api/backend/personas"
+    path                = "/api/backend/health"
   }
 
   depends_on = [
