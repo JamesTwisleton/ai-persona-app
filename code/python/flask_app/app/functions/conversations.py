@@ -9,7 +9,7 @@ from ..functions.huggingface import toxicity_classification
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
-PROMPT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'preprompts', 'preprompt_v_0.3.json')
+PROMPT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'preprompts', 'preprompt_v_0.4.json')
 PRE_PROMPT = read_json(PROMPT_PATH)
 
 def generate_conversation():
