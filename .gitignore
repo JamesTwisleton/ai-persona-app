@@ -70,6 +70,49 @@ terraform.rc
 # Cache directories
 __pycache__/
 **/__pycache__/
+*.py[cod]
+*$py.class
 
 # Pycharm
 .idea/
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Python build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+*.so
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+.hypothesis/
+test-results/
+
+# Environment files (new backend)
+backend/.env
+backend/.env.local
+!backend/.env.example
+!backend/.env.test
+
+# Logs
+*.log
+logs/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Alembic migrations (generated)
+backend/alembic/versions/*.py
+!backend/alembic/versions/__init__.py
