@@ -17,11 +17,13 @@ Environment Variables Required:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 import os
 import logging
 
 # Import version from package
 from app import __version__
+from app.config import settings
 
 # Configure logging
 logging.basicConfig(
@@ -64,6 +66,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Session middleware required for OAuth (stores state)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.JWT_SECRET
 )
 
 # ============================================================================
@@ -145,11 +153,15 @@ async def root():
 
 
 # ============================================================================
-# Future Route Imports (Phase 2+)
+# Route Imports (Phase 2+)
 # ============================================================================
 
-# from app.routes import auth, personas, conversations, admin
-# app.include_router(auth.router)
+# Authentication routes (OAuth 2.0)
+from app.routers import auth
+app.include_router(auth.router)
+
+# Future routers (Phase 3+):
+# from app.routers import personas, conversations, admin
 # app.include_router(personas.router)
 # app.include_router(conversations.router)
 # app.include_router(admin.router)

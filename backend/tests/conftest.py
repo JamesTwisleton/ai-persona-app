@@ -28,9 +28,12 @@ os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 # Import FastAPI app (created in Phase 1)
 from app.main import app
 
-# Note: These imports will be created in Phase 2
-# from app.database import Base, get_db
-# from app.models import User, Persona, Conversation
+# Import database components (Phase 2)
+from app.database import Base, get_db
+from app.models import User
+
+# Note: These imports will be created in later phases
+# from app.models import Persona, Conversation
 # from app.auth import create_access_token
 
 
@@ -51,13 +54,13 @@ def test_db_engine():
         poolclass=StaticPool,
     )
 
-    # Note: Will uncomment in Phase 2 when models are created
-    # Base.metadata.create_all(bind=engine)
+    # Create all tables for testing (Phase 2: User model now available)
+    Base.metadata.create_all(bind=engine)
 
     yield engine
 
     # Cleanup
-    # Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
     engine.dispose()
 
 
@@ -90,22 +93,24 @@ def db_session(test_db_engine) -> Generator[Session, None, None]:
 def client(db_session) -> Generator[TestClient, None, None]:
     """
     Create a FastAPI test client with test database dependency override.
-    """
-    # Phase 1: Basic client without database dependency override
-    # Database override will be added in Phase 2 when database models are created
 
-    # def override_get_db():
-    #     try:
-    #         yield db_session
-    #     finally:
-    #         pass
-    #
-    # app.dependency_overrides[get_db] = override_get_db
+    Phase 2: Now includes database dependency override for testing endpoints
+    that require database access.
+    """
+    # Override the get_db dependency to use our test database session
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
 
     with TestClient(app) as test_client:
         yield test_client
 
-    # app.dependency_overrides.clear()  # Will uncomment in Phase 2
+    # Clear overrides after test
+    app.dependency_overrides.clear()
 
 
 # ============================================================================
