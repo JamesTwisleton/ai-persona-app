@@ -2,10 +2,15 @@
 
 # dependencies
 
+code/python/flask_app/.env
+code/python/flask_app/README.md
+code/python/flask_app/compose_docker.sh
+
 **/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+database.db
 
 # testing
 /coverage
@@ -62,3 +67,56 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Cache directories
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Pycharm
+.idea/
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Python build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+*.so
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+.hypothesis/
+test-results/
+
+# Environment files (new backend)
+backend/.env
+backend/.env.local
+!backend/.env.example
+!backend/.env.test
+
+# Logs
+*.log
+logs/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Alembic migrations (generated)
+backend/alembic/versions/*.py
+!backend/alembic/versions/__init__.py
+
+*.env
+.personas

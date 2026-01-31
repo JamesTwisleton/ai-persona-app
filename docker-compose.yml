@@ -1,0 +1,173 @@
+# AI Focus Groups - Docker Compose Configuration
+# For local development environment
+#
+# Usage:
+#   docker-compose up           # Start all services
+#   docker-compose up -d        # Start in background
+#   docker-compose down         # Stop all services
+#   docker-compose logs -f      # View logs
+#   docker-compose exec backend pytest  # Run tests in backend container
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # PostgreSQL Database
+  # ==========================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: ai_focus_groups_db
+    environment:
+      POSTGRES_USER: ai_focus_groups_user
+      POSTGRES_PASSWORD: dev_password_change_in_production
+      POSTGRES_DB: ai_focus_groups
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_focus_groups_user -d ai_focus_groups"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # ==========================================================================
+  # Test Database (Separate for running tests)
+  # ==========================================================================
+  test_db:
+    image: postgres:15-alpine
+    container_name: ai_focus_groups_test_db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"  # Different port to avoid conflict
+    networks:
+      - app_network
+    profiles:
+      - test  # Only start when explicitly requested
+
+  # ==========================================================================
+  # FastAPI Backend
+  # ==========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development  # Use development stage with hot-reload
+    container_name: ai_focus_groups_backend
+    environment:
+      DATABASE_URL: postgresql://ai_focus_groups_user:dev_password_change_in_production@db:5432/ai_focus_groups
+      JWT_SECRET: dev-secret-key-change-in-production
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION_MINUTES: 60
+      FRONTEND_URL: http://localhost:3000
+      ENV: development
+      DEBUG: "True"
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot-reload
+      - ./backend/app:/usr/src/app/app:delegated
+      - ./backend/tests:/usr/src/app/tests:delegated
+      - ./backend/alembic:/usr/src/app/alembic:delegated
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ==========================================================================
+  # Next.js Frontend (Phase 6+)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: ai_focus_groups_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app:delegated
+      - /app/node_modules  # Use container's node_modules
+      - /app/.next  # Use container's .next build directory
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    profiles:
+      - frontend  # Optional - only start when explicitly requested in Phase 1
+    command: npm run dev
+
+  # ==========================================================================
+  # Redis Cache (Phase 9+)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: ai_focus_groups_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+    profiles:
+      - cache  # Optional - only start when needed
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data:
+    name: ai_focus_groups_postgres_data
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  app_network:
+    name: ai_focus_groups_network
+    driver: bridge
+
+# ============================================================================
+# Usage Examples:
+# ============================================================================
+#
+# Start backend + database only (Phase 1):
+#   docker-compose up backend
+#
+# Start all services (Phase 6+):
+#   docker-compose up
+#
+# Run tests:
+#   docker-compose exec backend pytest -v
+#
+# Run tests with coverage:
+#   docker-compose exec backend pytest --cov=app --cov-report=html
+#
+# Access backend logs:
+#   docker-compose logs -f backend
+#
+# Rebuild containers after dependency changes:
+#   docker-compose up --build
+#
+# Run database migrations (Phase 2+):
+#   docker-compose exec backend alembic upgrade head
+#
+# Clean up everything:
+#   docker-compose down -v  # -v removes volumes too
+#
+# ============================================================================

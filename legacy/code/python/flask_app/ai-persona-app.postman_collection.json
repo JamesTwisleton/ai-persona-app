@@ -1,0 +1,185 @@
+{
+	"info": {
+		"_postman_id": "267d0a47-d8b4-47ea-ae2c-6f2f5b79225f",
+		"name": "ai-persona-app",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7230114"
+	},
+	"item": [
+		{
+			"name": "1. get all personas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1) Parse the JSON response",
+							"let responseData = pm.response.json();",
+							"",
+							"// 2) Extract the UUIDs from each persona",
+							"let personaUuids = responseData.personas.map(persona => persona.uuid);",
+							"",
+							"// 3) Store the array of UUIDs in a variable (environment or collection)",
+							"pm.collectionVariables.set(\"personaUuids\", JSON.stringify(personaUuids));",
+							"",
+							"// Optional: Log to Postman Console for debugging",
+							"console.log(\"Extracted persona UUIDs: \", personaUuids);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{LOCAL_URL}}/api/backend/personas",
+					"host": [
+						"{{LOCAL_URL}}"
+					],
+					"path": [
+						"api",
+						"backend",
+						"personas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. create conversation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1) Parse the JSON response",
+							"let responseData = pm.response.json();",
+							"",
+							"let conversation_uuid = responseData.conversation_uuid;",
+							"",
+							"// 2) Store the conversation ID",
+							"pm.collectionVariables.set(\"conversationUuid\", conversation_uuid);",
+							"",
+							"// Optional: Log to Postman Console for debugging",
+							"console.log(\"Extracted conversation ID: \", conversation_uuid);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"topic\": \"Cheese\",\n  \"persona_uuids\": {{personaUuids}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{LOCAL_URL}}/api/backend/conversations/create",
+					"host": [
+						"{{LOCAL_URL}}"
+					],
+					"path": [
+						"api",
+						"backend",
+						"conversations",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. get conversation",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{LOCAL_URL}}/api/backend/conversation/{{conversationUuid}}",
+					"host": [
+						"{{LOCAL_URL}}"
+					],
+					"path": [
+						"api",
+						"backend",
+						"conversation",
+						"{{conversationUuid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all conversations",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"conversations\": [\n    {\n      \"id\": 1,\n      \"topic\": \"Economic Freedom Debate\",\n      \"created\": \"2024-12-22T10:00:00\",\n      \"user\": {\n        \"id\": 1,\n        \"username\": \"jane_doe\",\n        \"creation_date\": \"2024-01-15T14:22:00\"\n      },\n      \"personas\": [\n        {\n          \"id\": 1,\n          \"name\": \"Barry\",\n          \"dob\": \"1990-06-15\",\n          \"location\": \"New York\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/barry.jpg\",\n          \"creation_date\": \"2024-06-01T10:30:00\",\n          \"attributes\": [\n                { \"name\": \"economic\", \"value\": 0.2, \"attribute_type_id\": 1 },\n                { \"name\": \"freedom\", \"value\": 0.85, \"attribute_type_id\": 2 },\n                { \"name\": \"tone\", \"value\": 0.8, \"attribute_type_id\": 3 },\n                { \"name\": \"cultural\", \"value\": 1.0, \"attribute_type_id\": 4 },\n                { \"name\": \"conflict\", \"value\": 0.3, \"attribute_type_id\": 5 },\n                { \"name\": \"optimism\", \"value\": 1.0, \"attribute_type_id\": 6 }\n          ]\n        },\n        {\n          \"id\": 2,\n          \"name\": \"Susan\",\n          \"dob\": \"1985-04-20\",\n          \"location\": \"Los Angeles\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/susan.jpg\",\n          \"creation_date\": \"2024-06-01T10:35:00\",\n          \"attributes\": [\n                { \"name\": \"economic\", \"value\": 0.5, \"attribute_type_id\": 1 },\n                { \"name\": \"freedom\", \"value\": 0.5, \"attribute_type_id\": 2 },\n                { \"name\": \"tone\", \"value\": 0.7, \"attribute_type_id\": 3 },\n                { \"name\": \"cultural\", \"value\": 0.6, \"attribute_type_id\": 4 },\n                { \"name\": \"conflict\", \"value\": 0.4, \"attribute_type_id\": 5 },\n                { \"name\": \"optimism\", \"value\": 0.7, \"attribute_type_id\": 6 }\n          ]\n        },\n        {\n          \"id\": 3,\n          \"name\": \"Alex\",\n          \"dob\": \"1995-08-10\",\n          \"location\": \"Chicago\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/alex.jpg\",\n          \"creation_date\": \"2024-06-01T10:40:00\",\n          \"attributes\": [\n            { \"name\": \"economic\", \"value\": 0.3, \"attribute_type_id\": 1 },\n            { \"name\": \"freedom\", \"value\": 0.9, \"attribute_type_id\": 2 },\n            { \"name\": \"tone\", \"value\": 0.9, \"attribute_type_id\": 3 },\n            { \"name\": \"cultural\", \"value\": 0.9, \"attribute_type_id\": 4 },\n            { \"name\": \"conflict\", \"value\": 0.5, \"attribute_type_id\": 5 },\n            { \"name\": \"optimism\", \"value\": 1.0, \"attribute_type_id\": 6 }\n          ]\n        }\n      ]},\n    {\n      \"id\": 2,\n      \"topic\": \"Cultural Values Discussion\",\n      \"created\": \"2024-12-23T15:00:00\",\n      \"user\": {\n        \"id\": 1,\n        \"username\": \"jane_doe\",\n        \"creation_date\": \"2024-02-01T12:00:00\"\n      },\n      \"personas\": [\n        {\n          \"id\": 1,\n          \"name\": \"Barry\",\n          \"dob\": \"1990-06-15\",\n          \"location\": \"New York\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/barry.jpg\",\n          \"creation_date\": \"2024-06-01T10:30:00\",\n          \"attributes\": [\n            { \"name\": \"economic\", \"value\": 0.7, \"attribute_type_id\": 1 },\n            { \"name\": \"freedom\", \"value\": 0.8, \"attribute_type_id\": 2 },\n            { \"name\": \"tone\", \"value\": 0.4, \"attribute_type_id\": 3 },\n            { \"name\": \"cultural\", \"value\": 0.5, \"attribute_type_id\": 4 },\n            { \"name\": \"conflict\", \"value\": 0.6, \"attribute_type_id\": 5 },\n            { \"name\": \"optimism\", \"value\": 0.9, \"attribute_type_id\": 6 }\n          ]\n        },\n        {\n          \"id\": 2,\n          \"name\": \"Susan\",\n          \"dob\": \"1985-04-20\",\n          \"location\": \"Los Angeles\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/susan.jpg\",\n          \"creation_date\": \"2024-06-01T10:35:00\",\n          \"attributes\": [\n            { \"name\": \"economic\", \"value\": 0.3, \"attribute_type_id\": 1 },\n            { \"name\": \"freedom\", \"value\": 0.6, \"attribute_type_id\": 2 },\n            { \"name\": \"tone\", \"value\": 0.7, \"attribute_type_id\": 3 },\n            { \"name\": \"cultural\", \"value\": 0.4, \"attribute_type_id\": 4 },\n            { \"name\": \"conflict\", \"value\": 0.2, \"attribute_type_id\": 5 },\n            { \"name\": \"optimism\", \"value\": 0.8, \"attribute_type_id\": 6 }\n          ]\n        },\n        {\n          \"id\": 3,\n          \"name\": \"Alex\",\n          \"dob\": \"1995-08-10\",\n          \"location\": \"Chicago\",\n          \"profile_picture_s3_bucket_address\": \"https://example.com/images/alex.jpg\",\n          \"creation_date\": \"2024-06-01T10:40:00\",\n          \"attributes\": [\n            { \"name\": \"economic\", \"value\": 0.5, \"attribute_type_id\": 1 },\n            { \"name\": \"freedom\", \"value\": 0.7, \"attribute_type_id\": 2 },\n            { \"name\": \"tone\", \"value\": 0.6, \"attribute_type_id\": 3 },\n            { \"name\": \"cultural\", \"value\": 0.8, \"attribute_type_id\": 4 },\n            { \"name\": \"conflict\", \"value\": 0.3, \"attribute_type_id\": 5 },\n            { \"name\": \"optimism\", \"value\": 0.4, \"attribute_type_id\": 6 }\n          ]\n        }\n      ]}\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{LOCAL_URL}}/api/backend/conversations",
+					"host": [
+						"{{LOCAL_URL}}"
+					],
+					"path": [
+						"api",
+						"backend",
+						"conversations"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "LOCAL_URL",
+			"value": "http://localhost:8050",
+			"type": "string"
+		},
+		{
+			"key": "personaUuids",
+			"value": ""
+		},
+		{
+			"key": "conversationUuid",
+			"value": ""
+		}
+	]
+}
