@@ -258,10 +258,12 @@ erDiagram
         text content
         timestamp created_at
     }
-
-    note for PERSONAS "Phase 3: Personality vectors\nEuclidean distance for diversity"
-    note for CONVERSATIONS "Phase 7: Focus group sessions"
 ```
+
+**Notes:**
+- **PERSONAS**: Phase 3 implementation - Personality vectors using OCEAN model, Euclidean distance for diversity
+- **CONVERSATIONS**: Phase 7 implementation - Focus group sessions
+- **CONVERSATION_MESSAGES**: Phase 7 implementation - Individual messages in focus group conversations
 
 ### 5. API Endpoints (Current & Planned)
 
