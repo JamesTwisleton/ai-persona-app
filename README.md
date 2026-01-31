@@ -1,6 +1,6 @@
-# AI Focus Groups
+# Persona Composer
 
-## What is this? (Simple Explanation)
+## What is this?
 
 Imagine you're developing a new product and want feedback from different types of people - maybe a skeptical engineer, an enthusiastic marketer, and a cautious accountant. Normally, you'd need to gather real people for a focus group. **This app creates AI versions of those people for you.**
 
