@@ -58,9 +58,11 @@ class TestFixtures:
 
     def test_db_session_fixture(self, db_session):
         """Verify database session fixture is created"""
+        from sqlalchemy import text
+
         assert db_session is not None
-        # Can execute basic operations
-        result = db_session.execute("SELECT 1")
+        # Can execute basic operations (using text() for SQLAlchemy 2.0+)
+        result = db_session.execute(text("SELECT 1"))
         assert result is not None
 
 
