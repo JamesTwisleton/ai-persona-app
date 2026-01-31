@@ -116,3 +116,5 @@ logs/
 # Alembic migrations (generated)
 backend/alembic/versions/*.py
 !backend/alembic/versions/__init__.py
+
+*.env
