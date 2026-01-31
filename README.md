@@ -1,4 +1,42 @@
-# AI Focus Groups
+# Persona Composer
+
+## What is this?
+
+Imagine you're developing a new product and want feedback from different types of people - maybe a skeptical engineer, an enthusiastic marketer, and a cautious accountant. Normally, you'd need to gather real people for a focus group. **This app creates AI versions of those people for you.**
+
+Here's how it works:
+
+1. **You describe who you want** - "Create a pessimistic engineer" or "Make an optimistic teacher"
+2. **The AI builds them** - Each person gets a unique personality, backstory, and even an avatar image
+3. **They talk together** - You give them a topic, and they have a natural conversation, each responding based on their personality
+4. **You get insights** - See how different personality types react to your ideas
+
+**The Magic Part:** Each AI person isn't random. They're built using a "personality recipe" (like mixing different amounts of ingredients). This means:
+- They stay consistent (a pessimist won't suddenly become optimistic)
+- They're diverse (you get genuinely different viewpoints)
+- They're realistic (they argue, agree, and build on each other's ideas)
+
+Think of it like having a box of LEGO figures, but instead of physical pieces, you're assembling personalities from traits like "openness," "agreeableness," and "creativity."
+
+### Who is this for?
+
+- Product managers testing ideas
+- Researchers exploring opinions
+- Writers developing characters
+- Anyone curious about AI conversations
+- Developers learning about modern web apps (that's you! 👋)
+
+### What you'll learn building this
+
+- How to authenticate users with Google (OAuth)
+- How to use AI APIs (Claude) to generate content
+- How personality can be represented mathematically (vectors!)
+- Modern web development (FastAPI backend, Next.js frontend)
+- Test-Driven Development (write tests first, then code)
+
+**New to this codebase?** Start with the [Quick Start](#-quick-start) section below. Everything is documented, and we write tests before code (TDD) so you can see exactly what each feature should do.
+
+---
 
 > **An AI-powered focus group application** where users create synthetic personas with distinct personalities and engage them in meaningful conversations about any topic.
 
