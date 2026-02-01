@@ -157,8 +157,9 @@ async def root():
 # ============================================================================
 
 # Authentication routes (OAuth 2.0)
-from app.routers import auth
+from app.routers import auth, users
 app.include_router(auth.router)
+app.include_router(users.router)
 
 # Future routers (Phase 3+):
 # from app.routers import personas, conversations, admin
