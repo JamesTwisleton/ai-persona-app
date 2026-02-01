@@ -60,15 +60,13 @@ services:
       dockerfile: Dockerfile
       target: development  # Use development stage with hot-reload
     container_name: ai_focus_groups_backend
+    env_file:
+      - ./backend/.env  # Load all environment variables from .env file
     environment:
+      # Override specific vars for Docker environment
       DATABASE_URL: postgresql://ai_focus_groups_user:dev_password_change_in_production@db:5432/ai_focus_groups
-      JWT_SECRET: dev-secret-key-change-in-production
-      JWT_ALGORITHM: HS256
-      JWT_EXPIRATION_MINUTES: 60
       FRONTEND_URL: http://localhost:3000
-      ENV: development
-      DEBUG: "True"
-      LOG_LEVEL: INFO
+      # Google OAuth, JWT, and other settings loaded from .env file
     ports:
       - "8000:8000"
     volumes:

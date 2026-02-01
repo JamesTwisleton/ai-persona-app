@@ -38,10 +38,25 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="AI Focus Groups API",
-    description="Backend API for AI persona generation and focus group conversations",
+    description="""
+Backend API for AI persona generation and focus group conversations.
+
+## Authentication
+
+This API uses JWT Bearer tokens for authentication:
+
+1. **Get a token**: Sign in via Google OAuth at `/auth/login/google`
+2. **Use the token**: Click the 🔒 Authorize button and paste your token
+3. **Access protected endpoints**: Endpoints requiring authentication will check your token
+
+The token is valid for 24 hours.
+    """,
     version=__version__,
     docs_url="/docs" if os.getenv("TESTING") != "1" else None,  # Disable docs in test
     redoc_url="/redoc" if os.getenv("TESTING") != "1" else None,
+    swagger_ui_parameters={
+        "persistAuthorization": True,  # Remember authorization between page refreshes
+    }
 )
 
 # ============================================================================
@@ -73,6 +88,36 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=settings.JWT_SECRET
 )
+
+# ============================================================================
+# OpenAPI Customization for Swagger UI
+# ============================================================================
+
+def custom_openapi():
+    """Customize OpenAPI schema to add Bearer token authentication"""
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = app.openapi()
+
+    # Add security scheme for JWT Bearer tokens
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Enter your JWT token obtained from /auth/login/google"
+        }
+    }
+
+    # Mark /users/me endpoint as requiring authentication
+    if "/users/me" in openapi_schema["paths"]:
+        openapi_schema["paths"]["/users/me"]["get"]["security"] = [{"BearerAuth": []}]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # ============================================================================
 # Startup/Shutdown Events

@@ -17,7 +17,6 @@ from fastapi import APIRouter, Depends
 from app.models.user import User
 from app.dependencies import get_current_user
 
-
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -25,7 +24,15 @@ router = APIRouter(prefix="/users", tags=["users"])
 # User Profile Endpoint
 # ============================================================================
 
-@router.get("/me")
+@router.get(
+    "/me",
+    summary="Get current user profile",
+    description="Get the authenticated user's profile information. Requires a valid JWT token.",
+    responses={
+        200: {"description": "User profile retrieved successfully"},
+        401: {"description": "Not authenticated - missing or invalid token"}
+    }
+)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_user)
 ):
@@ -34,29 +41,33 @@ async def get_current_user_profile(
 
     Requires authentication via JWT token in Authorization header.
 
-    Headers:
-        Authorization: Bearer <jwt_token>
+    **How to authenticate:**
+    1. Get a JWT token by signing in at `/auth/login/google`
+    2. Click the 🔒 Authorize button at the top of this page
+    3. Enter: `Bearer YOUR_JWT_TOKEN`
+    4. Click "Authorize"
+    5. Try this endpoint!
 
-    Returns:
-        dict: Current user's profile information
+    **Response includes:**
+    - User ID
+    - Email address
+    - Full name
+    - Google ID
+    - Profile picture URL
+    - Account creation timestamp
 
-    Raises:
-        HTTPException: 401 if not authenticated
-
-    Example:
-        GET /users/me
-        Authorization: Bearer eyJhbGci...
-
-        Response:
-        {
-            "id": 1,
-            "email": "user@example.com",
-            "name": "User Name",
-            "google_id": "google_oauth2|123456789",
-            "picture_url": "https://...",
-            "created_at": "2026-01-31T...",
-            "updated_at": "2026-01-31T..."
-        }
+    **Example Response:**
+    ```json
+    {
+        "id": 1,
+        "email": "user@example.com",
+        "name": "User Name",
+        "google_id": "108423082868902273239",
+        "picture_url": "https://lh3.googleusercontent.com/...",
+        "created_at": "2026-02-01T19:36:26",
+        "updated_at": "2026-02-01T19:36:26"
+    }
+    ```
     """
     return current_user.to_dict()
 
