@@ -50,10 +50,38 @@ END
 # Initialize database tables if they don't exist
 echo "Initializing database tables..."
 python << END
-from app.database import init_db
-init_db()
-print("✅ Database initialized!")
+import sys
+import traceback
+
+try:
+    from app.database import init_db, engine
+    from sqlalchemy import inspect
+
+    # Initialize tables
+    init_db()
+
+    # Verify tables were created
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+
+    if 'users' in tables:
+        print("✅ Database initialized successfully!")
+        print(f"   Tables created: {', '.join(tables)}")
+    else:
+        print("⚠️  WARNING: 'users' table not found after initialization!")
+        print(f"   Tables found: {', '.join(tables)}")
+        sys.exit(1)
+
+except Exception as e:
+    print(f"❌ ERROR initializing database: {e}")
+    traceback.print_exc()
+    sys.exit(1)
 END
+
+if [ $? -ne 0 ]; then
+    echo "❌ Database initialization failed! Exiting..."
+    exit 1
+fi
 
 # Start the application
 echo "Starting FastAPI application..."

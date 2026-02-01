@@ -17,6 +17,7 @@ Environment Variables Required:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.openapi.utils import get_openapi
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import logging
@@ -98,7 +99,13 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
 
-    openapi_schema = app.openapi()
+    # Generate the base OpenAPI schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
 
     # Add security scheme for JWT Bearer tokens
     openapi_schema["components"]["securitySchemes"] = {
