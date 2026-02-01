@@ -120,3 +120,4 @@ backend/alembic/versions/*.py
 
 *.env
 .personas
+coverage.xml
