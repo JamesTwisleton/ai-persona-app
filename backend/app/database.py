@@ -22,14 +22,14 @@ from sqlalchemy.pool import StaticPool
 # Database Configuration
 # ============================================================================
 
-# Get database URL from environment
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://ai_focus_groups_user:dev_password@localhost:5432/ai_focus_groups"
-)
+# Import settings from config (loads .env file)
+from app.config import settings
+
+# Get database URL from settings
+DATABASE_URL = settings.DATABASE_URL
 
 # Testing mode uses SQLite in-memory for speed
-TESTING = os.getenv("TESTING", "0") == "1"
+TESTING = settings.is_testing
 
 if TESTING:
     # Use SQLite in-memory for tests (fast, isolated)
@@ -39,6 +39,13 @@ if TESTING:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,  # Reuse connection for in-memory DB
     )
+elif DATABASE_URL.startswith("sqlite"):
+    # SQLite for local development
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        echo=settings.DEBUG,  # Log SQL queries in debug mode
+    )
 else:
     # Production/development PostgreSQL
     engine = create_engine(
@@ -46,7 +53,7 @@ else:
         pool_pre_ping=True,  # Verify connections before using
         pool_size=5,  # Connection pool size
         max_overflow=10,  # Additional connections if pool exhausted
-        echo=os.getenv("DEBUG", "False").lower() == "true",  # Log SQL queries in debug mode
+        echo=settings.DEBUG,  # Log SQL queries in debug mode
     )
 
 # ============================================================================
@@ -109,8 +116,9 @@ def init_db() -> None:
     - Initial development setup
     """
     # Import all models here to ensure they're registered with Base
-    # This will be uncommented as we create models
-    # from app.models import user, persona, conversation
+    from app.models import user  # Import User model
+    # Future imports (Phase 3+):
+    # from app.models import persona, conversation
 
     Base.metadata.create_all(bind=engine)
 
