@@ -1,8 +1,8 @@
 # AI Focus Groups - Project Status
 
-**Last Updated:** 2026-02-01
-**Current Phase:** 3B (Database & OCEAN Inference)
-**Overall Progress:** 30% Complete
+**Last Updated:** 2026-03-19
+**Current Phase:** Phase 7 Complete — Conversation System
+**Overall Progress:** 70% Complete
 
 ---
 
@@ -20,7 +20,6 @@ AI Focus Groups is a platform for creating AI-powered personas and simulating fo
 
 #### Phase 1: Infrastructure & Scaffolding (100%)
 - ✅ Docker Compose environment (FastAPI, PostgreSQL, Next.js)
-- ✅ Database migrations with Alembic
 - ✅ Testing infrastructure (pytest, coverage reporting)
 - ✅ Environment configuration
 
@@ -36,7 +35,7 @@ AI Focus Groups is a platform for creating AI-powered personas and simulating fo
 - ✅ **Trait system** (OCEAN + extensible architecture)
 - ✅ **PersonalityVector** (5D vector with Euclidean distance)
 - ✅ **AffinityCalculator** (cosine similarity + temperature softmax)
-- ✅ **8 archetypes** (Analyst, Socialite, Innovator, etc.)
+- ✅ **8 archetypes** (Analyst, Socialite, Innovator, Activist, Pragmatist, Traditionalist, Skeptic, Optimist)
 - ✅ **53 passing tests** (95%+ coverage)
 - ✅ Scientific validation (OCEAN is gold standard in psychology)
 
@@ -45,26 +44,79 @@ AI Focus Groups is a platform for creating AI-powered personas and simulating fo
 - [`backend/app/models/affinity.py`](backend/app/models/affinity.py) - Affinity calculator
 - [`backend/app/models/archetypes.py`](backend/app/models/archetypes.py) - 8 archetypes
 
+#### Phase 3B: Database & OCEAN Inference (100%)
+- ✅ Persona model with OCEAN columns in database
+- ✅ **OceanInferenceService** — Claude API integration for OCEAN inference from backstory
+- ✅ **POST /personas** — Full creation pipeline (moderation → OCEAN → affinities → save)
+- ✅ **GET /personas**, **GET /personas/{id}**, **DELETE /personas/{id}**
+- ✅ **POST /personas/compatibility** — Pairwise Euclidean distance + diversity score
+- ✅ **GET /archetypes** — List all personality archetypes
+
+**Files:**
+- [`backend/app/models/persona.py`](backend/app/models/persona.py) - Persona model
+- [`backend/app/services/ocean_inference.py`](backend/app/services/ocean_inference.py) - OCEAN inference
+- [`backend/app/routers/personas.py`](backend/app/routers/personas.py) - Persona endpoints
+
+#### Phase 4: AI Integration — LLM & Image Generation (100%)
+- ✅ **LLMService** — Claude Haiku for motto generation and conversation responses
+- ✅ **ImageGenerationService** — DALL-E avatar generation with DiceBear fallback
+- ✅ **PromptTemplates** — MottoPromptTemplate, ConversationPromptTemplate
+- ✅ Persona motto auto-generated on creation (non-blocking on failure)
+- ✅ Avatar URL auto-generated on creation (non-blocking on failure)
+- ✅ All AI services use injectable client pattern for testability
+
+**Files:**
+- [`backend/app/services/llm_service.py`](backend/app/services/llm_service.py) - LLM service
+- [`backend/app/services/image_generation_service.py`](backend/app/services/image_generation_service.py) - Image generation
+- [`backend/app/services/prompt_templates.py`](backend/app/services/prompt_templates.py) - Prompt templates
+
+#### Phase 5: Content Moderation (100%)
+- ✅ **ContentModerationService** — OpenAI Moderation API integration
+- ✅ Fails safe (returns score=1.0) on API error — blocks content when uncertain
+- ✅ Fail-open on service outage — persona creation proceeds if moderation is unavailable
+- ✅ **ModerationAuditLog** model — audit trail for blocked/flagged content
+- ✅ **is_admin** field on User model
+- ✅ **GET /admin/flagged-content** — admin review queue
+- ✅ **POST /admin/approve/{id}**, **POST /admin/block/{id}** — admin actions
+- ✅ Audit log written when persona description is blocked or conversation message is flagged
+
+**Files:**
+- [`backend/app/services/content_moderation_service.py`](backend/app/services/content_moderation_service.py) - Moderation service
+- [`backend/app/models/moderation.py`](backend/app/models/moderation.py) - Audit log model
+- [`backend/app/routers/admin.py`](backend/app/routers/admin.py) - Admin endpoints
+
+#### Phase 7: Conversation System (100%)
+- ✅ **Conversation model** — topic, turn_count, max_turns, is_complete property
+- ✅ **ConversationParticipant** — links personas to conversations
+- ✅ **ConversationMessage** — per-turn messages with toxicity scores and moderation status
+- ✅ **ConversationOrchestrator** — generates one turn per persona with moderation + regeneration
+- ✅ Toxic messages regenerated up to 2 times; saved as "flagged" if still toxic
+- ✅ **POST /conversations** — create with persona list
+- ✅ **GET /conversations** — list user's conversations
+- ✅ **GET /conversations/{id}** — conversation details with messages
+- ✅ **POST /conversations/{id}/continue** — generate next turn
+
+**Files:**
+- [`backend/app/models/conversation.py`](backend/app/models/conversation.py) - Conversation models
+- [`backend/app/services/conversation_orchestrator.py`](backend/app/services/conversation_orchestrator.py) - Orchestrator
+- [`backend/app/routers/conversations.py`](backend/app/routers/conversations.py) - Conversation endpoints
+
 ---
 
-### Current Phase 🚧
+### Pending Phases ⏳
 
-#### Phase 3B: Database & OCEAN Inference (In Progress)
+#### Phase 6: Frontend Development (0%)
+- [ ] Next.js frontend setup
+- [ ] Personality grid visualization
+- [ ] Persona profile pages
+- [ ] Conversation UI
 
-**Goals:**
-1. Add OCEAN columns to PostgreSQL database
-2. Implement Claude API integration for OCEAN inference
-3. Create persona creation endpoint that uses OCEAN
-4. Build compatibility analysis system
-
-**Status:** Just starting (0% complete)
-
-**What's Next:**
-- [ ] Database migration adding OCEAN columns
-- [ ] `infer_ocean_from_backstory()` function using Claude API
-- [ ] Update `POST /personas` endpoint
-- [ ] Implement `POST /personas/compatibility` endpoint
-- [ ] Write integration tests
+#### Phase 8-10: Deployment, Optimization, Polish (0%)
+- [ ] AWS deployment (ECS, RDS, CloudFront)
+- [ ] Alembic database migrations for production
+- [ ] Performance optimization (caching, CDN)
+- [ ] Rate limiting
+- [ ] Context window management for long conversations
 
 ---
 
@@ -82,70 +134,59 @@ The system uses the **OCEAN personality model**, the most validated framework in
 | **A**greeableness | Compassion, cooperation | Skeptical | Trusting |
 | **N**euroticism | Emotional stability | Calm | Anxious |
 
-**Why OCEAN?**
-- ✅ 40+ years of peer-reviewed research
-- ✅ Validated across 50+ countries
-- ✅ Predicts real-world behavior
-- ✅ Industry standard for personality assessment
+### 8 Archetypes
 
-See: [SCIENTIFIC_APPROACH.md](SCIENTIFIC_APPROACH.md) for full justification
+| Code | Name | Primary Traits |
+|------|------|----------------|
+| `ANALYST` | The Analyst | High C, Low E, Low A |
+| `SOCIALITE` | The Socialite | High E, High A, Low C |
+| `INNOVATOR` | The Innovator | High O, Moderate E |
+| `ACTIVIST` | The Activist | High O, High A, High E |
+| `PRAGMATIST` | The Pragmatist | Balanced, Low N |
+| `TRADITIONALIST` | The Traditionalist | Low O, High C, High A |
+| `SKEPTIC` | The Skeptic | High O, Low A, Low E |
+| `OPTIMIST` | The Optimist | High E, High A, High O |
 
-### Mathematical Framework
+### Persona Creation Pipeline
 
-**PersonalityVector:** Each persona is a point in 5D OCEAN space
-```python
-P = [O, C, E, A, N]  # Each value ∈ [0, 1]
-
-# Example: The Analyst
-P_analyst = [0.65, 0.90, 0.25, 0.35, 0.20]
+```
+POST /personas
+    │
+    ├─ 1. ContentModerationService.analyze_toxicity(description)
+    │      → blocks with 400 + audit log if toxic; fail-open if service down
+    │
+    ├─ 2. OceanInferenceService.infer_ocean_traits(description)
+    │      → Claude Haiku infers 5 OCEAN scores
+    │
+    ├─ 3. AffinityCalculator.calculate(ocean_vector)
+    │      → cosine similarity → softmax → 8 archetype affinities
+    │
+    ├─ 4. LLMService.generate_motto(persona_details) [non-blocking]
+    │      → Claude generates a personal motto
+    │
+    ├─ 5. ImageGenerationService.generate_avatar_for_persona() [non-blocking]
+    │      → DALL-E generates avatar; fallback to DiceBear SVG
+    │
+    └─ 6. Persona saved to database → 201 Created
 ```
 
-**Euclidean Distance:** Measures diversity between personas
-```python
-diversity = sqrt(Σ(P₁[i] - P₂[i])²)
-# Range: 0 (identical) to 2.24 (maximally different)
+### Conversation Pipeline
+
 ```
-
-**Cosine Similarity:** Measures archetype affinity
-```python
-affinity = (P · A) / (||P|| × ||A||)
-# Then apply temperature-scaled softmax and normalize to [0, 1]
+POST /conversations/{id}/continue
+    │
+    ├─ Load participants + approved message history
+    │
+    └─ For each persona:
+           │
+           ├─ LLMService.generate_response(persona, history, topic)
+           │
+           ├─ ContentModerationService.analyze_toxicity(response)
+           │
+           ├─ If toxic: regenerate up to 2 times
+           │
+           └─ If still toxic: save as "flagged" + write ModerationAuditLog
 ```
-
-### Extensibility
-
-Adding new personality dimensions is trivial:
-
-```python
-# Step 1: Define the trait
-class TraitRegistry:
-    # ... existing OCEAN traits ...
-    RELIGIOSITY = Trait(code="R", name="Religiosity", ...)  # Uncomment
-
-# Step 2: Database migration
-ALTER TABLE personas ADD COLUMN religiosity FLOAT;
-
-# That's it! Math automatically handles N dimensions.
-```
-
----
-
-## 📚 Documentation
-
-### Core Documents
-- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Full 10-phase roadmap with TDD approach
-- **[PHASE_3_DESIGN.md](PHASE_3_DESIGN.md)** - Complete Phase 3 architecture specification
-- **[PHASE_3_PROGRESS.md](PHASE_3_PROGRESS.md)** - Phase 3A completion report
-- **[SCIENTIFIC_APPROACH.md](SCIENTIFIC_APPROACH.md)** - White paper on OCEAN methodology
-
-### Technical Guides
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues (OAuth, database, etc.)
-- **[backend/OAUTH_SETUP_GUIDE.md](backend/OAUTH_SETUP_GUIDE.md)** - Google OAuth configuration
-
-### Code Documentation
-- All modules have comprehensive docstrings
-- Tests serve as executable documentation
-- Swagger UI: `http://localhost:8000/docs` (when running)
 
 ---
 
@@ -158,24 +199,65 @@ ALTER TABLE personas ADD COLUMN religiosity FLOAT;
 | `traits.py` | 19 | 95% | ✅ |
 | `affinity.py` | 14 | 93% | ✅ |
 | `archetypes.py` | 20 | 100% | ✅ |
-| **Phase 3A Total** | **53** | **95%+** | ✅ |
-| Auth/Users (Phase 2) | 28 | 85%+ | ✅ |
-| **Project Total** | **81+** | **85%+** | ✅ |
+| `ocean_inference.py` | ~20 | 85%+ | ✅ |
+| `persona.py` (model) | ~15 | 85%+ | ✅ |
+| `personas.py` (router) | ~30 | 85%+ | ✅ |
+| `llm_service.py` | ~15 | 85%+ | ✅ |
+| `image_generation_service.py` | ~15 | 85%+ | ✅ |
+| `prompt_templates.py` | ~15 | 85%+ | ✅ |
+| `content_moderation_service.py` | ~15 | 85%+ | ✅ |
+| `moderation.py` (model) | ~10 | 94% | ✅ |
+| `admin.py` (router) | ~10 | 100% | ✅ |
+| `conversation.py` (model) | ~20 | 85%+ | ✅ |
+| `conversation_orchestrator.py` | ~11 | 85%+ | ✅ |
+| **Project Total** | **291** | **89%+** | ✅ |
 
 ### Running Tests
 
 ```bash
-# All Phase 3A tests
-docker-compose exec backend pytest tests/unit/test_traits.py \
-  tests/unit/test_affinity_calculator.py \
-  tests/unit/test_archetypes.py -v
+# Run all tests with coverage
+cd backend && ./venv/bin/pytest tests/ -q
 
-# With coverage
-docker-compose exec backend pytest --cov=app --cov-report=html
+# Single file
+./venv/bin/pytest tests/unit/test_conversation_orchestrator.py -v
 
-# All tests
-docker-compose exec backend pytest tests/ -v
+# With coverage report
+./venv/bin/pytest --cov=app --cov-report=html
 ```
+
+---
+
+## ⚠️ Known Gaps & Technical Debt
+
+### Critical (needed for production)
+- **No Alembic migrations** — `init_db()` uses `create_all()` which doesn't work for production schema changes. Alembic is installed but migrations haven't been generated.
+- **OAuth callback returns JSON** — should redirect to frontend after login
+
+### High Priority
+- **All AI calls are synchronous** — OCEAN inference, motto, and avatar generation block the request thread. Should use async/background tasks.
+- **No rate limiting** — endpoints have no request rate limits
+- **No context window management** — long conversations could exceed Claude's token limit
+
+### Medium Priority
+- **No `PATCH /users/me`** — users cannot update their profile
+- **No `/personas/preview`** — no way to preview OCEAN scores before saving
+- **ModerationAuditLog `source_id`** — uses `"blocked_before_save"` for persona blocking since persona doesn't exist yet; could be improved by saving persona first and deleting on moderation failure
+
+### Low Priority
+- **OAuth CSRF state** stored in-memory dict (not Redis) — loses state on server restart
+- **No `unique_id` collision retry** — 6-char alphanumeric has low but non-zero collision probability
+
+---
+
+## 📚 Documentation
+
+### Core Documents
+- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Full 10-phase roadmap with TDD approach
+- **[SCIENTIFIC_APPROACH.md](SCIENTIFIC_APPROACH.md)** - White paper on OCEAN methodology
+
+### Technical Guides
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues
+- **[backend/OAUTH_SETUP_GUIDE.md](backend/OAUTH_SETUP_GUIDE.md)** - Google OAuth configuration
 
 ---
 
@@ -183,7 +265,9 @@ docker-compose exec backend pytest tests/ -v
 
 ### Prerequisites
 - Docker & Docker Compose
-- Google OAuth credentials (for auth)
+- Google OAuth credentials
+- Anthropic API key (for OCEAN inference + motto generation)
+- OpenAI API key (for avatar generation + content moderation)
 
 ### Quick Start
 
@@ -194,7 +278,7 @@ cd ai-persona-app
 
 # 2. Set up environment
 cp backend/.env.example backend/.env
-# Edit backend/.env with your Google OAuth credentials
+# Edit backend/.env with your API keys and OAuth credentials
 
 # 3. Start services
 docker-compose up backend
@@ -203,94 +287,45 @@ docker-compose up backend
 open http://localhost:8000/docs  # Swagger UI
 ```
 
-### Development Workflow
+### Environment Variables Required
 
-```bash
-# Run tests on file change
-docker-compose exec backend ptw  # pytest-watch
-
-# Check test coverage
-docker-compose exec backend pytest --cov=app --cov-report=html
-open backend/htmlcov/index.html
-
-# Run linter
-docker-compose exec backend black app/ tests/
-
-# Database migrations
-docker-compose exec backend alembic revision --autogenerate -m "description"
-docker-compose exec backend alembic upgrade head
+```
+DATABASE_URL=postgresql://...
+JWT_SECRET=<random secret>
+GOOGLE_CLIENT_ID=<from Google Console>
+GOOGLE_CLIENT_SECRET=<from Google Console>
+ANTHROPIC_API_KEY=<from Anthropic>
+OPENAI_API_KEY=<from OpenAI>
 ```
 
 ---
 
 ## 📈 Roadmap
 
-### Immediate (Phase 3B) - 2 weeks
-- [ ] Database schema migration (OCEAN columns)
-- [ ] Claude API integration for OCEAN inference
-- [ ] Persona creation endpoint
-- [ ] Compatibility analysis
+### Next Up (Phase 6) — Frontend
+- [ ] Next.js frontend setup
+- [ ] Persona management UI
+- [ ] Conversation viewer
 
-### Short-term (Phase 4-5) - 1 month
-- [ ] LLM conversation generation (OpenAI/Anthropic)
-- [ ] Image generation (DALL-E/StableDiffusion)
-- [ ] Content moderation (toxicity filtering)
-
-### Medium-term (Phase 6-7) - 2 months
-- [ ] Next.js frontend (personality grid, persona profiles)
-- [ ] Conversation orchestration system
-- [ ] Multi-persona focus group conversations
-
-### Long-term (Phase 8-10) - 3+ months
-- [ ] AWS deployment (ECS, RDS, CloudFront)
-- [ ] Performance optimization (caching, CDN)
-- [ ] Polish and launch
+### Following (Phase 8-10) — Production
+- [ ] Alembic migrations
+- [ ] AWS deployment
+- [ ] Rate limiting + async AI calls
+- [ ] Performance optimization
 
 ---
 
 ## 🎯 Key Metrics
 
 ### Technical
-- **Test Coverage:** 85%+ (target: 90%+)
-- **API Response Time:** <200ms (p95)
-- **Database Queries:** <50ms (p95)
-- **Test Execution:** <5 seconds (full suite)
+- **Test Count:** 291 passing tests
+- **Test Coverage:** 89%+ (target: 90%+)
+- **Coverage Threshold:** 85% (enforced by CI)
 
 ### OCEAN System
 - **Archetype Diversity:** 0.59 mean pairwise distance (good ✅)
-- **Inference Accuracy:** TBD (will measure against human ratings)
+- **Inference:** Claude Haiku (claude-haiku-4-5-20251001)
 - **Affinity Consistency:** Deterministic (✅ validated in tests)
-
----
-
-## 🤝 Contributing
-
-### Development Principles
-1. **Test-Driven Development (TDD):** Write tests BEFORE implementation
-2. **Scientific Validity:** Personality system grounded in research
-3. **Extensibility:** Design for future dimensions, not just OCEAN
-4. **Documentation:** Every module has comprehensive docstrings
-
-### Code Review Checklist
-- [ ] All new code has tests
-- [ ] Tests pass in CI
-- [ ] Coverage maintained or improved
-- [ ] Documentation updated
-- [ ] Commits follow conventional commits
-
----
-
-## 📝 License
-
-[License information]
-
----
-
-## 📧 Contact
-
-For questions or issues:
-- Open GitHub issue
-- See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ---
 
@@ -298,7 +333,8 @@ For questions or issues:
 - FastAPI (Python 3.11)
 - PostgreSQL (database)
 - NumPy (vector mathematics)
-- Claude API (OCEAN inference)
+- Claude API / Anthropic SDK (OCEAN inference, conversation)
+- OpenAI API (avatar generation, content moderation)
 - Docker (containerization)
 - pytest (testing)
 

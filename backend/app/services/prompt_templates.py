@@ -17,14 +17,14 @@ from typing import Dict, List, Any, Optional
 
 # Archetype code → display name mapping
 ARCHETYPE_NAMES = {
-    "ANA": "The Analyst",
-    "SOC": "The Socialite",
-    "INN": "The Innovator",
-    "PRA": "The Pragmatist",
-    "REB": "The Rebel",
-    "CUS": "The Custodian",
-    "EMP": "The Empath",
-    "CAT": "The Catalyst",
+    "ANALYST": "The Analyst",
+    "SOCIALITE": "The Socialite",
+    "INNOVATOR": "The Innovator",
+    "ACTIVIST": "The Activist",
+    "PRAGMATIST": "The Pragmatist",
+    "TRADITIONALIST": "The Traditionalist",
+    "SKEPTIC": "The Skeptic",
+    "OPTIMIST": "The Optimist",
 }
 
 ATTITUDE_DESCRIPTIONS = {
@@ -92,7 +92,7 @@ class MottoPromptTemplate:
             f"Their personality profile:\n"
             f"OCEAN trait scores (0.0 = low, 1.0 = high):\n"
             f"{ocean_summary}\n\n"
-            f"Primary archetype: {top_archetype_name} (ANA={top_archetype_code}, affinity={top_affinity:.2f})\n"
+            f"Primary archetype: {top_archetype_name} ({top_archetype_code}, affinity={top_affinity:.2f})\n"
             f"Communication style: {attitude} ({attitude_desc})\n\n"
             f"Write a concise, single-sentence motto that reflects this persona's character. "
             f"The motto should sound authentic to someone who is {attitude_desc}. "

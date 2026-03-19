@@ -116,10 +116,10 @@ def init_db() -> None:
     - Initial development setup
     """
     # Import all models here to ensure they're registered with Base
-    from app.models import user  # Import User model
-    from app.models import persona  # Phase 3B: Persona model
-    # Future imports (Phase 7+):
-    # from app.models import conversation
+    from app.models import user  # noqa: F401
+    from app.models import persona  # noqa: F401
+    from app.models import moderation  # noqa: F401
+    from app.models import conversation  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 

@@ -105,6 +105,16 @@ class ConversationOrchestrator:
             db.add(msg)
             new_messages.append(msg)
 
+            if moderation_status == "flagged":
+                from app.models.moderation import ModerationAuditLog
+                db.add(ModerationAuditLog(
+                    content=message_text[:4096],
+                    toxicity_score=toxicity_score,
+                    source="conversation_turn",
+                    source_id=str(conversation.unique_id),
+                    action_taken="flagged",
+                ))
+
         conversation.turn_count = next_turn
         db.commit()
 

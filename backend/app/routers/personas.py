@@ -24,6 +24,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
 from app.models.persona import Persona
+from app.models.moderation import ModerationAuditLog
 from app.models.traits import PersonalityVector
 from app.models.affinity import AffinityCalculator
 from app.models.archetypes import get_all_archetypes
@@ -89,6 +90,15 @@ def create_persona(
         mod_service = ContentModerationService()
         toxicity_score = mod_service.analyze_toxicity(description)
         if not mod_service.is_safe(toxicity_score):
+            audit_log = ModerationAuditLog(
+                content=description[:4096],
+                toxicity_score=toxicity_score,
+                source="persona_creation",
+                source_id="blocked_before_save",
+                action_taken="blocked",
+            )
+            db.add(audit_log)
+            db.commit()
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Content failed moderation check (score: {toxicity_score:.2f}). Please revise the description.",
