@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { PersonaCard } from "./PersonaCard";
 import { Persona } from "@/types";
 
@@ -65,5 +65,31 @@ describe("PersonaCard", () => {
     render(<PersonaCard persona={mockPersona} />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/p/abc123");
+  });
+
+  it("does not show delete button when onDelete is not provided", () => {
+    render(<PersonaCard persona={mockPersona} />);
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+  });
+
+  it("renders delete button when onDelete is provided", () => {
+    render(<PersonaCard persona={mockPersona} onDelete={jest.fn()} />);
+    expect(screen.getByRole("button", { name: /delete alice/i })).toBeInTheDocument();
+  });
+
+  it("calls onDelete with persona unique_id when delete is confirmed", () => {
+    const onDelete = jest.fn();
+    window.confirm = jest.fn(() => true);
+    render(<PersonaCard persona={mockPersona} onDelete={onDelete} />);
+    fireEvent.click(screen.getByRole("button", { name: /delete alice/i }));
+    expect(onDelete).toHaveBeenCalledWith("abc123");
+  });
+
+  it("does not call onDelete when delete is cancelled", () => {
+    const onDelete = jest.fn();
+    window.confirm = jest.fn(() => false);
+    render(<PersonaCard persona={mockPersona} onDelete={onDelete} />);
+    fireEvent.click(screen.getByRole("button", { name: /delete alice/i }));
+    expect(onDelete).not.toHaveBeenCalled();
   });
 });
