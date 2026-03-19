@@ -14,14 +14,13 @@ Models:
 from .user import User
 from .persona import Persona
 from .moderation import ModerationAuditLog
-
-# Future models (will be uncommented as created):
-# from .conversation import Conversation, ConversationMessage
+from .conversation import Conversation, ConversationParticipant, ConversationMessage
 
 __all__ = [
     "User",
     "Persona",
     "ModerationAuditLog",
-    # "Conversation",
-    # "ConversationMessage",
+    "Conversation",
+    "ConversationParticipant",
+    "ConversationMessage",
 ]
