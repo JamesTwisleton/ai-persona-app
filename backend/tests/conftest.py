@@ -16,7 +16,7 @@ Following TDD principles:
 import os
 import pytest
 from typing import Generator, Dict, Any
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event as sa_event
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
@@ -30,11 +30,8 @@ from app.main import app
 
 # Import database components (Phase 2)
 from app.database import Base, get_db
-from app.models import User
-
-# Note: These imports will be created in later phases
-# from app.models import Persona, Conversation
-# from app.auth import create_access_token
+from app.models import User, Persona
+from app.auth import create_access_token
 
 
 # ============================================================================
@@ -54,7 +51,14 @@ def test_db_engine():
         poolclass=StaticPool,
     )
 
-    # Create all tables for testing (Phase 2: User model now available)
+    # Enable foreign key enforcement in SQLite (disabled by default)
+    @sa_event.listens_for(engine, "connect")
+    def set_sqlite_fk_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+    # Create all tables for testing (Phase 2: User model, Phase 3B: Persona model)
     Base.metadata.create_all(bind=engine)
 
     yield engine
@@ -130,31 +134,25 @@ def test_user_data() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def test_user(db_session, test_user_data):
-    """
-    Create a test user in the database.
-    Will be implemented in Phase 2 when User model exists.
-    """
-    # user = User(
-    #     email=test_user_data["email"],
-    #     password_hash=test_user_data["password_hash"]
-    # )
-    # db_session.add(user)
-    # db_session.commit()
-    # db_session.refresh(user)
-    # return user
-    pass
+def test_user(db_session):
+    """Create a test user in the database (OAuth-based, Phase 2+)."""
+    user = User(
+        email="test@example.com",
+        google_id="google_test_user_123",
+        name="Test User",
+        picture_url="https://example.com/pic.jpg",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
 
 
 @pytest.fixture
 def auth_headers(test_user) -> Dict[str, str]:
-    """
-    Generate authentication headers for testing protected endpoints.
-    Will be implemented in Phase 2 when auth is built.
-    """
-    # token = create_access_token(data={"sub": test_user.email})
-    # return {"Authorization": f"Bearer {token}"}
-    return {}
+    """Generate JWT auth headers for a test user."""
+    token = create_access_token(user_id=test_user.id)
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
@@ -198,21 +196,55 @@ def test_persona_data() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def test_persona(db_session, test_user, test_persona_data):
-    """
-    Create a test persona in the database.
-    Will be implemented in Phase 3.
-    """
-    pass
+def test_persona(db_session, test_user):
+    """Create a test persona in the database (Phase 3B)."""
+    persona = Persona(
+        user_id=test_user.id,
+        name="Test Persona",
+        age=30,
+        gender="Non-binary",
+        description="A thoughtful test persona for unit testing",
+        attitude="Neutral",
+        ocean_openness=0.7,
+        ocean_conscientiousness=0.6,
+        ocean_extraversion=0.5,
+        ocean_agreeableness=0.65,
+        ocean_neuroticism=0.35,
+        motto="Test everything",
+        avatar_url="https://example.com/avatar.png",
+    )
+    db_session.add(persona)
+    db_session.commit()
+    db_session.refresh(persona)
+    return persona
 
 
 @pytest.fixture
-def test_personas(db_session, test_user, test_persona_data):
-    """
-    Create multiple test personas for conversation testing.
-    Will be implemented in Phase 3.
-    """
-    pass
+def test_personas(db_session, test_user):
+    """Create multiple test personas for conversation testing (Phase 3B)."""
+    personas = []
+    ocean_profiles = [
+        (0.9, 0.8, 0.3, 0.4, 0.2),  # Analyst-like
+        (0.4, 0.5, 0.9, 0.85, 0.2),  # Socialite-like
+        (0.95, 0.6, 0.65, 0.7, 0.3), # Innovator-like
+    ]
+    names = ["Analyst", "Socialite", "Innovator"]
+    for name, (o, c, e, a, n) in zip(names, ocean_profiles):
+        p = Persona(
+            user_id=test_user.id,
+            name=name,
+            ocean_openness=o,
+            ocean_conscientiousness=c,
+            ocean_extraversion=e,
+            ocean_agreeableness=a,
+            ocean_neuroticism=n,
+        )
+        db_session.add(p)
+        personas.append(p)
+    db_session.commit()
+    for p in personas:
+        db_session.refresh(p)
+    return personas
 
 
 # ============================================================================

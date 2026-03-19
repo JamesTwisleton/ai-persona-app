@@ -117,8 +117,9 @@ def init_db() -> None:
     """
     # Import all models here to ensure they're registered with Base
     from app.models import user  # Import User model
-    # Future imports (Phase 3+):
-    # from app.models import persona, conversation
+    from app.models import persona  # Phase 3B: Persona model
+    # Future imports (Phase 7+):
+    # from app.models import conversation
 
     Base.metadata.create_all(bind=engine)
 

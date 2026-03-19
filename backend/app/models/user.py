@@ -19,7 +19,7 @@ Fields:
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, func, event
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 from app.database import Base
 from datetime import datetime
 
@@ -98,8 +98,8 @@ class User(Base):
     # Relationships (Phase 3+)
     # ========================================================================
 
-    # Will be added in Phase 3 when Persona model is created:
-    # personas = relationship("Persona", back_populates="user", cascade="all, delete-orphan")
+    # Phase 3B: Persona relationship
+    personas = relationship("Persona", back_populates="user", cascade="all, delete-orphan")
 
     # Will be added in Phase 7 when Conversation model is created:
     # conversations = relationship("Conversation", back_populates="creator")

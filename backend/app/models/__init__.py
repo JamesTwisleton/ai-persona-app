@@ -12,14 +12,14 @@ Models:
 
 # Import models as they're created
 from .user import User
+from .persona import Persona
 
 # Future models (will be uncommented as created):
-# from .persona import Persona
 # from .conversation import Conversation, ConversationMessage
 
 __all__ = [
     "User",
-    # "Persona",
+    "Persona",
     # "Conversation",
     # "ConversationMessage",
 ]
