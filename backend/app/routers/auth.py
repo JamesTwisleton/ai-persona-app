@@ -191,12 +191,9 @@ async def google_callback(
     # Generate JWT session token
     access_token = create_access_token(user.id)
 
-    # Return token and user info
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user.to_dict()
-    }
+    # Redirect to frontend with token in query parameter
+    frontend_callback_url = f"{settings.FRONTEND_URL}/auth/callback?token={access_token}"
+    return RedirectResponse(url=frontend_callback_url, status_code=302)
 
 
 # ============================================================================
