@@ -18,7 +18,7 @@ Fields:
 - updated_at: Last modification timestamp
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, func, event
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, event
 from sqlalchemy.orm import validates, relationship
 from app.database import Base
 from datetime import datetime
@@ -77,6 +77,14 @@ class User(Base):
         String(512),
         nullable=True,
         doc="Profile picture URL from Google (optional)"
+    )
+
+    is_admin = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        doc="Whether this user has admin privileges"
     )
 
     created_at = Column(

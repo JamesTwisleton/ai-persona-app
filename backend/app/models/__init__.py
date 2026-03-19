@@ -13,6 +13,7 @@ Models:
 # Import models as they're created
 from .user import User
 from .persona import Persona
+from .moderation import ModerationAuditLog
 
 # Future models (will be uncommented as created):
 # from .conversation import Conversation, ConversationMessage
@@ -20,6 +21,7 @@ from .persona import Persona
 __all__ = [
     "User",
     "Persona",
+    "ModerationAuditLog",
     # "Conversation",
     # "ConversationMessage",
 ]

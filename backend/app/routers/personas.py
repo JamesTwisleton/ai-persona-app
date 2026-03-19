@@ -30,6 +30,7 @@ from app.models.archetypes import get_all_archetypes
 from app.services.ocean_inference import OceanInferenceService
 from app.services.llm_service import LLMService
 from app.services.image_generation_service import ImageGenerationService
+from app.services.content_moderation_service import ContentModerationService
 
 logger = logging.getLogger(__name__)
 
@@ -82,8 +83,23 @@ def create_persona(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Step 1: Infer OCEAN traits from description
+    # Step 1: Moderate content (check description for harmful content)
     description = request.description or f"A person named {request.name}"
+    try:
+        mod_service = ContentModerationService()
+        toxicity_score = mod_service.analyze_toxicity(description)
+        if not mod_service.is_safe(toxicity_score):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Content failed moderation check (score: {toxicity_score:.2f}). Please revise the description.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"Content moderation check failed for '{request.name}': {e}")
+        # Fail open — allow creation to proceed if moderation service is unavailable
+
+    # Step 2: Infer OCEAN traits from description
     try:
         service = OceanInferenceService()
         ocean_scores = service.infer_ocean_traits(description)
@@ -94,7 +110,7 @@ def create_persona(
             detail=f"OCEAN inference service failed: {e}",
         )
 
-    # Step 2: Calculate archetype affinities
+    # Step 3: Calculate archetype affinities
     persona_vector = PersonalityVector({
         "O": ocean_scores["openness"],
         "C": ocean_scores["conscientiousness"],
@@ -105,7 +121,7 @@ def create_persona(
     calculator = AffinityCalculator(get_all_archetypes())
     affinities = calculator.calculate(persona_vector)
 
-    # Step 3: Generate motto via LLM (non-blocking on failure)
+    # Step 4: Generate motto via LLM (non-blocking on failure)
     persona_details = {
         "name": request.name,
         "description": description,
@@ -120,7 +136,7 @@ def create_persona(
     except Exception as e:
         logger.warning(f"Motto generation failed for '{request.name}': {e}")
 
-    # Step 4: Generate avatar via image generation (non-blocking on failure)
+    # Step 5: Generate avatar via image generation (non-blocking on failure)
     avatar_url = None
     try:
         img_service = ImageGenerationService()
@@ -133,7 +149,7 @@ def create_persona(
     except Exception as e:
         logger.warning(f"Avatar generation failed for '{request.name}': {e}")
 
-    # Step 5: Create persona in database
+    # Step 6: Create persona in database
     persona = Persona(
         user_id=current_user.id,
         name=request.name,

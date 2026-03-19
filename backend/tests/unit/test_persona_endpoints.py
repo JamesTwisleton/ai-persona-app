@@ -29,8 +29,8 @@ OCEAN_RETURN = {
 }
 
 
-def mock_all_ai_services(ocean_cls, llm_cls, img_cls):
-    """Wire up mocks for all three AI services used in persona creation."""
+def mock_all_ai_services(ocean_cls, llm_cls, img_cls, mod_cls=None):
+    """Wire up mocks for all AI services used in persona creation."""
     ocean_svc = MagicMock()
     ocean_svc.infer_ocean_traits.return_value = OCEAN_RETURN
     ocean_cls.return_value = ocean_svc
@@ -42,6 +42,13 @@ def mock_all_ai_services(ocean_cls, llm_cls, img_cls):
     img_svc = MagicMock()
     img_svc.generate_avatar_for_persona.return_value = "https://example.com/avatar.png"
     img_cls.return_value = img_svc
+
+    if mod_cls is not None:
+        mod_svc = MagicMock()
+        mod_svc.analyze_toxicity.return_value = 0.01
+        mod_svc.is_safe.return_value = True
+        mod_cls.return_value = mod_svc
+        return ocean_svc, llm_svc, img_svc, mod_svc
 
     return ocean_svc, llm_svc, img_svc
 
@@ -56,13 +63,14 @@ class TestCreatePersona:
     @patch("app.routers.personas.ImageGenerationService")
     @patch("app.routers.personas.LLMService")
     @patch("app.routers.personas.OceanInferenceService")
+    @patch("app.routers.personas.ContentModerationService")
     def test_create_persona_success(
-        self, mock_ocean_cls, mock_llm_cls, mock_img_cls,
+        self, mock_mod_cls, mock_ocean_cls, mock_llm_cls, mock_img_cls,
         client, auth_headers, db_session,
     ):
         """Creating a persona infers OCEAN traits, generates motto and avatar."""
-        ocean_svc, llm_svc, img_svc = mock_all_ai_services(
-            mock_ocean_cls, mock_llm_cls, mock_img_cls
+        ocean_svc, llm_svc, img_svc, mod_svc = mock_all_ai_services(
+            mock_ocean_cls, mock_llm_cls, mock_img_cls, mock_mod_cls
         )
 
         response = client.post(
@@ -121,11 +129,13 @@ class TestCreatePersona:
     @patch("app.routers.personas.ImageGenerationService")
     @patch("app.routers.personas.LLMService")
     @patch("app.routers.personas.OceanInferenceService")
+    @patch("app.routers.personas.ContentModerationService")
     def test_create_persona_inference_failure_returns_error(
-        self, mock_ocean_cls, mock_llm_cls, mock_img_cls,
+        self, mock_mod_cls, mock_ocean_cls, mock_llm_cls, mock_img_cls,
         client, auth_headers,
     ):
         """If OCEAN inference fails, return a 502 error."""
+        mock_all_ai_services(mock_ocean_cls, mock_llm_cls, mock_img_cls, mock_mod_cls)
         ocean_svc = MagicMock()
         ocean_svc.infer_ocean_traits.side_effect = Exception("API Error")
         mock_ocean_cls.return_value = ocean_svc
@@ -144,11 +154,17 @@ class TestCreatePersona:
     @patch("app.routers.personas.ImageGenerationService")
     @patch("app.routers.personas.LLMService")
     @patch("app.routers.personas.OceanInferenceService")
+    @patch("app.routers.personas.ContentModerationService")
     def test_create_persona_motto_failure_still_saves(
-        self, mock_ocean_cls, mock_llm_cls, mock_img_cls,
+        self, mock_mod_cls, mock_ocean_cls, mock_llm_cls, mock_img_cls,
         client, auth_headers,
     ):
         """If motto generation fails, persona is still saved with None motto."""
+        mod_svc = MagicMock()
+        mod_svc.analyze_toxicity.return_value = 0.01
+        mod_svc.is_safe.return_value = True
+        mock_mod_cls.return_value = mod_svc
+
         ocean_svc = MagicMock()
         ocean_svc.infer_ocean_traits.return_value = OCEAN_RETURN
         mock_ocean_cls.return_value = ocean_svc
@@ -175,12 +191,13 @@ class TestCreatePersona:
     @patch("app.routers.personas.ImageGenerationService")
     @patch("app.routers.personas.LLMService")
     @patch("app.routers.personas.OceanInferenceService")
+    @patch("app.routers.personas.ContentModerationService")
     def test_create_persona_minimal_fields(
-        self, mock_ocean_cls, mock_llm_cls, mock_img_cls,
+        self, mock_mod_cls, mock_ocean_cls, mock_llm_cls, mock_img_cls,
         client, auth_headers,
     ):
         """Persona can be created with just a name (description defaults)."""
-        mock_all_ai_services(mock_ocean_cls, mock_llm_cls, mock_img_cls)
+        mock_all_ai_services(mock_ocean_cls, mock_llm_cls, mock_img_cls, mock_mod_cls)
 
         response = client.post(
             "/personas",
@@ -194,12 +211,13 @@ class TestCreatePersona:
     @patch("app.routers.personas.ImageGenerationService")
     @patch("app.routers.personas.LLMService")
     @patch("app.routers.personas.OceanInferenceService")
+    @patch("app.routers.personas.ContentModerationService")
     def test_create_persona_validates_attitude(
-        self, mock_ocean_cls, mock_llm_cls, mock_img_cls,
+        self, mock_mod_cls, mock_ocean_cls, mock_llm_cls, mock_img_cls,
         client, auth_headers,
     ):
         """Attitude must be one of the valid options."""
-        mock_all_ai_services(mock_ocean_cls, mock_llm_cls, mock_img_cls)
+        mock_all_ai_services(mock_ocean_cls, mock_llm_cls, mock_img_cls, mock_mod_cls)
 
         response = client.post(
             "/personas",

@@ -94,6 +94,27 @@ def get_current_user(
     return user
 
 
+def get_current_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Admin-only authentication dependency.
+
+    Raises 403 if the authenticated user is not an admin.
+
+    Usage:
+        @router.get("/admin/something")
+        def admin_route(admin: User = Depends(get_current_admin)):
+            ...
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+    return current_user
+
+
 # Optional: Dependency for optional authentication (user might not be logged in)
 def get_current_user_optional(
     request: Request,
