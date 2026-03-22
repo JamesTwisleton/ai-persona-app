@@ -46,8 +46,10 @@ class ContentModerationService:
     def __init__(
         self,
         http_client: Optional[httpx.Client] = None,
-        threshold: float = DEFAULT_THRESHOLD,
+        threshold: Optional[float] = None,
     ):
+        if threshold is None:
+            threshold = settings.TOXICITY_THRESHOLD
         if http_client is not None:
             self.http_client = http_client
         else:

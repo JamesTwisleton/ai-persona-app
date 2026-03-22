@@ -66,6 +66,7 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
+    TOXICITY_THRESHOLD: float = 0.7
 
     # ========================================================================
     # CORS Settings

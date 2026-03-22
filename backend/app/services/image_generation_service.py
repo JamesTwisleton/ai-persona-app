@@ -32,7 +32,7 @@ FALLBACK_AVATAR_URL = "https://api.dicebear.com/7.x/personas/svg?seed=default-av
 # DALL-E model to use
 DALLE_MODEL = "dall-e-3"
 DALLE_SIZE = "1024x1024"
-DALLE_QUALITY = "standard"
+DALLE_QUALITY = "hd"
 
 
 class ImageGenerationService:
@@ -91,10 +91,11 @@ class ImageGenerationService:
 
         # Keep prompt focused and safe for DALL-E
         prompt = (
-            f"Professional portrait illustration of {name}, a {demographic}. "
-            f"Realistic, detailed avatar suitable for a professional profile. "
-            f"Clean background, well-lit, friendly expression. "
-            f"Digital art style."
+            f"Photorealistic portrait photograph of {name}, a {demographic}. "
+            f"{description[:200] + '. ' if description else ''}"
+            f"Professional headshot, natural skin texture, real camera photo. "
+            f"Soft studio lighting, neutral background, sharp focus, 85mm lens. "
+            f"Photojournalism style, not illustrated, not digital art."
         )
 
         return prompt
