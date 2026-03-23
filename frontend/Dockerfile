@@ -29,6 +29,11 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# Bake the API URL in at build time (Next.js NEXT_PUBLIC_* vars are build-time)
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
 # ============================================================================
@@ -42,7 +47,6 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 CMD ["npm", "start"]

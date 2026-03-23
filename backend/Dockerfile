@@ -80,8 +80,6 @@ RUN adduser --disabled-password --gecos '' appuser
 
 # Copy application code
 COPY app ./app
-COPY alembic ./alembic
-COPY alembic.ini ./
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /usr/src/app
