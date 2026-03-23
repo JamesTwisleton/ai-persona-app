@@ -1,0 +1,108 @@
+image: python:3.11-slim
+
+definitions:
+  # ============================================================
+  # Reusable steps
+  # ============================================================
+  steps:
+    - step: &test-backend
+        name: Test backend
+        caches:
+          - pip
+        script:
+          - cd backend
+          - pip install -r requirements-dev.txt -q
+          - pytest tests/ -q --cov=app --cov-report=term-missing --cov-fail-under=85
+        artifacts:
+          - backend/htmlcov/**
+
+    - step: &push-backend
+        name: Build & push backend image
+        image: docker:27
+        services:
+          - docker
+        caches:
+          - docker
+        script:
+          - apk add --no-cache aws-cli curl
+          - aws ecr get-login-password --region $AWS_DEFAULT_REGION
+              | docker login --username AWS --password-stdin
+                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+          - docker build
+              --platform linux/amd64
+              --target production
+              --cache-from ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/backend:latest
+              -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/backend:latest
+              -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/backend:$BITBUCKET_COMMIT
+              ./backend
+          - docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/backend:latest
+          - docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/backend:$BITBUCKET_COMMIT
+
+    - step: &push-frontend
+        name: Build & push frontend image
+        image: docker:27
+        services:
+          - docker
+        caches:
+          - docker
+        script:
+          - apk add --no-cache aws-cli
+          - aws ecr get-login-password --region $AWS_DEFAULT_REGION
+              | docker login --username AWS --password-stdin
+                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+          - docker build
+              --platform linux/amd64
+              --target production
+              --build-arg NEXT_PUBLIC_API_URL=https://api.personacomposer.app
+              --cache-from ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/frontend:latest
+              -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/frontend:latest
+              -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/frontend:$BITBUCKET_COMMIT
+              ./frontend
+          - docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/frontend:latest
+          - docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/persona-composer/frontend:$BITBUCKET_COMMIT
+
+    - step: &deploy-ecs
+        name: Deploy to ECS
+        image: amazon/aws-cli:latest
+        script:
+          - aws ecs update-service
+              --region $AWS_DEFAULT_REGION
+              --cluster persona-composer-cluster
+              --service persona-composer-backend
+              --force-new-deployment
+              --query 'service.{name:serviceName,status:status}'
+          - aws ecs update-service
+              --region $AWS_DEFAULT_REGION
+              --cluster persona-composer-cluster
+              --service persona-composer-frontend
+              --force-new-deployment
+              --query 'service.{name:serviceName,status:status}'
+          # Wait for both services to stabilise (timeout 10 minutes)
+          - aws ecs wait services-stable
+              --region $AWS_DEFAULT_REGION
+              --cluster persona-composer-cluster
+              --services persona-composer-backend persona-composer-frontend
+          - echo "Deployed successfully to https://personacomposer.app"
+
+# ============================================================
+# Pipeline triggers
+# ============================================================
+
+pipelines:
+  # Runs on every pull request — tests only, no deploy
+  pull-requests:
+    '**':
+      - step: *test-backend
+
+  branches:
+    # Feature branches — tests only
+    '**':
+      - step: *test-backend
+
+    # Main branch — test, build, push, deploy
+    main:
+      - step: *test-backend
+      - parallel:
+          - step: *push-backend
+          - step: *push-frontend
+      - step: *deploy-ecs
