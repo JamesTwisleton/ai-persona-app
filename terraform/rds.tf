@@ -1,7 +1,7 @@
 resource "random_password" "db" {
   length           = 32
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!*-_=+"  # Exclude URL-special chars (@, :, /, #, ?, %) to keep DATABASE_URL parseable
 }
 
 resource "aws_db_subnet_group" "main" {
