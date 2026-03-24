@@ -42,7 +42,7 @@ router = APIRouter(tags=["personas"])
 # Request/Response Schemas
 # ============================================================================
 
-VALID_ATTITUDES = {"Neutral", "Sarcastic", "Comical", "Somber"}
+VALID_ATTITUDES = {"Neutral", "Sarcastic", "Comical", "Somber", "Confrontational", "Blunt", "Cynical"}
 
 
 class PersonaCreateRequest(BaseModel):

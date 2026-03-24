@@ -208,7 +208,7 @@ def continue_conversation(
     history = [
         {"speaker": m.persona_name, "message": m.message_text}
         for m in existing_messages
-        if m.moderation_status == "approved"
+        if m.moderation_status in ("approved", "user")
     ]
 
     try:
@@ -228,3 +228,49 @@ def continue_conversation(
         "new_messages": [m.to_dict() for m in new_messages],
         "is_complete": conversation.is_complete,
     }
+
+
+# ============================================================================
+# POST /conversations/{unique_id}/message - User Injects a Message
+# ============================================================================
+
+class UserMessageRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=2000)
+
+
+@router.post(
+    "/conversations/{unique_id}/message",
+    status_code=status.HTTP_201_CREATED,
+    summary="Inject a user message into the conversation",
+)
+def inject_user_message(
+    unique_id: str,
+    request: UserMessageRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.unique_id == unique_id,
+            Conversation.created_by == current_user.id,
+        )
+        .first()
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    speaker_name = current_user.name or "You"
+    msg = ConversationMessage(
+        conversation_id=conversation.id,
+        persona_id=None,
+        persona_name=speaker_name,
+        message_text=request.text,
+        turn_number=conversation.turn_count,
+        toxicity_score=None,
+        moderation_status="user",
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return msg.to_dict()

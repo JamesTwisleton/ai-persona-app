@@ -3,19 +3,10 @@ Prompt Templates - Phase 4
 
 String templates for LLM prompts used in persona motto generation
 and focus group conversation responses.
-
-TDD Status:
-- Tests written first in: tests/unit/test_prompt_templates.py
-- This implementation makes those tests GREEN
-
-Classes:
-- MottoPromptTemplate: Generates a prompt to create a personal motto
-- ConversationPromptTemplate: Generates a prompt for a conversation turn
 """
 
 from typing import Dict, List, Any, Optional
 
-# Archetype code → display name mapping
 ARCHETYPE_NAMES = {
     "ANALYST": "The Analyst",
     "SOCIALITE": "The Socialite",
@@ -28,28 +19,29 @@ ARCHETYPE_NAMES = {
 }
 
 ATTITUDE_DESCRIPTIONS = {
-    "Neutral": "thoughtful and balanced",
-    "Sarcastic": "witty and sarcastic",
-    "Comical": "humorous and lighthearted",
-    "Somber": "serious and reflective",
+    "Neutral":         "speaks plainly and directly without sugar-coating",
+    "Sarcastic":       "dry, cutting, and uses sarcasm as a default mode",
+    "Comical":         "finds dark or absurdist humour in everything",
+    "Somber":          "bleak, serious, and finds hope irritating",
+    "Confrontational": "picks fights, challenges assumptions, thrives on conflict",
+    "Blunt":           "zero filter, says the uncomfortable thing out loud, no apologies",
+    "Cynical":         "assumes bad faith, skewers idealism, trusts no institution",
 }
+
+# Phrases that make responses sound like an AI performing politeness
+BANNED_PHRASES = [
+    "Absolutely", "Great point", "That's a great", "That's an interesting",
+    "I completely agree", "Totally agree", "Couldn't agree more",
+    "Fascinating perspective", "Well said", "You raise a good point",
+    "I think we can all agree", "It's important to consider all perspectives",
+    "I'd love to hear your thoughts", "What do you think?", "What are your thoughts?",
+    "At the end of the day", "Moving forward", "As an AI", "I must say",
+    "Certainly", "Indeed", "Of course", "Naturally", "Without a doubt",
+    "That being said", "Having said that", "To be fair",
+]
 
 
 class MottoPromptTemplate:
-    """
-    Builds a prompt asking Claude to generate a short personal motto
-    for a given persona based on their OCEAN traits and archetype affinities.
-
-    Usage:
-        template = MottoPromptTemplate()
-        prompt = template.render(
-            name="Alice",
-            ocean_scores={"openness": 0.8, ...},
-            archetype_affinities={"ANA": 0.35, ...},
-            attitude="Neutral",
-        )
-        # prompt is a string ready to be sent to Claude
-    """
 
     def render(
         self,
@@ -58,24 +50,9 @@ class MottoPromptTemplate:
         archetype_affinities: Dict[str, float],
         attitude: Optional[str] = "Neutral",
     ) -> str:
-        """
-        Build the user message for motto generation.
-
-        Args:
-            name: Persona's name
-            ocean_scores: Dict of OCEAN trait scores (0.0–1.0)
-            archetype_affinities: Dict of archetype code → affinity score
-            attitude: Response style (Neutral, Sarcastic, Comical, Somber)
-
-        Returns:
-            str: Formatted prompt for Claude
-        """
-        # Find top archetype
         top_archetype_code = max(archetype_affinities, key=archetype_affinities.get)
         top_archetype_name = ARCHETYPE_NAMES.get(top_archetype_code, top_archetype_code)
-        top_affinity = archetype_affinities[top_archetype_code]
 
-        # Build OCEAN summary
         ocean_lines = [
             f"  - Openness: {ocean_scores.get('openness', 0.5):.2f}",
             f"  - Conscientiousness: {ocean_scores.get('conscientiousness', 0.5):.2f}",
@@ -84,39 +61,24 @@ class MottoPromptTemplate:
             f"  - Neuroticism: {ocean_scores.get('neuroticism', 0.5):.2f}",
         ]
         ocean_summary = "\n".join(ocean_lines)
-
-        attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "thoughtful and balanced")
+        attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "speaks plainly")
 
         return (
-            f"Create a short personal motto for a persona named {name}.\n\n"
-            f"Their personality profile:\n"
-            f"OCEAN trait scores (0.0 = low, 1.0 = high):\n"
-            f"{ocean_summary}\n\n"
-            f"Primary archetype: {top_archetype_name} ({top_archetype_code}, affinity={top_affinity:.2f})\n"
-            f"Communication style: {attitude} ({attitude_desc})\n\n"
-            f"Write a concise, single-sentence motto that reflects this persona's character. "
-            f"The motto should sound authentic to someone who is {attitude_desc}. "
-            f"Return only the motto text itself, with no explanation or quotation marks."
+            f"Write a personal motto for {name}.\n\n"
+            f"OCEAN scores:\n{ocean_summary}\n\n"
+            f"Primary archetype: {top_archetype_name}\n"
+            f"Communication style: {attitude} — {attitude_desc}\n\n"
+            f"Rules:\n"
+            f"- The motto must reflect genuine character — including cynicism, aggression, or selfishness if the scores call for it\n"
+            f"- No corporate motivational speak. No 'be the change', no 'every day is a gift'\n"
+            f"- Low agreeableness = self-serving or combative tone\n"
+            f"- High neuroticism = anxious, dark, or self-deprecating\n"
+            f"- Low openness = blunt, conservative, suspicious of novelty\n"
+            f"- Return ONLY the motto. No quotes, no explanation."
         )
 
 
 class ConversationPromptTemplate:
-    """
-    Builds a system + user prompt for a persona's response in a focus group.
-
-    The system prompt establishes the persona's identity and personality.
-    The user prompt provides the conversation context and asks for a response.
-
-    Usage:
-        template = ConversationPromptTemplate()
-        system, user = template.render(
-            persona_name="Alice",
-            ocean_scores={"openness": 0.8, ...},
-            attitude="Neutral",
-            topic="Should we colonize Mars?",
-            history=[{"speaker": "Bob", "message": "I think..."}],
-        )
-    """
 
     def render(
         self,
@@ -125,56 +87,54 @@ class ConversationPromptTemplate:
         attitude: str,
         topic: str,
         history: List[Dict[str, str]],
+        description: str = "",
     ) -> str:
-        """
-        Build the full conversation prompt.
-
-        Args:
-            persona_name: Name of the persona responding
-            ocean_scores: OCEAN trait scores for this persona
-            attitude: Response style (Neutral, Sarcastic, Comical, Somber)
-            topic: Focus group discussion topic
-            history: List of prior messages [{"speaker": ..., "message": ...}]
-
-        Returns:
-            str: Combined prompt string (system + conversation context)
-        """
-        attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "thoughtful and balanced")
-
-        # Personality characterization based on OCEAN scores
+        attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "speaks plainly")
         personality_traits = self._describe_personality(ocean_scores)
+        banned = ", ".join(f'"{p}"' for p in BANNED_PHRASES[:12])
 
-        # Format conversation history
-        history_text = ""
+        # Detect if the last few messages are stagnating (same speakers saying similar things)
+        stagnation_warning = ""
+        if len(history) >= 4:
+            recent = history[-4:]
+            speakers = [m["speaker"] for m in recent]
+            # If the last 4 are all from the same 2 people just agreeing, force disruption
+            if len(set(speakers)) <= 2:
+                stagnation_warning = (
+                    "\nWARNING: The conversation is going in circles. "
+                    "You MUST introduce a new angle, contradict something, or say something provocative. "
+                    "Do NOT continue the current thread.\n"
+                )
+
         if history:
-            lines = [
-                f"{msg['speaker']}: {msg['message']}"
-                for msg in history
-            ]
+            lines = [f"{msg['speaker']}: {msg['message']}" for msg in history]
             history_text = "\n".join(lines)
             history_section = f"Conversation so far:\n{history_text}\n\n"
         else:
-            history_section = "This is the start of the discussion.\n\n"
+            history_section = "You are opening the discussion.\n\n"
+
+        background = f"Your background: {description}\n" if description else ""
 
         return (
-            f"You are {persona_name}, a participant in a focus group.\n\n"
-            f"Your personality traits:\n{personality_traits}\n"
-            f"Your communication style is {attitude} ({attitude_desc}).\n\n"
-            f"Discussion topic: {topic}\n\n"
+            f"You are {persona_name}.\n"
+            f"{background}"
+            f"Your personality:\n{personality_traits}\n"
+            f"Your communication style: {attitude} — {attitude_desc}\n\n"
+            f"Topic: {topic}\n\n"
             f"{history_section}"
-            f"Respond as {persona_name} in 2-4 sentences. Stay in character."
+            f"{stagnation_warning}"
+            f"RULES — read carefully:\n"
+            f"1. State YOUR OWN position first. Do not open by asking what others think.\n"
+            f"2. You are NOT required to be nice. Low agreeableness means you push back hard.\n"
+            f"3. NEVER open with any of these: {banned}\n"
+            f"4. Do not repeat points already made. If you agree, say so in one clause then move on.\n"
+            f"5. If someone said something wrong or naive, call it out directly.\n"
+            f"6. Keep it to 2-3 sentences. Be dense, not verbose.\n"
+            f"7. Sound like a real human, not a panel discussion moderator.\n\n"
+            f"Respond now as {persona_name}:"
         )
 
     def _describe_personality(self, ocean_scores: Dict[str, float]) -> str:
-        """
-        Convert OCEAN scores into human-readable personality descriptors.
-
-        Args:
-            ocean_scores: Dict of trait name → float score
-
-        Returns:
-            str: Bulleted personality description
-        """
         traits = []
 
         o = ocean_scores.get("openness", 0.5)
@@ -183,32 +143,40 @@ class ConversationPromptTemplate:
         a = ocean_scores.get("agreeableness", 0.5)
         n = ocean_scores.get("neuroticism", 0.5)
 
-        if o > 0.6:
-            traits.append("open to new ideas and intellectually curious")
-        elif o < 0.4:
-            traits.append("practical and conventional in thinking")
+        if o > 0.7:
+            traits.append("intellectually curious, enjoys abstract ideas and provocation")
+        elif o > 0.5:
+            traits.append("open to new ideas but grounded")
+        elif o < 0.3:
+            traits.append("suspicious of novelty, prefers what's been proven to work")
+        else:
+            traits.append("practical, not interested in theory for its own sake")
 
-        if c > 0.6:
-            traits.append("organized, disciplined, and goal-oriented")
-        elif c < 0.4:
-            traits.append("flexible and spontaneous")
+        if c > 0.7:
+            traits.append("disciplined and precise, irritated by sloppiness")
+        elif c < 0.3:
+            traits.append("impulsive, easily bored, ignores rules that seem pointless")
 
-        if e > 0.6:
-            traits.append("outgoing and energetic in social situations")
-        elif e < 0.4:
-            traits.append("reserved and thoughtful before speaking")
+        if e > 0.7:
+            traits.append("dominant in conversation, fills silence, thinks out loud")
+        elif e < 0.3:
+            traits.append("speaks only when they have something worth saying")
 
-        if a > 0.6:
-            traits.append("cooperative and considerate of others' feelings")
-        elif a < 0.4:
-            traits.append("direct and competitive")
+        if a > 0.7:
+            traits.append("values harmony but not a pushover")
+        elif a < 0.3:
+            traits.append("competitive, self-interested, finds deference irritating")
+        elif a < 0.45:
+            traits.append("sceptical of others' motives, won't soften an opinion to spare feelings")
 
-        if n > 0.6:
-            traits.append("emotionally sensitive and prone to anxiety")
-        elif n < 0.4:
-            traits.append("emotionally stable and resilient")
+        if n > 0.7:
+            traits.append("prone to catastrophising, emotions close to the surface")
+        elif n > 0.55:
+            traits.append("occasionally irritable, takes things personally")
+        elif n < 0.3:
+            traits.append("emotionally flat, rarely rattled")
 
         if not traits:
-            traits.append("balanced across all personality dimensions")
+            traits.append("unremarkably average across all dimensions")
 
         return "\n".join(f"- {t}" for t in traits)

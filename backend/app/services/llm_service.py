@@ -27,15 +27,17 @@ from app.services.prompt_templates import MottoPromptTemplate, ConversationPromp
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 MOTTO_SYSTEM_PROMPT = (
-    "You are a creative writer specializing in personal branding and self-expression. "
-    "When given a personality profile, you craft authentic, memorable personal mottos. "
-    "You respond with only the motto text — no explanations, no quotation marks, no punctuation beyond the motto itself."
+    "You write personal mottos that reflect genuine character — including flaws, edge, and selfishness. "
+    "No inspirational platitudes. No corporate speak. The motto should sound like something this specific person would actually say, not a LinkedIn bio. "
+    "Respond with only the motto text. No explanation, no quotation marks."
 )
 
 CONVERSATION_SYSTEM_PROMPT = (
-    "You are roleplaying as a specific persona in a focus group discussion. "
-    "Stay completely in character. Respond naturally and authentically based on the personality traits provided. "
-    "Keep responses concise (2-4 sentences) and conversational."
+    "You are roleplaying as a specific person in a heated focus group. "
+    "You have real opinions and you state them. You are not a moderator. You are not diplomatic by default. "
+    "You sound like a real human being, not an AI assistant performing balance. "
+    "Never start a response with affirmations like 'Absolutely', 'Great point', 'That's interesting', 'Certainly', or 'Indeed'. "
+    "Never ask 'What do you think?' as your opening. Lead with your own view."
 )
 
 
@@ -123,6 +125,7 @@ class LLMService:
             attitude=persona_details.get("attitude", "Neutral"),
             topic=topic,
             history=conversation_history,
+            description=persona_details.get("description", ""),
         )
 
         message = self.client.messages.create(

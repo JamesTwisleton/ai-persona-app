@@ -16,7 +16,7 @@ export interface User {
 // Persona
 // ============================================================================
 
-export type Attitude = "Neutral" | "Sarcastic" | "Comical" | "Somber";
+export type Attitude = "Neutral" | "Sarcastic" | "Comical" | "Somber" | "Confrontational" | "Blunt" | "Cynical";
 
 export interface Persona {
   unique_id: string;
@@ -86,7 +86,7 @@ export interface ConversationMessage {
   persona_name: string;
   message_text: string;
   turn_number: number;
-  moderation_status: "approved" | "flagged";
+  moderation_status: "approved" | "flagged" | "user";
   toxicity_score: number | null;
   created_at: string;
 }

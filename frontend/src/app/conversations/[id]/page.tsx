@@ -41,12 +41,26 @@ function ConversationContent() {
         `/conversations/${id}/continue`,
         { method: "POST" }
       );
-      // Refresh full conversation to get updated messages + turn count
       await fetchConversation();
     } catch (err) {
       if (err instanceof ApiError) setError(err.detail ?? err.message);
     } finally {
       setIsContinuing(false);
+    }
+  };
+
+  const handleSendMessage = async (text: string) => {
+    if (!id) return;
+    setError(null);
+    try {
+      await apiFetch(`/conversations/${id}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      await fetchConversation();
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.detail ?? err.message);
     }
   };
 
@@ -74,6 +88,7 @@ function ConversationContent() {
           <ConversationView
             conversation={conversation}
             onContinue={handleContinue}
+            onSendMessage={handleSendMessage}
             isLoading={isContinuing}
           />
         ) : (
