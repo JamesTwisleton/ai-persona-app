@@ -1,38 +1,33 @@
-name: Next.js CI
+name: Frontend CI
 
 on:
   pull_request:
     branches:
-      - '*'
+      - '**'
     paths:
-      - 'code/nextjs/**'
+      - 'frontend/**'
 
 jobs:
-  build-and-test:
+  build:
+    name: Build frontend
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./code/nextjs
+        working-directory: ./frontend
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18.17.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Set Environment Variables (figure out removing this)
-      run: |
-        echo "MONGODB_URI=PLACEHOLDER" >> $GITHUB_ENV
-        echo "MONGODB_DB=PLACEHOLDER" >> $GITHUB_ENV
-
-    - name: Build Next.js Application
-      run: npm run build
-
-    # TODO: add tests!
-    # - name: Run Tests
-    #   run: npm test
+      - name: Build Next.js application
+        env:
+          NEXT_PUBLIC_API_URL: https://api.personacomposer.app
+        run: npm run build
