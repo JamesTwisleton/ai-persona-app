@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Persona } from "@/types";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 function getTopArchetype(affinities: Record<string, number>): string {
   const entries = Object.entries(affinities);
@@ -15,96 +19,149 @@ function formatArchetype(code: string): string {
 interface PersonaCardProps {
   persona: Persona;
   onDelete?: (uniqueId: string) => void;
+  isSelected?: boolean;
+  onSelect?: (uniqueId: string) => void;
+  selectMode?: boolean;
 }
 
-export function PersonaCard({ persona, onDelete }: PersonaCardProps) {
-  const topArchetype = getTopArchetype(persona.archetype_affinities);
+export function PersonaCard({
+  persona,
+  onDelete,
+  isSelected = false,
+  onSelect,
+  selectMode = false,
+}: PersonaCardProps) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const topArchetype = getTopArchetype(persona.archetype_affinities ?? {});
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onDelete && window.confirm(`Delete ${persona.name}?`)) {
-      onDelete(persona.unique_id);
-    }
+  const handleConfirmDelete = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    await onDelete(persona.unique_id);
+    setIsDeleting(false);
+    setShowConfirm(false);
   };
 
-  return (
-    <div className="relative group">
-      <Link href={`/p/${persona.unique_id}`} className="block">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-md transition-all">
-          <div className="flex items-start gap-3">
-            {/* Avatar */}
-            <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center">
-              {persona.avatar_url ? (
-                <Image
-                  src={persona.avatar_url}
-                  alt={`${persona.name} avatar`}
-                  width={48}
-                  height={48}
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <span className="text-indigo-600 font-bold text-lg">
-                  {persona.name.charAt(0).toUpperCase()}
-                </span>
+  const cardContent = (
+    <div
+      className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-all ${
+        isSelected ? "border-indigo-400 ring-2 ring-indigo-300" : "border-gray-200 hover:border-indigo-300"
+      }`}
+    >
+      {/* Photo-first: avatar fills top 60% */}
+      <div className="relative w-full aspect-square bg-indigo-50">
+        {persona.avatar_url ? (
+          <Image
+            src={persona.avatar_url}
+            alt={`${persona.name} avatar`}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-indigo-400 font-bold text-6xl">
+              {persona.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+        {/* Gradient overlay at bottom of photo */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
+
+        {/* Select checkbox overlay */}
+        {selectMode && (
+          <div className="absolute top-2 left-2">
+            <div
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                isSelected ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-300"
+              }`}
+            >
+              {isSelected && (
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               )}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                  {persona.name}
-                </h3>
-                {persona.age && (
-                  <span className="text-sm text-gray-500">{persona.age}</span>
-                )}
-              </div>
-
-              {persona.motto && (
-                <p className="text-sm text-gray-600 italic mt-0.5 truncate">
-                  &ldquo;{persona.motto}&rdquo;
-                </p>
-              )}
-
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                {topArchetype && (
-                  <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-medium">
-                    {formatArchetype(topArchetype)}
-                  </span>
-                )}
-                {persona.attitude && (
-                  <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                    {persona.attitude}
-                  </span>
-                )}
-              </div>
             </div>
           </div>
-        </div>
-      </Link>
+        )}
+      </div>
 
-      {/* Delete button — only shown when onDelete prop provided */}
-      {onDelete && (
-        <button
-          aria-label={`Delete ${persona.name}`}
-          onClick={handleDelete}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
+      {/* Info below photo */}
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-gray-900 text-sm truncate">
+              {persona.name}
+              {persona.age && (
+                <span className="ml-1 text-gray-400 font-normal">{persona.age}</span>
+              )}
+            </h3>
+            {persona.motto && (
+              <p className="text-xs text-gray-500 italic mt-0.5 line-clamp-2">
+                &ldquo;{persona.motto}&rdquo;
+              </p>
+            )}
+          </div>
+          {/* Trash icon — visible when onDelete provided and not in select mode */}
+          {onDelete && !selectMode && (
+            <button
+              aria-label={`Delete ${persona.name}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowConfirm(true);
+              }}
+              className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          {topArchetype && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-medium">
+              {formatArchetype(topArchetype)}
+            </span>
+          )}
+          {persona.attitude && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+              {persona.attitude}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
+  );
+
+  return (
+    <>
+      {showConfirm && (
+        <ConfirmModal
+          title={`Delete ${persona.name}?`}
+          message="This will permanently delete this persona and all associated data. This cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowConfirm(false)}
+          isLoading={isDeleting}
+        />
+      )}
+
+      {selectMode ? (
+        <div
+          className="cursor-pointer"
+          onClick={() => onSelect?.(persona.unique_id)}
+        >
+          {cardContent}
+        </div>
+      ) : (
+        <Link href={`/p/${persona.unique_id}`} className="block group">
+          {cardContent}
+        </Link>
+      )}
+    </>
   );
 }

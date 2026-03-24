@@ -59,12 +59,13 @@ def create_conversation(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Fetch all requested personas (must belong to the user)
+    # Fetch all requested personas — allow own personas OR other users' public personas
+    from sqlalchemy import or_
     personas = (
         db.query(Persona)
         .filter(
             Persona.unique_id.in_(request.persona_ids),
-            Persona.user_id == current_user.id,
+            or_(Persona.user_id == current_user.id, Persona.is_public == True),
         )
         .all()
     )
@@ -274,3 +275,36 @@ def inject_user_message(
     db.commit()
     db.refresh(msg)
     return msg.to_dict()
+
+
+# ============================================================================
+# DELETE /conversations/{unique_id} - Delete Conversation
+# ============================================================================
+
+@router.delete(
+    "/conversations/{unique_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a conversation",
+    responses={
+        204: {"description": "Conversation deleted"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Conversation not found"},
+    },
+)
+def delete_conversation(
+    unique_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.unique_id == unique_id,
+            Conversation.created_by == current_user.id,
+        )
+        .first()
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    db.delete(conversation)
+    db.commit()

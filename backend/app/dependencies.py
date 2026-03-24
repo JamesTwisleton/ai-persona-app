@@ -146,6 +146,18 @@ def get_current_user_optional(
 get_optional_user = get_current_user_optional
 
 
+def get_current_superuser(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Superuser-only dependency. Raises 403 if user is not is_superuser."""
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superuser privileges required",
+        )
+    return current_user
+
+
 # ============================================================================
 # TDD Status: GREEN Phase
 # ============================================================================

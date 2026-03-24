@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
@@ -10,19 +11,67 @@ import { Spinner } from "@/components/ui/Spinner";
 import { apiFetch } from "@/lib/api";
 import { Persona, Conversation, ConversationCreateRequest, ApiError } from "@/types";
 
+function PersonaPickerItem({
+  persona,
+  selected,
+  onToggle,
+}: {
+  persona: Persona;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <label
+      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+        selected ? "border-indigo-300 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={onToggle}
+        className="rounded text-indigo-600"
+      />
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 flex-shrink-0 flex items-center justify-center">
+          {persona.avatar_url ? (
+            <Image src={persona.avatar_url} alt={persona.name} width={32} height={32} className="object-cover" unoptimized />
+          ) : (
+            <span className="text-indigo-700 font-semibold text-sm">{persona.name.charAt(0)}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="font-medium text-sm text-gray-900 truncate block">{persona.name}</span>
+          {persona.attitude && (
+            <span className="text-xs text-gray-400">{persona.attitude}</span>
+          )}
+        </div>
+      </div>
+    </label>
+  );
+}
+
 function NewConversationForm() {
   const router = useRouter();
-  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [myPersonas, setMyPersonas] = useState<Persona[]>([]);
+  const [publicPersonas, setPublicPersonas] = useState<Persona[]>([]);
   const [isLoadingPersonas, setIsLoadingPersonas] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [topic, setTopic] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [publicSearch, setPublicSearch] = useState("");
 
   useEffect(() => {
-    apiFetch<Persona[]>("/personas")
-      .then(setPersonas)
+    Promise.all([
+      apiFetch<Persona[]>("/personas"),
+      apiFetch<Persona[]>("/personas/public"),
+    ])
+      .then(([mine, pub]) => {
+        setMyPersonas(mine);
+        setPublicPersonas(pub);
+      })
       .catch(() => setError("Failed to load personas."))
       .finally(() => setIsLoadingPersonas(false));
   }, []);
@@ -35,6 +84,10 @@ function NewConversationForm() {
       return next;
     });
   };
+
+  const filteredPublic = publicPersonas.filter((p) =>
+    publicSearch === "" || p.name.toLowerCase().includes(publicSearch.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,45 +154,65 @@ function NewConversationForm() {
               <div className="flex justify-center py-8">
                 <Spinner />
               </div>
-            ) : personas.length === 0 ? (
-              <p className="text-sm text-gray-400 italic">
-                No personas yet.{" "}
-                <a href="/personas/new" className="text-indigo-600 hover:underline">
-                  Create one first.
-                </a>
-              </p>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {personas.map((persona) => (
-                  <label
-                    key={persona.unique_id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      selectedIds.has(persona.unique_id)
-                        ? "border-indigo-300 bg-indigo-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
+              <div className="space-y-4">
+                {/* My personas */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    My Personas
+                  </p>
+                  {myPersonas.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">
+                      No personas yet.{" "}
+                      <a href="/personas/new" className="text-indigo-600 hover:underline">
+                        Create one first.
+                      </a>
+                    </p>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {myPersonas.map((persona) => (
+                        <PersonaPickerItem
+                          key={persona.unique_id}
+                          persona={persona}
+                          selected={selectedIds.has(persona.unique_id)}
+                          onToggle={() => togglePersona(persona.unique_id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Public personas */}
+                {publicPersonas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Public Personas
+                    </p>
                     <input
-                      type="checkbox"
-                      checked={selectedIds.has(persona.unique_id)}
-                      onChange={() => togglePersona(persona.unique_id)}
-                      className="rounded text-indigo-600"
+                      type="text"
+                      value={publicSearch}
+                      onChange={(e) => setPublicSearch(e.target.value)}
+                      placeholder="Search by name…"
+                      className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                    <div>
-                      <span className="font-medium text-sm text-gray-900">
-                        {persona.name}
-                      </span>
-                      {persona.attitude && (
-                        <span className="ml-2 text-xs text-gray-400">
-                          {persona.attitude}
-                        </span>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {filteredPublic.map((persona) => (
+                        <PersonaPickerItem
+                          key={persona.unique_id}
+                          persona={persona}
+                          selected={selectedIds.has(persona.unique_id)}
+                          onToggle={() => togglePersona(persona.unique_id)}
+                        />
+                      ))}
+                      {filteredPublic.length === 0 && (
+                        <p className="text-sm text-gray-400 italic">No public personas match.</p>
                       )}
                     </div>
-                  </label>
-                ))}
+                  </div>
+                )}
               </div>
             )}
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 mt-2">
               {selectedIds.size} selected
             </p>
           </div>

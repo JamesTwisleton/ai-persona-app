@@ -159,6 +159,44 @@ def public_persona(
 
 
 # ============================================================================
+# GET /p/{unique_id}/conversations - Conversations featuring a persona
+# ============================================================================
+
+@router.get("/p/{unique_id}/conversations", summary="Public conversations featuring this persona")
+def persona_conversations(
+    unique_id: str,
+    sort: str = "hot",
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user),
+):
+    persona = db.query(Persona).filter(Persona.unique_id == unique_id).first()
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+
+    # Conversations that have this persona as a participant
+    convos_q = (
+        db.query(Conversation)
+        .join(ConversationParticipant, ConversationParticipant.conversation_id == Conversation.id)
+        .filter(
+            ConversationParticipant.persona_id == persona.id,
+            Conversation.is_public == True,
+        )
+    )
+
+    limit = min(limit, 50)
+    if sort == "new":
+        convos = convos_q.order_by(Conversation.created_at.desc()).limit(limit).all()
+    elif sort == "top":
+        convos = convos_q.order_by(Conversation.upvote_count.desc(), Conversation.view_count.desc()).limit(limit).all()
+    else:  # hot
+        convos = convos_q.all()
+        convos = sorted(convos, key=lambda c: _hot_score(c.upvote_count, c.view_count, c.created_at), reverse=True)[:limit]
+
+    return [c.to_dict() for c in convos]
+
+
+# ============================================================================
 # GET /c/{unique_id} - Public conversation
 # ============================================================================
 

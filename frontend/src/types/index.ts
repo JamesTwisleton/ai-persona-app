@@ -104,7 +104,7 @@ export interface Conversation {
   is_owner?: boolean;
   created_at: string;
   messages?: ConversationMessage[];
-  participants?: { persona_name: string; persona_unique_id: string }[];
+  participants?: { persona_id: number; persona_name: string | null; persona_unique_id: string | null; avatar_url?: string | null }[];
 }
 
 export interface ConversationCreateRequest {

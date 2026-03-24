@@ -6,8 +6,9 @@ import { AuthProvider } from "@/context/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Focus Groups",
-  description: "Run AI-powered focus group conversations with psychologically realistic personas",
+  title: "PersonaComposer",
+  description: "AI-powered focus group simulator with psychologically realistic personas",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({

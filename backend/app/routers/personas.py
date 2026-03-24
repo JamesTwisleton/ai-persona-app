@@ -240,6 +240,35 @@ def get_persona(
 
 
 # ============================================================================
+# GET /personas/public - List public personas from other users
+# ============================================================================
+
+@router.get(
+    "/personas/public",
+    summary="List public personas (all users)",
+    responses={
+        200: {"description": "List of public personas"},
+        401: {"description": "Not authenticated"},
+    },
+)
+def list_public_personas(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    q: Optional[str] = None,
+):
+    """Return all public personas, excluding the current user's own personas."""
+    query = (
+        db.query(Persona)
+        .filter(Persona.is_public == True, Persona.user_id != current_user.id)
+        .order_by(Persona.upvote_count.desc(), Persona.created_at.desc())
+    )
+    if q:
+        query = query.filter(Persona.name.ilike(f"%{q}%"))
+    personas = query.limit(100).all()
+    return [p.to_dict() for p in personas]
+
+
+# ============================================================================
 # DELETE /personas/{unique_id} - Delete Persona
 # ============================================================================
 

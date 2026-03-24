@@ -112,6 +112,7 @@ class Conversation(Base):
         return self.turn_count >= self.max_turns
 
     def to_dict(self, include_messages: bool = False) -> Dict[str, Any]:
+        from app.services.image_generation_service import generate_presigned_url
         d = {
             "id": self.id,
             "unique_id": self.unique_id,
@@ -126,10 +127,22 @@ class Conversation(Base):
             "upvote_count": self.upvote_count,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "participants": [
+                {
+                    "persona_id": p.persona_id,
+                    "persona_name": p.persona.name if p.persona else None,
+                    "persona_unique_id": p.persona.unique_id if p.persona else None,
+                    "avatar_url": (
+                        generate_presigned_url(p.persona.avatar_url)
+                        if p.persona and p.persona.avatar_url and p.persona.avatar_url.startswith("avatars/")
+                        else (p.persona.avatar_url if p.persona else None)
+                    ),
+                }
+                for p in self.participants
+            ],
         }
         if include_messages:
             d["messages"] = [m.to_dict() for m in self.messages]
-            d["participants"] = [p.to_dict() for p in self.participants]
         return d
 
     def __repr__(self) -> str:

@@ -40,6 +40,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.types import JSON
 
 from app.database import Base
+from app.services.image_generation_service import generate_presigned_url
 
 
 def _generate_unique_id(length: int = 6) -> str:
@@ -314,7 +315,7 @@ class Persona(Base):
             "ocean_neuroticism": float(self.ocean_neuroticism) if self.ocean_neuroticism is not None else None,
             "archetype_affinities": self.archetype_affinities,
             "motto": self.motto,
-            "avatar_url": self.avatar_url,
+            "avatar_url": generate_presigned_url(self.avatar_url) if self.avatar_url and self.avatar_url.startswith("avatars/") else self.avatar_url,
             "is_public": self.is_public,
             "view_count": self.view_count,
             "upvote_count": self.upvote_count,

@@ -33,3 +33,8 @@ output "ecs_cluster_name" {
   description = "ECS cluster name"
   value       = aws_ecs_cluster.main.name
 }
+
+output "avatar_bucket_name" {
+  description = "S3 bucket name for persona avatar images"
+  value       = aws_s3_bucket.avatars.id
+}
