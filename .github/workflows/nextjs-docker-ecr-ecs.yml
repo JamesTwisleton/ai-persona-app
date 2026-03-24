@@ -1,53 +1,50 @@
-name: Build and Push frontend to ECR and Deploy to ECS
+name: Frontend Deploy
 
 on:
-  # TODO: revert
   push:
     branches:
       - main
   workflow_dispatch:
 
 jobs:
-  build-and-push-and-deploy:
+  deploy:
+    name: Build, push & deploy frontend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./code/nextjs
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-    - name: Set up Docker Build Arguments
-      run: |
-        echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
-        echo "MONGODB_DB=${{ secrets.MONGODB_DB }}" >> .env  
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build, Tag, and Push Image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        source .env
-        docker build --build-arg MONGODB_URI=$MONGODB_URI --build-arg MONGODB_DB=$MONGODB_DB -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-        aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      - name: Build, tag, and push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --target production \
+            --build-arg NEXT_PUBLIC_API_URL=https://api.personacomposer.app \
+            -t $ECR_REGISTRY/persona-composer/frontend:latest \
+            -t $ECR_REGISTRY/persona-composer/frontend:$IMAGE_TAG \
+            ./frontend
+          docker push $ECR_REGISTRY/persona-composer/frontend:latest
+          docker push $ECR_REGISTRY/persona-composer/frontend:$IMAGE_TAG
 
-    - name: Deploy to ECS
-      env:
-        ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
-        ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
-      run: |
-        aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
+      - name: Deploy frontend service to ECS
+        run: |
+          aws ecs update-service \
+            --region ${{ secrets.AWS_DEFAULT_REGION }} \
+            --cluster persona-composer-cluster \
+            --service persona-composer-frontend \
+            --force-new-deployment \
+            --query 'service.{name:serviceName,status:status}'

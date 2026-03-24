@@ -131,6 +131,15 @@ try:
             )
             """,
             "CREATE INDEX IF NOT EXISTS ix_page_views_target_id ON page_views(target_id)",
+            # Clear expired DALL-E avatar URLs so they fall back to initials
+            # (New avatars are stored as S3 keys starting with "avatars/")
+            """
+            UPDATE personas
+            SET avatar_url = NULL
+            WHERE avatar_url IS NOT NULL
+              AND avatar_url NOT LIKE 'avatars/%'
+              AND avatar_url NOT LIKE 'https://api.dicebear.com%'
+            """,
         ]
         for stmt in stmts:
             conn.execute(__import__('sqlalchemy').text(stmt))

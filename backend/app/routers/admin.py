@@ -13,6 +13,7 @@ Superuser endpoints (is_superuser=True):
 - PATCH /admin/users/{id}/superuser - Set/unset superuser flag
 - GET   /admin/personas            - All personas with owner info (paginated)
 - GET   /admin/conversations       - All conversations with owner info (paginated)
+- POST  /admin/repair-avatars      - Regenerate missing avatar images via DALL-E + S3
 """
 
 import logging
@@ -215,3 +216,64 @@ def list_all_conversations(
         items.append(d)
 
     return {"total": total, "page": page, "page_size": page_size, "items": items}
+
+
+# ============================================================================
+# POST /admin/repair-avatars — regenerate missing avatars
+# ============================================================================
+
+@router.post("/repair-avatars")
+def repair_avatars(
+    superuser: User = Depends(get_current_superuser),
+    db: Session = Depends(get_db),
+    limit: int = Query(10, ge=1, le=50, description="Max personas to repair per call"),
+):
+    """
+    Regenerate avatar images for personas with no avatar_url.
+
+    Processes up to `limit` personas per call to avoid HTTP timeouts.
+    Call repeatedly until remaining == 0.
+    """
+    from app.services.image_generation_service import ImageGenerationService
+
+    total_pending = db.query(func.count(Persona.id)).filter(Persona.avatar_url == None).scalar()
+
+    pending = (
+        db.query(Persona)
+        .filter(Persona.avatar_url == None)
+        .order_by(Persona.created_at.asc())
+        .limit(limit)
+        .all()
+    )
+
+    repaired = 0
+    failed = 0
+    img_service = ImageGenerationService()
+
+    for persona in pending:
+        try:
+            new_avatar = img_service.generate_avatar_for_persona({
+                "name": persona.name,
+                "age": persona.age,
+                "gender": persona.gender,
+                "description": persona.description or "",
+                "attitude": persona.attitude or "Neutral",
+            })
+            persona.avatar_url = new_avatar
+            db.commit()
+            repaired += 1
+            logger.info(f"Repaired avatar for persona {persona.unique_id} ({persona.name})")
+        except Exception as e:
+            failed += 1
+            logger.warning(f"Failed to repair avatar for persona {persona.unique_id}: {e}")
+
+    remaining = total_pending - repaired
+
+    if remaining > 0:
+        message = f"Repaired {repaired}, failed {failed}. {remaining} still pending — run again."
+    elif repaired > 0:
+        message = f"Repaired {repaired} avatar(s). All done!"
+    else:
+        message = "No personas need avatar repair."
+
+    return {"repaired": repaired, "failed": failed, "remaining": remaining, "message": message}

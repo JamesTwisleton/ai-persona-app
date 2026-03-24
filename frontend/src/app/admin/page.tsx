@@ -150,6 +150,8 @@ function PersonasTab() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteProgress, setDeleteProgress] = useState("");
+  const [repairStatus, setRepairStatus] = useState<string | null>(null);
+  const [isRepairing, setIsRepairing] = useState(false);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -201,9 +203,33 @@ function PersonasTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <p className="text-sm text-gray-500">{total} personas</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Repair avatars */}
+          <button
+            onClick={async () => {
+              setIsRepairing(true);
+              setRepairStatus(null);
+              try {
+                const res = await apiFetch<{ repaired: number; failed: number; remaining: number; message: string }>(
+                  "/admin/repair-avatars?limit=10",
+                  { method: "POST" }
+                );
+                setRepairStatus(res.message);
+                if (res.repaired > 0) load();
+              } catch (e) {
+                setRepairStatus("Repair failed — check logs.");
+              } finally {
+                setIsRepairing(false);
+              }
+            }}
+            disabled={isRepairing}
+            className="px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-40 transition-colors"
+          >
+            {isRepairing ? "Repairing…" : "Repair avatars"}
+          </button>
+
           <button
             onClick={() => setSelected(selected.size === data.length ? new Set() : new Set(data.map((p) => p.unique_id)))}
             className="text-sm text-gray-500 hover:text-gray-700"
@@ -220,6 +246,24 @@ function PersonasTab() {
           )}
         </div>
       </div>
+
+      {repairStatus && (
+        <p className={`text-sm mb-3 px-3 py-2 rounded-lg ${
+          repairStatus.includes("failed") || repairStatus.includes("Failed")
+            ? "bg-red-50 text-red-700"
+            : "bg-green-50 text-green-700"
+        }`}>
+          {repairStatus}
+          {repairStatus.includes("pending") && (
+            <button
+              onClick={() => setRepairStatus(null)}
+              className="ml-2 underline"
+            >
+              Run again
+            </button>
+          )}
+        </p>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
