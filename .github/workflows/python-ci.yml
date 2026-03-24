@@ -91,6 +91,12 @@ jobs:
           docker push $ECR_REGISTRY/persona-composer/backend:latest
           docker push $ECR_REGISTRY/persona-composer/backend:$IMAGE_TAG
 
+      - name: Ensure ECS cluster exists
+        run: |
+          aws ecs describe-clusters --clusters persona-composer-cluster --region eu-west-1 \
+            --query 'clusters[?status==`ACTIVE`].clusterName' --output text | grep -q persona-composer-cluster \
+            || aws ecs create-cluster --cluster-name persona-composer-cluster --region eu-west-1
+
       - name: Deploy backend service to ECS
         run: |
           aws ecs update-service \
