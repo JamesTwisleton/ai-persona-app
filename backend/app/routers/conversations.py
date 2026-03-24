@@ -36,6 +36,7 @@ router = APIRouter(tags=["conversations"])
 class ConversationCreateRequest(BaseModel):
     topic: str = Field(..., min_length=1, max_length=1000)
     persona_ids: List[str] = Field(..., min_length=1)
+    is_public: bool = True
 
 
 # ============================================================================
@@ -79,6 +80,7 @@ def create_conversation(
     conversation = Conversation(
         topic=request.topic,
         created_by=current_user.id,
+        is_public=request.is_public,
     )
     db.add(conversation)
     db.flush()  # Get the ID without committing

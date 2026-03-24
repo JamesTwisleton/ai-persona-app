@@ -142,6 +142,10 @@ def get_current_user_optional(
         return None
 
 
+# Alias for discovery router
+get_optional_user = get_current_user_optional
+
+
 # ============================================================================
 # TDD Status: GREEN Phase
 # ============================================================================

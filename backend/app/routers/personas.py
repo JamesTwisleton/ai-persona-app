@@ -52,6 +52,7 @@ class PersonaCreateRequest(BaseModel):
     description: Optional[str] = None
     attitude: Optional[str] = None
     model_used: Optional[str] = None
+    is_public: bool = True
 
     @field_validator("attitude")
     @classmethod
@@ -168,6 +169,7 @@ def create_persona(
         description=request.description,
         attitude=request.attitude,
         model_used=request.model_used,
+        is_public=request.is_public,
         ocean_openness=ocean_scores["openness"],
         ocean_conscientiousness=ocean_scores["conscientiousness"],
         ocean_extraversion=ocean_scores["extraversion"],

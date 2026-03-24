@@ -25,8 +25,6 @@ from app.models.user import User
 from app.auth import (
     oauth,
     create_access_token,
-    generate_oauth_state,
-    verify_oauth_state,
 )
 from app.config import settings
 
@@ -54,20 +52,14 @@ async def google_login(request: Request):
         2. Build authorization URL with required parameters
         3. Redirect user to Google sign-in page
     """
-    # Generate state for CSRF protection
-    state = generate_oauth_state()
-
     # Use the configured redirect URI directly so it matches exactly what is
     # registered in Google Cloud Console. request.url_for() would produce http://
     # because the ALB terminates TLS before the container sees the request.
     redirect_uri = settings.GOOGLE_REDIRECT_URI
 
-    # Redirect to Google OAuth authorization page
-    return await oauth.google.authorize_redirect(
-        request,
-        redirect_uri,
-        state=state
-    )
+    # Authlib automatically generates and stores the state in the session cookie
+    # for CSRF protection — no custom state management needed.
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
 # ============================================================================
@@ -78,7 +70,6 @@ async def google_login(request: Request):
 async def google_callback(
     request: Request,
     code: Optional[str] = None,
-    state: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -103,24 +94,10 @@ async def google_callback(
     Raises:
         HTTPException: If authorization fails or user info cannot be retrieved
     """
-    # Validate required parameters
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Authorization code is required"
-        )
-
-    if not state:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="State parameter is required"
-        )
-
-    # Verify state for CSRF protection
-    if not verify_oauth_state(state):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired state parameter"
         )
 
     try:

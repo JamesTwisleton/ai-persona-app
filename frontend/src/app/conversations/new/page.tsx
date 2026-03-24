@@ -16,6 +16,7 @@ function NewConversationForm() {
   const [isLoadingPersonas, setIsLoadingPersonas] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [topic, setTopic] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +48,7 @@ function NewConversationForm() {
       const body: ConversationCreateRequest = {
         topic,
         persona_ids: Array.from(selectedIds),
+        is_public: isPublic,
       };
       const conv = await apiFetch<Conversation>("/conversations", {
         method: "POST",
@@ -140,6 +142,21 @@ function NewConversationForm() {
             <p className="text-xs text-gray-400 mt-1">
               {selectedIds.size} selected
             </p>
+          </div>
+
+          {/* Visibility */}
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Public</p>
+              <p className="text-xs text-gray-400">Visible on the discovery feed</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200"}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
           </div>
 
           <div className="flex gap-3 pt-2">

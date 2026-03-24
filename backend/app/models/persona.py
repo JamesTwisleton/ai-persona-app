@@ -35,7 +35,7 @@ import string
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, func, event
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, Boolean, func, event
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import JSON
 
@@ -212,6 +212,34 @@ class Persona(Base):
     )
 
     # =========================================================================
+    # Social / Discovery
+    # =========================================================================
+
+    is_public = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+        doc="Whether this persona is visible on the public discovery feed"
+    )
+
+    view_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+        doc="Deduplicated page view count"
+    )
+
+    upvote_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+        doc="Number of upvotes"
+    )
+
+    # =========================================================================
     # Timestamps
     # =========================================================================
 
@@ -287,6 +315,9 @@ class Persona(Base):
             "archetype_affinities": self.archetype_affinities,
             "motto": self.motto,
             "avatar_url": self.avatar_url,
+            "is_public": self.is_public,
+            "view_count": self.view_count,
+            "upvote_count": self.upvote_count,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

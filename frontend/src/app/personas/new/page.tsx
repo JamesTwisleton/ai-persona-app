@@ -15,6 +15,7 @@ function PersonaForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(true);
   const [form, setForm] = useState<PersonaCreateRequest>({
     name: "",
     age: null,
@@ -40,7 +41,7 @@ function PersonaForm() {
     try {
       await apiFetch<Persona>("/personas", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, is_public: isPublic }),
       });
       router.push("/personas");
     } catch (err) {
@@ -155,6 +156,21 @@ function PersonaForm() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Visibility */}
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Public</p>
+              <p className="text-xs text-gray-400">Visible on the discovery feed</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200"}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
           </div>
 
           <div className="flex gap-3 pt-2">

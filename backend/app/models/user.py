@@ -87,6 +87,14 @@ class User(Base):
         doc="Whether this user has admin privileges"
     )
 
+    is_superuser = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        doc="Whether this user can delete any content (site owner)"
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -168,6 +176,8 @@ class User(Base):
             "google_id": self.google_id,
             "name": self.name,
             "picture_url": self.picture_url,
+            "is_admin": self.is_admin,
+            "is_superuser": self.is_superuser,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

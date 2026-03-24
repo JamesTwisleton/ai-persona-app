@@ -62,6 +62,26 @@ class Conversation(Base):
         doc="Maximum number of turns allowed before conversation is complete"
     )
 
+    is_public = Column(
+        Boolean, nullable=False, default=True, server_default="true",
+        doc="Whether this conversation is visible on the public discovery feed"
+    )
+
+    forked_from_id = Column(
+        String(6), nullable=True,
+        doc="unique_id of the conversation this was forked from"
+    )
+
+    view_count = Column(
+        Integer, nullable=False, default=0, server_default="0",
+        doc="Deduplicated page view count"
+    )
+
+    upvote_count = Column(
+        Integer, nullable=False, default=0, server_default="0",
+        doc="Number of upvotes"
+    )
+
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(),
         nullable=False, doc="Creation timestamp"
@@ -100,6 +120,10 @@ class Conversation(Base):
             "turn_count": self.turn_count,
             "max_turns": self.max_turns,
             "is_complete": self.is_complete,
+            "is_public": self.is_public,
+            "forked_from_id": self.forked_from_id,
+            "view_count": self.view_count,
+            "upvote_count": self.upvote_count,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

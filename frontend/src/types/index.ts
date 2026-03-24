@@ -8,6 +8,7 @@ export interface User {
   name: string | null;
   picture_url: string | null;
   is_admin: boolean;
+  is_superuser: boolean;
   created_at: string;
 }
 
@@ -32,6 +33,10 @@ export interface Persona {
   archetype_affinities: Record<string, number>;
   motto: string | null;
   avatar_url: string | null;
+  is_public: boolean;
+  view_count: number;
+  upvote_count: number;
+  is_owner?: boolean;
   created_at: string;
 }
 
@@ -92,13 +97,20 @@ export interface Conversation {
   turn_count: number;
   max_turns: number;
   is_complete: boolean;
+  is_public: boolean;
+  forked_from_id: string | null;
+  view_count: number;
+  upvote_count: number;
+  is_owner?: boolean;
   created_at: string;
   messages?: ConversationMessage[];
+  participants?: { persona_name: string; persona_unique_id: string }[];
 }
 
 export interface ConversationCreateRequest {
   topic: string;
   persona_ids: string[];
+  is_public?: boolean;
 }
 
 export interface ContinueConversationResponse {

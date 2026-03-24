@@ -1,6 +1,6 @@
 # Persona Composer
 
-An AI-powered focus group simulator. Create synthetic personas with distinct personalities and watch them debate any topic.
+An AI-powered focus group simulator. Create synthetic personas with distinct personalities, watch them debate any topic, and share your experiments with the world.
 
 **How it works:** Describe a person in plain English. Claude infers their [OCEAN personality traits](https://en.wikipedia.org/wiki/Big_Five_personality_traits), DALL-E generates a photorealistic avatar, and the system assigns them one of 8 archetypes. Drop multiple personas into a conversation on any topic and let them go.
 
@@ -11,7 +11,9 @@ An AI-powered focus group simulator. Create synthetic personas with distinct per
 ## Contents
 
 - [Local Development](#local-development)
+- [Features](#features)
 - [Architecture](#architecture)
+- [API Reference](#api-reference)
 - [Environment Variables](#environment-variables)
 - [AWS Deployment](#aws-deployment)
 - [CI/CD — Bitbucket Pipelines](#cicd--bitbucket-pipelines)
@@ -38,8 +40,6 @@ cp backend/.env.example backend/.env
 
 ### 2. Google OAuth setup (~5 minutes)
 
-You need a Google OAuth 2.0 client to handle login.
-
 1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
 2. **Create Credentials → OAuth client ID**
 3. Application type: **Web application**
@@ -47,7 +47,7 @@ You need a Google OAuth 2.0 client to handle login.
    ```
    http://localhost:8000/auth/callback/google
    ```
-5. Copy the **Client ID** and **Client Secret** into `backend/.env`:
+5. Copy **Client ID** and **Client Secret** into `backend/.env`:
    ```
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=your-client-secret
@@ -57,13 +57,12 @@ You need a Google OAuth 2.0 client to handle login.
 
 ### 3. Add API keys
 
-Run the interactive setup script — it opens the right browser tabs and writes keys directly to `backend/.env`:
-
 ```bash
 ./setup-keys.sh
 ```
 
-Keys needed:
+This opens the right browser tabs and writes keys directly to `backend/.env`.
+
 | Key | Where to get it |
 |---|---|
 | `ANTHROPIC_API_KEY` | https://console.anthropic.com/settings/keys |
@@ -77,7 +76,7 @@ docker-compose --profile frontend up
 
 Open **http://localhost:3000**.
 
-To rebuild containers after dependency changes:
+To rebuild after dependency or Dockerfile changes:
 
 ```bash
 docker-compose --profile frontend up --build
@@ -85,7 +84,44 @@ docker-compose --profile frontend up --build
 
 ---
 
+## Features
+
+### Core
+
+| Feature | Description |
+|---|---|
+| **Google OAuth** | Sign in with Google — no passwords |
+| **Persona creation** | Describe a person → Claude infers OCEAN traits → DALL-E generates avatar |
+| **OCEAN model** | Big Five personality scoring (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) |
+| **8 archetypes** | Analyst, Socialite, Innovator, Activist, Pragmatist, Traditionalist, Skeptic, Optimist |
+| **Focus groups** | Drop 1–N personas into a conversation topic and generate multi-turn discussion |
+| **Content moderation** | OpenAI Moderation API screens persona descriptions and messages |
+
+### Social / Discovery
+
+| Feature | Description |
+|---|---|
+| **Public feed** | Home page shows all public personas and conversations sorted by Hot / Top / New |
+| **Hot score** | `(upvotes + log10(views+1)) / (age_hours+2)^1.5` — surfaces trending content |
+| **Upvoting** | Any logged-in user can upvote any public persona or conversation (toggle) |
+| **Page view tracking** | Deduplicated per user (or IP) per day — no spam inflation |
+| **Public / private** | Toggle when creating a persona or conversation — private content is invisible to others |
+| **Visibility patch** | Change public/private at any time via the API |
+| **Conversation forking** | Fork any public conversation — inherits full message history, continue independently |
+| **Cascade delete** | Deleting a persona also deletes all conversations it participated in |
+| **Superuser** | Site owner (`ajtwisleton@gmail.com`) can delete any persona or conversation |
+
+### Planned
+
+- Redis caching for the discovery feed
+- Email notifications for upvote milestones
+- Persona compatibility comparison page
+
+---
+
 ## Architecture
+
+### System diagram
 
 ```
 ┌──────────────────────────┐     ┌──────────────────────────┐
@@ -96,9 +132,10 @@ docker-compose --profile frontend up --build
                                ┌───────────────┼───────────────┐
                                ▼               ▼               ▼
                         Anthropic API     OpenAI API      PostgreSQL
-                        (Claude)          (DALL-E +        (RDS in
-                        OCEAN inference   Moderation)       prod)
-                        Conversation
+                        (Claude)          (DALL-E +        (Docker /
+                        OCEAN inference   Moderation)       RDS in prod)
+                        Mottos
+                        Conversations
 ```
 
 ### URLs
@@ -113,12 +150,24 @@ docker-compose --profile frontend up --build
 ```
 POST /personas (your description)
   → Content moderation check (OpenAI)
-  → Claude infers 5 OCEAN scores (0.0–1.0)
+  → Claude infers 5 OCEAN scores [0.0–1.0]
   → Cosine similarity maps OCEAN vector → 8 archetypes
   → Claude generates a personal motto
   → DALL-E generates a photorealistic headshot
   → Saved to PostgreSQL → 201 Created
 ```
+
+### Hot score formula
+
+The discovery feed uses a time-decayed engagement score:
+
+```
+hot_score = (upvotes + log10(views + 1)) / (age_hours + 2) ^ 1.5
+```
+
+- Content peaks quickly and decays over time
+- Views count less than upvotes (`log10` dampening)
+- The `+2` in the denominator prevents new content from getting infinite scores
 
 ### OCEAN personality model
 
@@ -151,10 +200,13 @@ ai-persona-app/
 │   ├── app/
 │   │   ├── main.py                          # FastAPI entry point
 │   │   ├── config.py                        # Settings from .env (Pydantic)
+│   │   ├── auth.py                          # JWT utilities + OAuth setup
+│   │   ├── dependencies.py                  # get_current_user, get_optional_user
 │   │   ├── models/
-│   │   │   ├── user.py                      # User + Google OAuth fields
-│   │   │   ├── persona.py                   # Persona + OCEAN scores
-│   │   │   ├── conversation.py              # Conversation, participants, messages
+│   │   │   ├── user.py                      # User + Google OAuth fields + is_superuser
+│   │   │   ├── persona.py                   # Persona + OCEAN + is_public + view/upvote counts
+│   │   │   ├── conversation.py              # Conversation + forked_from_id + social fields
+│   │   │   ├── social.py                    # Upvote, PageView models
 │   │   │   ├── moderation.py                # ModerationAuditLog
 │   │   │   ├── traits.py                    # OCEAN trait system
 │   │   │   ├── affinity.py                  # Archetype affinity calculator
@@ -164,14 +216,16 @@ ai-persona-app/
 │   │   │   ├── users.py                     # GET /users/me
 │   │   │   ├── personas.py                  # CRUD + /personas/compatibility
 │   │   │   ├── conversations.py             # CRUD + POST /continue
+│   │   │   ├── discovery.py                 # Public feed, upvotes, views, fork
 │   │   │   └── admin.py                     # Flagged content review
 │   │   └── services/
 │   │       ├── ocean_inference.py           # Claude → OCEAN scores
-│   │       ├── llm_service.py               # Claude → motto + conversation
+│   │       ├── llm_service.py               # Claude → motto + conversation turns
 │   │       ├── image_generation_service.py  # DALL-E → avatar
 │   │       ├── content_moderation_service.py
 │   │       └── conversation_orchestrator.py
 │   ├── tests/                               # 291 tests, 89%+ coverage
+│   ├── docker-entrypoint.sh                 # Runs DB init + idempotent ALTER TABLE migrations
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── .env.example
@@ -179,17 +233,21 @@ ai-persona-app/
 ├── frontend/
 │   └── src/
 │       ├── app/                             # Next.js App Router pages
+│       │   ├── page.tsx                     # Home — public discovery feed
 │       │   ├── login/                       # Google sign-in
 │       │   ├── personas/                    # List + create personas
-│       │   ├── p/[id]/                      # Public persona profile
-│       │   ├── conversations/               # List + create + view
-│       │   └── api/health/                  # Health check endpoint
+│       │   ├── p/[id]/                      # Public persona profile + upvote
+│       │   ├── c/[id]/                      # Public conversation + upvote + fork
+│       │   ├── conversations/               # Authenticated list + create + continue
+│       │   └── api/health/                  # Health check
 │       ├── components/
 │       │   ├── persona/                     # PersonaCard, OceanBar
 │       │   ├── conversation/                # ConversationView, MessageBubble
+│       │   ├── social/                      # UpvoteButton, ForkModal
 │       │   ├── auth/                        # AuthGuard
 │       │   └── ui/                          # Button, Spinner, ErrorMessage
 │       ├── context/AuthContext.tsx          # Global auth state
+│       ├── types/index.ts                   # All TypeScript types
 │       └── lib/                             # api.ts, auth.ts
 │
 ├── terraform/                               # AWS infrastructure (Terraform)
@@ -199,10 +257,119 @@ ai-persona-app/
 └── bitbucket-pipelines.yml                  # CI/CD pipeline
 ```
 
-### API docs (local)
+---
 
-- **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
+## API Reference
+
+### Authentication
+
+All protected endpoints require a JWT Bearer token:
+
+```
+Authorization: Bearer <token>
+```
+
+Obtain a token by signing in via `GET /auth/login/google`. The token is valid for 24 hours.
+
+Interactive docs (local): **http://localhost:8000/docs**
+
+### Endpoints
+
+#### Auth
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/auth/login/google` | — | Redirect to Google sign-in |
+| GET | `/auth/callback/google` | — | OAuth callback → JWT → redirect to frontend |
+
+#### Users
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/users/me` | ✅ | Current user profile |
+
+#### Personas
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/personas` | ✅ | Create persona (OCEAN inference + avatar) |
+| GET | `/personas` | ✅ | List your personas |
+| GET | `/personas/{id}` | ✅ | Get your persona by unique ID |
+| DELETE | `/personas/{id}` | ✅ | Delete your persona (cascades to conversations) |
+| POST | `/personas/compatibility` | ✅ | OCEAN compatibility analysis between personas |
+| GET | `/archetypes` | — | List all 8 archetypes |
+
+**Create persona request body:**
+```json
+{
+  "name": "Alice",
+  "age": 35,
+  "gender": "Female",
+  "description": "A pragmatic data scientist who values evidence over gut feel...",
+  "attitude": "Neutral",
+  "is_public": true
+}
+```
+
+#### Conversations
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/conversations` | ✅ | Create a focus group conversation |
+| GET | `/conversations` | ✅ | List your conversations |
+| GET | `/conversations/{id}` | ✅ | Get conversation with all messages |
+| POST | `/conversations/{id}/continue` | ✅ | Generate the next turn |
+
+**Create conversation request body:**
+```json
+{
+  "topic": "Should we colonize Mars?",
+  "persona_ids": ["abc123", "xyz789"],
+  "is_public": true
+}
+```
+
+#### Discovery (public feed)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/discover` | — | Public feed — `?sort=hot\|top\|new` |
+| GET | `/p/{id}` | Optional | Public persona profile (tracks view) |
+| GET | `/c/{id}` | Optional | Public conversation (tracks view) |
+| POST | `/p/{id}/upvote` | ✅ | Toggle upvote on a persona |
+| POST | `/c/{id}/upvote` | ✅ | Toggle upvote on a conversation |
+| PATCH | `/personas/{id}/visibility` | ✅ | Set `is_public` on your persona |
+| PATCH | `/conversations/{id}/visibility` | ✅ | Set `is_public` on your conversation |
+| POST | `/conversations/{id}/fork` | ✅ | Fork a conversation (inherits message history) |
+| DELETE | `/personas/{id}/force` | ✅ Superuser | Delete any persona |
+| DELETE | `/conversations/{id}/force` | ✅ Superuser | Delete any conversation |
+
+**Discover query params:**
+
+| Param | Values | Default | Description |
+|---|---|---|---|
+| `sort` | `hot`, `top`, `new` | `hot` | Sort algorithm |
+| `limit` | 1–50 | 20 | Results per type (personas + conversations separately) |
+
+**Fork request body:**
+```json
+{
+  "topic": "Optional new topic — defaults to original",
+  "persona_ids": ["abc123"]
+}
+```
+If `persona_ids` is omitted, the fork inherits the original participants. If provided, they must be personas you own.
+
+**Visibility request body:**
+```json
+{ "is_public": false }
+```
+
+#### Admin
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/flagged` | ✅ Admin | List flagged content for review |
 
 ---
 
@@ -212,16 +379,41 @@ All variables live in `backend/.env`. Copy from `backend/.env.example` to start.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DATABASE_URL` | ✅ | — | Auto-set by Docker Compose for local dev. RDS URL in prod (injected via Secrets Manager). |
-| `JWT_SECRET` | ✅ | — | Random secret for signing JWT tokens. Generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
+| `DATABASE_URL` | ✅ | — | Auto-set by Docker Compose for local. RDS URL in prod (injected via Secrets Manager). |
+| `JWT_SECRET` | ✅ | — | Secret for JWT signing. Generate: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 | `GOOGLE_CLIENT_ID` | ✅ | — | Google OAuth 2.0 client ID |
 | `GOOGLE_CLIENT_SECRET` | ✅ | — | Google OAuth 2.0 client secret |
 | `GOOGLE_REDIRECT_URI` | ✅ | — | `http://localhost:8000/auth/callback/google` (local) or `https://api.personacomposer.app/auth/callback/google` (prod) |
 | `ANTHROPIC_API_KEY` | ✅ | — | Claude API — OCEAN inference, mottos, conversations |
 | `OPENAI_API_KEY` | ✅ | — | DALL-E avatar generation + content moderation |
-| `TOXICITY_THRESHOLD` | ❌ | `0.7` | Moderation threshold (0.0–1.0). Set to `1.1` to disable. |
-| `FRONTEND_URL` | ❌ | `http://localhost:3000` | Used for CORS. Set to `https://personacomposer.app` in prod. |
+| `TOXICITY_THRESHOLD` | ❌ | `0.7` | Moderation sensitivity (0.0–1.0). Set `1.1` to disable. |
+| `FRONTEND_URL` | ❌ | `http://localhost:3000` | CORS origin. Set to `https://personacomposer.app` in prod. |
 | `LOG_LEVEL` | ❌ | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
+
+---
+
+## Database Migrations
+
+The app uses a simple `ALTER TABLE IF NOT EXISTS` migration system run by `docker-entrypoint.sh` on every container start. This is safe to run multiple times — it only adds columns that don't already exist.
+
+New columns added automatically at startup:
+
+| Table | Column | Default |
+|---|---|---|
+| `personas` | `is_public` | `TRUE` |
+| `personas` | `view_count` | `0` |
+| `personas` | `upvote_count` | `0` |
+| `conversations` | `is_public` | `TRUE` |
+| `conversations` | `forked_from_id` | `NULL` |
+| `conversations` | `view_count` | `0` |
+| `conversations` | `upvote_count` | `0` |
+| `users` | `is_superuser` | `FALSE` |
+
+Two new tables are created on first run:
+- **`upvotes`** — one row per user per target, unique constraint enforces toggle semantics
+- **`page_views`** — one row per user (or IP hash) per target per day, deduplicates view counts
+
+The superuser seed (`ajtwisleton@gmail.com`) is applied on every startup via `UPDATE ... WHERE email = ...` — idempotent.
 
 ---
 
@@ -246,35 +438,31 @@ ALB (Application Load Balancer)
     └── api.personacomposer.app     → Backend ECS service  (port 8000)
                                               │
                                               ▼
-                                    RDS PostgreSQL (private subnet)
+                                    RDS PostgreSQL 15 (private subnet)
 
-All secrets stored in AWS Secrets Manager (injected at task start)
-All images stored in ECR (Elastic Container Registry)
+All secrets in AWS Secrets Manager (injected at ECS task start)
+All images in ECR (Elastic Container Registry)
 Logs in CloudWatch (/ecs/persona-composer/backend|frontend)
 ```
 
-### Prerequisites for deployment
+### Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) ≥ 1.6
-- [AWS CLI](https://aws.amazon.com/cli/) configured with credentials
+- [AWS CLI](https://aws.amazon.com/cli/) configured
 - Docker Desktop running
-- An AWS account with a Route53 hosted zone for `personacomposer.app`
+- Route53 hosted zone for `personacomposer.app`
 
 ### First-time setup
 
 #### 1. Add production redirect URI to Google OAuth
 
-In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), edit your OAuth client and add:
+In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), add to **Authorised redirect URIs**:
 
 ```
 https://api.personacomposer.app/auth/callback/google
 ```
 
-under **Authorised redirect URIs**.
-
 #### 2. Configure AWS credentials
-
-Export your IAM credentials:
 
 ```bash
 export AWS_ACCESS_KEY_ID=your-access-key
@@ -290,7 +478,7 @@ The IAM user needs **AdministratorAccess** for the initial Terraform run.
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
-Edit `terraform/terraform.tfvars` and fill in your API keys:
+Edit `terraform/terraform.tfvars`:
 
 ```hcl
 anthropic_api_key    = "sk-ant-..."
@@ -308,39 +496,32 @@ google_client_secret = "GOCSPX-..."
 ./deploy.sh
 ```
 
-This runs three steps in sequence:
+This runs three steps:
 
-1. **`terraform apply`** — provisions VPC, ALB, ECS, RDS, ACM, Route53, ECR, Secrets Manager (~10 minutes, mostly waiting for RDS)
-2. **Docker build + ECR push** — builds production images for backend and frontend, pushes to ECR
-3. **ECS force redeploy** — triggers rolling deployment of new images
+1. **`terraform apply`** — provisions VPC, ALB, ECS, RDS, ACM, Route53, ECR, Secrets Manager (~10 min)
+2. **Docker build + ECR push** — builds production images for backend and frontend
+3. **ECS force redeploy** — rolling deployment of new images, waits for stability
 
 #### Subsequent deploys
-
-After the first run, infrastructure rarely changes. To deploy new code:
 
 ```bash
 ./deploy.sh images    # build + push images only
 ./deploy.sh redeploy  # force ECS to pull latest images
+./deploy.sh images && ./deploy.sh redeploy  # code deploy
 ```
-
-Or both together:
-
-```bash
-./deploy.sh images && ./deploy.sh redeploy
-```
-
-#### Terraform state
-
-State is stored remotely in S3 (`ai-persona-app-terraform-state-bucket`) with DynamoDB locking (`terraform-state-lock`). Multiple people can run Terraform safely — it will lock the state during apply.
 
 #### Deploy script reference
 
 ```bash
-./deploy.sh          # Full deploy: infra + images + redeploy
+./deploy.sh          # Full: infra + images + redeploy
 ./deploy.sh infra    # Terraform apply only
 ./deploy.sh images   # Build and push Docker images only
 ./deploy.sh redeploy # Force ECS services to redeploy
 ```
+
+#### Terraform state
+
+State is stored in S3 (`ai-persona-app-terraform-state-bucket`) with DynamoDB locking (`terraform-state-lock`).
 
 ### Monitoring
 
@@ -354,8 +535,6 @@ State is stored remotely in S3 (`ai-persona-app-terraform-state-bucket`) with Dy
 
 ### Teardown
 
-To destroy all AWS infrastructure:
-
 ```bash
 cd terraform && terraform destroy
 ```
@@ -366,13 +545,16 @@ cd terraform && terraform destroy
 
 ## CI/CD — Bitbucket Pipelines
 
-The pipeline automatically builds and deploys to production on every push to `main`.
+### Behaviour
+
+| Branch | What runs |
+|---|---|
+| Any branch / PR | Backend tests |
+| `main` | Tests → build backend + frontend images in parallel → ECS deploy |
 
 ### Setup
 
-#### 1. Add repository variables in Bitbucket
-
-Go to your Bitbucket repository → **Repository settings → Pipelines → Repository variables** and add:
+Go to **Repository settings → Pipelines → Repository variables** and add:
 
 | Variable | Value | Secured |
 |---|---|---|
@@ -381,27 +563,15 @@ Go to your Bitbucket repository → **Repository settings → Pipelines → Repo
 | `AWS_DEFAULT_REGION` | `us-east-1` | No |
 | `AWS_ACCOUNT_ID` | `912531404540` | No |
 
-#### 2. Pipeline behaviour
+### Required IAM permissions
 
-| Branch | What runs |
-|---|---|
-| Any branch | Backend tests |
-| `main` | Tests → build backend image → build frontend image → force ECS redeploy |
-
-Deployments are gated on tests passing. A failed test on `main` will not deploy.
-
-#### 3. IAM permissions for the pipeline user
-
-The `AWS_ACCESS_KEY_ID` used in the pipeline needs these permissions (scope it down from AdministratorAccess after first Terraform run):
-
-- `ecr:GetAuthorizationToken`
-- `ecr:BatchCheckLayerAvailability`
-- `ecr:InitiateLayerUpload`
-- `ecr:UploadLayerPart`
-- `ecr:CompleteLayerUpload`
-- `ecr:PutImage`
-- `ecs:UpdateService`
-- `ecs:DescribeServices`
+```
+ecr:GetAuthorizationToken
+ecr:BatchCheckLayerAvailability
+ecr:InitiateLayerUpload / UploadLayerPart / CompleteLayerUpload / PutImage
+ecs:UpdateService
+ecs:DescribeServices
+```
 
 ---
 
@@ -413,7 +583,7 @@ The `AWS_ACCESS_KEY_ID` used in the pipeline needs these permissions (scope it d
 # Start all services
 docker-compose --profile frontend up
 
-# Rebuild containers (after Dockerfile or requirements changes)
+# Rebuild after Dockerfile or dependency changes
 docker-compose --profile frontend up --build
 
 # View live logs
@@ -426,7 +596,7 @@ docker-compose --profile frontend restart backend
 # Wipe database and start fresh
 docker-compose --profile frontend down -v && docker-compose --profile frontend up
 
-# Open a shell in the backend container
+# Shell in backend container
 docker exec -it ai_focus_groups_backend bash
 ```
 
@@ -436,7 +606,7 @@ docker exec -it ai_focus_groups_backend bash
 # Run all backend tests
 docker-compose exec backend pytest -q
 
-# With coverage report (opens at backend/htmlcov/index.html)
+# With coverage
 docker-compose exec backend pytest --cov=app --cov-report=html
 
 # Single test file
@@ -457,7 +627,7 @@ Open Docker Desktop and wait for it to fully start.
 
 **Database schema errors** (e.g. `column users.is_admin does not exist`)
 
-The postgres volume has a stale schema. Wipe it:
+Wipe the stale postgres volume:
 ```bash
 docker-compose --profile frontend down -v && docker-compose --profile frontend up
 ```
@@ -475,7 +645,7 @@ docker-compose --profile frontend up --build
 
 **Content moderation blocking all persona creation**
 
-The OpenAI key is missing or invalid — the service fails safe and blocks everything. Add a valid `OPENAI_API_KEY`, or temporarily disable moderation:
+The OpenAI key is missing or invalid. Add a valid `OPENAI_API_KEY`, or disable moderation:
 ```
 TOXICITY_THRESHOLD=1.1
 ```
@@ -484,41 +654,45 @@ TOXICITY_THRESHOLD=1.1
 
 **OCEAN inference failing**
 
-Check `ANTHROPIC_API_KEY` is set and uncommented in `backend/.env`, then:
+Check `ANTHROPIC_API_KEY` is set in `backend/.env`, then:
 ```bash
 docker-compose --profile frontend restart backend
 ```
 
 ---
 
-**Google OAuth redirect mismatch**
+**Google OAuth Error 400: redirect_uri_mismatch**
 
-The redirect URI registered in Google Cloud Console must exactly match `GOOGLE_REDIRECT_URI` in your `.env`:
+The redirect URI in Google Cloud Console must exactly match `GOOGLE_REDIRECT_URI` in `.env`:
 
 | Environment | Redirect URI |
 |---|---|
 | Local | `http://localhost:8000/auth/callback/google` |
 | Production | `https://api.personacomposer.app/auth/callback/google` |
 
-Both must be registered in your Google OAuth client's **Authorised redirect URIs** list.
+Both must be listed in your OAuth client's **Authorised redirect URIs**.
 
 ---
 
-**ECS tasks failing to start (production)**
+**Google OAuth Error 400: invalid_state (production)**
 
-Check CloudWatch logs:
+This was caused by custom in-memory state storage that doesn't survive across multiple ECS task instances. Fixed in commit `5713b96` — authlib now manages CSRF state entirely via the Starlette session cookie (signed with `JWT_SECRET`).
+
+---
+
+**ECS tasks failing to start**
+
 ```bash
 aws logs tail /ecs/persona-composer/backend --follow
 aws logs tail /ecs/persona-composer/frontend --follow
 ```
 
-Common causes: ECR image not pushed yet, Secrets Manager permissions, RDS not reachable (check security groups).
+Common causes: ECR image not pushed, Secrets Manager permissions missing, RDS security group not allowing ECS.
 
 ---
 
 **Terraform state lock stuck**
 
-If a previous `terraform apply` was interrupted:
 ```bash
 cd terraform && terraform force-unlock <lock-id>
 ```

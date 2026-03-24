@@ -120,6 +120,7 @@ def init_db() -> None:
     from app.models import persona  # noqa: F401
     from app.models import moderation  # noqa: F401
     from app.models import conversation  # noqa: F401
+    from app.models import social  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 
