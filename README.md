@@ -1,517 +1,700 @@
 # Persona Composer
 
-## What is this?
+An AI-powered focus group simulator. Create synthetic personas with distinct personalities, watch them debate any topic, and share your experiments with the world.
 
-Imagine you're developing a new product and want feedback from different types of people - maybe a skeptical engineer, an enthusiastic marketer, and a cautious accountant. Normally, you'd need to gather real people for a focus group. **This app creates AI versions of those people for you.**
+**How it works:** Describe a person in plain English. Claude infers their [OCEAN personality traits](https://en.wikipedia.org/wiki/Big_Five_personality_traits), DALL-E generates a photorealistic avatar, and the system assigns them one of 8 archetypes. Drop multiple personas into a conversation on any topic and let them go.
 
-Here's how it works:
-
-1. **You describe who you want** - "Create a pessimistic engineer" or "Make an optimistic teacher"
-2. **The AI builds them** - Each person gets a unique personality, backstory, and even an avatar image
-3. **They talk together** - You give them a topic, and they have a natural conversation, each responding based on their personality
-4. **You get insights** - See how different personality types react to your ideas
-
-**The Magic Part:** Each AI person isn't random. They're built using a "personality recipe" (like mixing different amounts of ingredients). This means:
-- They stay consistent (a pessimist won't suddenly become optimistic)
-- They're diverse (you get genuinely different viewpoints)
-- They're realistic (they argue, agree, and build on each other's ideas)
-
-Think of it like having a box of LEGO figures, but instead of physical pieces, you're assembling personalities from traits like "openness," "agreeableness," and "creativity."
-
-### Who is this for?
-
-- Product managers testing ideas
-- Researchers exploring opinions
-- Writers developing characters
-- Anyone curious about AI conversations
-- Developers learning about modern web apps (that's you! 👋)
-
-### What you'll learn building this
-
-- How to authenticate users with Google (OAuth)
-- How to use AI APIs (Claude) to generate content
-- How personality can be represented mathematically (vectors!)
-- Modern web development (FastAPI backend, Next.js frontend)
-- Test-Driven Development (write tests first, then code)
-
-**New to this codebase?** Start with the [Quick Start](#-quick-start) section below. Everything is documented, and we write tests before code (TDD) so you can see exactly what each feature should do.
+**Live:** https://personacomposer.app
 
 ---
 
-> **An AI-powered focus group application** where users create synthetic personas with distinct personalities and engage them in meaningful conversations about any topic.
+## Contents
 
-[![Built with FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
-[![Frontend Next.js](https://img.shields.io/badge/Frontend-Next.js-000000.svg)](https://nextjs.org/)
-[![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](https://github.com/anthropics/claude-code)
-[![TDD](https://img.shields.io/badge/methodology-TDD-blue.svg)](#test-driven-development)
-
-## 🎯 Project Overview
-
-**AI Focus Groups** allows users to:
-- **Generate AI Personas** with unique personalities, backgrounds, and visual avatars
-- **Create Focus Groups** by assembling multiple personas
-- **Facilitate Discussions** on any topic, watching personas debate and interact
-- **Share Results** via public links to personas and conversation logs
-
-### Core Innovation: Personality Vector Space
-
-Personas are not random - they're mathematically positioned in a 2D personality space using Euclidean distance weighting across multiple archetypal dimensions. This ensures consistent, representative, and diverse persona behaviors.
+- [Local Development](#local-development)
+- [Features](#features)
+- [Architecture](#architecture)
+- [API Reference](#api-reference)
+- [Environment Variables](#environment-variables)
+- [AWS Deployment](#aws-deployment)
+- [CI/CD — Bitbucket Pipelines](#cicd--bitbucket-pipelines)
+- [Development Commands](#development-commands)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## 📋 Table of Contents
-
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Test-Driven Development](#-test-driven-development)
-- [Development Workflow](#-development-workflow)
-- [Project Structure](#-project-structure)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Phase Implementation](#-phase-implementation)
-
----
-
-## 🚀 Quick Start
+## Local Development
 
 ### Prerequisites
 
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Python 3.11+](https://www.python.org/) (for local backend development)
-- [Node.js 18+](https://nodejs.org/) (for frontend development)
-- [Git](https://git-scm.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running)
+- A Google account (for OAuth login)
+- API keys for [Anthropic](https://console.anthropic.com/settings/keys) and [OpenAI](https://platform.openai.com/api-keys)
 
-### Local Development Setup
-
-#### Option 1: Full Docker Setup (Recommended)
+### 1. Clone and create your env file
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone <repo-url>
 cd ai-persona-app
-
-# Start backend + database
-docker-compose up backend
-
-# The API will be available at http://localhost:8000
-# API docs at http://localhost:8000/docs
+cp backend/.env.example backend/.env
 ```
 
-#### Option 2: Local Python Development
+### 2. Google OAuth setup (~5 minutes)
+
+1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+2. **Create Credentials → OAuth client ID**
+3. Application type: **Web application**
+4. Under **Authorised redirect URIs**, add:
+   ```
+   http://localhost:8000/auth/callback/google
+   ```
+5. Copy **Client ID** and **Client Secret** into `backend/.env`:
+   ```
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+
+> **OAuth consent screen:** If prompted, set it to **External**, give the app a name, and add your email as a test user.
+
+### 3. Add API keys
 
 ```bash
-# Navigate to backend
-cd backend
+./setup-keys.sh
+```
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+This opens the right browser tabs and writes keys directly to `backend/.env`.
 
-# Install dependencies
-pip install -r requirements-dev.txt
+| Key | Where to get it |
+|---|---|
+| `ANTHROPIC_API_KEY` | https://console.anthropic.com/settings/keys |
+| `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
 
-# Copy environment template
-cp .env.example .env
-# Edit .env with your configuration
+### 4. Start the app
 
-# Run tests (TDD!)
-pytest -v
+```bash
+docker-compose --profile frontend up
+```
 
-# Start development server
-uvicorn app.main:app --reload
+Open **http://localhost:3000**.
 
-# API available at http://localhost:8000
+To rebuild after dependency or Dockerfile changes:
+
+```bash
+docker-compose --profile frontend up --build
 ```
 
 ---
 
-## 🏗️ Architecture
+## Features
 
-### Modern 2026 Stack
+### Core
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend                            │
-│  Next.js 14+ (React, TypeScript, Tailwind CSS)            │
-│  SEO-optimized, shareable links (/p/xxx, /c/xxx)          │
-└─────────────────────────────────────────────────────────────┘
-                             ↓ REST API
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend (FastAPI)                        │
-│  • Authentication (JWT)                                     │
-│  • Persona Generation (Vector Math + LLM)                  │
-│  • Conversation Orchestration                               │
-│  • Content Moderation                                       │
-└─────────────────────────────────────────────────────────────┘
-        ↓                    ↓                    ↓
-  ┌──────────┐      ┌──────────────┐      ┌──────────────┐
-  │   RDS    │      │  LLM APIs    │      │  Image Gen   │
-  │PostgreSQL│      │(OpenAI/      │      │  (DALL-E/    │
-  │          │      │ Anthropic)   │      │OpenJourney)  │
-  └──────────┘      └──────────────┘      └──────────────┘
-                             ↓
-                    ┌──────────────────┐
-                    │  AWS ECS/Fargate │
-                    │   (Production)   │
-                    └──────────────────┘
-```
+| Feature | Description |
+|---|---|
+| **Google OAuth** | Sign in with Google — no passwords |
+| **Persona creation** | Describe a person → Claude infers OCEAN traits → DALL-E generates avatar |
+| **OCEAN model** | Big Five personality scoring (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) |
+| **8 archetypes** | Analyst, Socialite, Innovator, Activist, Pragmatist, Traditionalist, Skeptic, Optimist |
+| **Focus groups** | Drop 1–N personas into a conversation topic and generate multi-turn discussion |
+| **Content moderation** | OpenAI Moderation API screens persona descriptions and messages |
 
-### Key Technologies
+### Social / Discovery
 
-- **Backend**: Python 3.11+, FastAPI, SQLAlchemy, Alembic
-- **Frontend**: Next.js 14+, React, TypeScript, Tailwind CSS
-- **Database**: PostgreSQL (AWS RDS in production)
-- **AI**: OpenAI GPT-4 / Anthropic Claude, DALL-E / OpenJourney
-- **Infrastructure**: Docker, AWS ECS/Fargate, Terraform
-- **CI/CD**: GitHub Actions
-- **Testing**: pytest, Jest, React Testing Library, Playwright
+| Feature | Description |
+|---|---|
+| **Public feed** | Home page shows all public personas and conversations sorted by Hot / Top / New |
+| **Hot score** | `(upvotes + log10(views+1)) / (age_hours+2)^1.5` — surfaces trending content |
+| **Upvoting** | Any logged-in user can upvote any public persona or conversation (toggle) |
+| **Page view tracking** | Deduplicated per user (or IP) per day — no spam inflation |
+| **Public / private** | Toggle when creating a persona or conversation — private content is invisible to others |
+| **Visibility patch** | Change public/private at any time via the API |
+| **Conversation forking** | Fork any public conversation — inherits full message history, continue independently |
+| **Cascade delete** | Deleting a persona also deletes all conversations it participated in |
+| **Superuser** | Site owner (`ajtwisleton@gmail.com`) can delete any persona or conversation |
+
+### Planned
+
+- Redis caching for the discovery feed
+- Email notifications for upvote milestones
+- Persona compatibility comparison page
 
 ---
 
-## 🧪 Test-Driven Development
+## Architecture
 
-**This project strictly follows TDD methodology.** All code is written using the Red-Green-Refactor cycle.
-
-### Why TDD?
-
-1. **Mathematical Correctness**: Personality vector calculations must be precise
-2. **AI Consistency**: LLM behavior needs predictable validation
-3. **Content Safety**: Moderation is critical and must be thoroughly tested
-4. **Public Shareability**: Bugs are visible to the world - tests prevent embarrassment
-5. **Cost Control**: LLM API costs are optimized through testing
-6. **Team Onboarding**: Tests serve as executable documentation
-
-### The TDD Cycle
+### System diagram
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  1. RED: Write a failing test                        │
-│     • Define desired behavior                        │
-│     • Test MUST fail initially                       │
-└──────────────────┬───────────────────────────────────┘
-                   ↓
-┌──────────────────────────────────────────────────────┐
-│  2. GREEN: Write minimal code to pass                │
-│     • Just enough to make test pass                  │
-│     • Don't over-engineer                            │
-└──────────────────┬───────────────────────────────────┘
-                   ↓
-┌──────────────────────────────────────────────────────┐
-│  3. REFACTOR: Improve code while keeping tests green │
-│     • Remove duplication                             │
-│     • Improve structure                              │
-│     • Tests must still pass!                         │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────┐     ┌──────────────────────────┐
+│  Next.js 14 (port 3000)  │────▶│  FastAPI (port 8000)     │
+│  TypeScript, Tailwind    │     │  Python 3.11             │
+└──────────────────────────┘     └────────────┬─────────────┘
+                                               │
+                               ┌───────────────┼───────────────┐
+                               ▼               ▼               ▼
+                        Anthropic API     OpenAI API      PostgreSQL
+                        (Claude)          (DALL-E +        (Docker /
+                        OCEAN inference   Moderation)       RDS in prod)
+                        Mottos
+                        Conversations
 ```
 
-### Running Tests
+### URLs
 
-```bash
-# Backend tests
-cd backend
+| Environment | Frontend | Backend API |
+|---|---|---|
+| Local | http://localhost:3000 | http://localhost:8000 |
+| Production | https://personacomposer.app | https://api.personacomposer.app |
 
-# Run all tests
-pytest
+### Persona creation pipeline
 
-# Run with coverage report
-pytest --cov=app --cov-report=html
-
-# Run specific test file
-pytest tests/unit/test_vector_engine.py -v
-
-# Run tests in watch mode (auto-run on file change)
-ptw
-
-# Run only unit tests
-pytest -m unit
-
-# Run only integration tests
-pytest -m integration
+```
+POST /personas (your description)
+  → Content moderation check (OpenAI)
+  → Claude infers 5 OCEAN scores [0.0–1.0]
+  → Cosine similarity maps OCEAN vector → 8 archetypes
+  → Claude generates a personal motto
+  → DALL-E generates a photorealistic headshot
+  → Saved to PostgreSQL → 201 Created
 ```
 
-### Test Coverage Requirements
+### Hot score formula
 
-| Code Type | Coverage Target |
-|-----------|----------------|
-| Business Logic (vector math, orchestration) | 95%+ |
-| API Endpoints | 90%+ |
-| Database Models | 85%+ |
-| Frontend Components | 80%+ |
-| **Overall** | **90%+** |
+The discovery feed uses a time-decayed engagement score:
 
----
-
-## 💻 Development Workflow
-
-### Daily TDD Workflow
-
-#### Morning Routine
-
-```bash
-# 1. Pull latest code
-git pull origin main
-
-# 2. Run tests (must pass before starting work)
-cd backend && pytest
-cd frontend && npm test
-
-# 3. Identify feature to implement
-# 4. Write test FIRST
+```
+hot_score = (upvotes + log10(views + 1)) / (age_hours + 2) ^ 1.5
 ```
 
-#### Development Cycle
+- Content peaks quickly and decays over time
+- Views count less than upvotes (`log10` dampening)
+- The `+2` in the denominator prevents new content from getting infinite scores
 
-```bash
-# 1. Create feature branch
-git checkout -b feature/persona-vector-engine
+### OCEAN personality model
 
-# 2. Write failing test
-# tests/unit/test_personality_calculator.py
+| Trait | Low | High |
+|---|---|---|
+| **O**penness | Conventional | Imaginative |
+| **C**onscientiousness | Spontaneous | Organised |
+| **E**xtraversion | Introverted | Outgoing |
+| **A**greeableness | Sceptical | Trusting |
+| **N**euroticism | Calm | Anxious |
 
-# 3. Run test - confirm it FAILS
-pytest tests/unit/test_personality_calculator.py
+### 8 archetypes
 
-# 4. Write minimal implementation
-# app/services/personality_calculator.py
+| Archetype | Core traits |
+|---|---|
+| Analyst | High C, Low E, Low A |
+| Socialite | High E, High A, Low C |
+| Innovator | High O, Moderate E |
+| Activist | High O, High A, High E |
+| Pragmatist | Balanced, Low N |
+| Traditionalist | Low O, High C, High A |
+| Skeptic | High O, Low A, Low E |
+| Optimist | High E, High A, High O |
 
-# 5. Run test - confirm it PASSES
-pytest tests/unit/test_personality_calculator.py
-
-# 6. Refactor (keeping tests green)
-
-# 7. Commit
-git add .
-git commit -m "feat: add personality weight calculation with tests"
-
-# 8. Push
-git push origin feature/persona-vector-engine
-```
-
-#### End of Day
-
-```bash
-# 1. Run full test suite
-pytest --cov=app --cov-report=html
-
-# 2. Check coverage report
-open htmlcov/index.html
-
-# 3. Ensure all tests pass
-# 4. Push work
-git push origin feature/persona-vector-engine
-```
-
-### Code Review Checklist
-
-- [ ] Does PR include tests for all new code?
-- [ ] Were tests written BEFORE implementation?
-- [ ] Do all tests pass in CI?
-- [ ] Is coverage maintained or improved?
-- [ ] Are tests clear and well-named?
-- [ ] Are edge cases covered?
-
----
-
-## 📁 Project Structure
+### Project structure
 
 ```
 ai-persona-app/
-├── backend/                    # FastAPI backend
+├── backend/
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py            # FastAPI app entry point
-│   │   ├── models/            # Database models (SQLAlchemy)
-│   │   ├── routes/            # API endpoints
-│   │   ├── services/          # Business logic
-│   │   └── utils/             # Helper functions
-│   ├── tests/
-│   │   ├── conftest.py        # Shared pytest fixtures
-│   │   ├── unit/              # Fast, isolated unit tests
-│   │   └── integration/       # API and database tests
-│   ├── alembic/               # Database migrations
-│   ├── pytest.ini             # Pytest configuration
-│   ├── requirements.txt       # Production dependencies
-│   ├── requirements-dev.txt   # Development/test dependencies
+│   │   ├── main.py                          # FastAPI entry point
+│   │   ├── config.py                        # Settings from .env (Pydantic)
+│   │   ├── auth.py                          # JWT utilities + OAuth setup
+│   │   ├── dependencies.py                  # get_current_user, get_optional_user
+│   │   ├── models/
+│   │   │   ├── user.py                      # User + Google OAuth fields + is_superuser
+│   │   │   ├── persona.py                   # Persona + OCEAN + is_public + view/upvote counts
+│   │   │   ├── conversation.py              # Conversation + forked_from_id + social fields
+│   │   │   ├── social.py                    # Upvote, PageView models
+│   │   │   ├── moderation.py                # ModerationAuditLog
+│   │   │   ├── traits.py                    # OCEAN trait system
+│   │   │   ├── affinity.py                  # Archetype affinity calculator
+│   │   │   └── archetypes.py                # 8 archetype definitions
+│   │   ├── routers/
+│   │   │   ├── auth.py                      # GET /auth/login, /auth/callback
+│   │   │   ├── users.py                     # GET /users/me
+│   │   │   ├── personas.py                  # CRUD + /personas/compatibility
+│   │   │   ├── conversations.py             # CRUD + POST /continue
+│   │   │   ├── discovery.py                 # Public feed, upvotes, views, fork
+│   │   │   └── admin.py                     # Flagged content review
+│   │   └── services/
+│   │       ├── ocean_inference.py           # Claude → OCEAN scores
+│   │       ├── llm_service.py               # Claude → motto + conversation turns
+│   │       ├── image_generation_service.py  # DALL-E → avatar
+│   │       ├── content_moderation_service.py
+│   │       └── conversation_orchestrator.py
+│   ├── tests/                               # 291 tests, 89%+ coverage
+│   ├── docker-entrypoint.sh                 # Runs DB init + idempotent ALTER TABLE migrations
 │   ├── Dockerfile
+│   ├── requirements.txt
 │   └── .env.example
 │
-├── frontend/                   # Next.js frontend (Phase 6+)
-│   ├── app/                   # App Router pages
-│   ├── components/            # React components
-│   ├── lib/                   # Utilities
-│   ├── __tests__/             # Jest tests
-│   ├── e2e/                   # Playwright E2E tests
-│   └── package.json
+├── frontend/
+│   └── src/
+│       ├── app/                             # Next.js App Router pages
+│       │   ├── page.tsx                     # Home — public discovery feed
+│       │   ├── login/                       # Google sign-in
+│       │   ├── personas/                    # List + create personas
+│       │   ├── p/[id]/                      # Public persona profile + upvote
+│       │   ├── c/[id]/                      # Public conversation + upvote + fork
+│       │   ├── conversations/               # Authenticated list + create + continue
+│       │   └── api/health/                  # Health check
+│       ├── components/
+│       │   ├── persona/                     # PersonaCard, OceanBar
+│       │   ├── conversation/                # ConversationView, MessageBubble
+│       │   ├── social/                      # UpvoteButton, ForkModal
+│       │   ├── auth/                        # AuthGuard
+│       │   └── ui/                          # Button, Spinner, ErrorMessage
+│       ├── context/AuthContext.tsx          # Global auth state
+│       ├── types/index.ts                   # All TypeScript types
+│       └── lib/                             # api.ts, auth.ts
 │
-├── infrastructure/             # Terraform IaC (Phase 8+)
-│   ├── environments/
-│   │   ├── dev/
-│   │   ├── staging/
-│   │   └── prod/
-│   └── modules/
-│
-├── legacy/                     # Old implementation (archived)
-│   └── code/                  # Original Flask/Dash app
-│
-├── docker-compose.yml         # Local development orchestration
-├── IMPLEMENTATION_PLAN.md     # Detailed phase-by-phase plan
-├── README.md                  # This file
-└── .github/
-    └── workflows/             # CI/CD pipelines
-        ├── backend-ci.yml
-        ├── frontend-ci.yml
-        └── deploy.yml
+├── terraform/                               # AWS infrastructure (Terraform)
+├── docker-compose.yml                       # Local dev orchestration
+├── deploy.sh                                # Manual deploy script
+├── setup-keys.sh                            # Interactive API key setup
+└── bitbucket-pipelines.yml                  # CI/CD pipeline
 ```
 
 ---
 
-## 🧪 Testing
+## API Reference
 
-### Backend Testing
+### Authentication
+
+All protected endpoints require a JWT Bearer token:
+
+```
+Authorization: Bearer <token>
+```
+
+Obtain a token by signing in via `GET /auth/login/google`. The token is valid for 24 hours.
+
+Interactive docs (local): **http://localhost:8000/docs**
+
+### Endpoints
+
+#### Auth
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/auth/login/google` | — | Redirect to Google sign-in |
+| GET | `/auth/callback/google` | — | OAuth callback → JWT → redirect to frontend |
+
+#### Users
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/users/me` | ✅ | Current user profile |
+
+#### Personas
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/personas` | ✅ | Create persona (OCEAN inference + avatar) |
+| GET | `/personas` | ✅ | List your personas |
+| GET | `/personas/{id}` | ✅ | Get your persona by unique ID |
+| DELETE | `/personas/{id}` | ✅ | Delete your persona (cascades to conversations) |
+| POST | `/personas/compatibility` | ✅ | OCEAN compatibility analysis between personas |
+| GET | `/archetypes` | — | List all 8 archetypes |
+
+**Create persona request body:**
+```json
+{
+  "name": "Alice",
+  "age": 35,
+  "gender": "Female",
+  "description": "A pragmatic data scientist who values evidence over gut feel...",
+  "attitude": "Neutral",
+  "is_public": true
+}
+```
+
+#### Conversations
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/conversations` | ✅ | Create a focus group conversation |
+| GET | `/conversations` | ✅ | List your conversations |
+| GET | `/conversations/{id}` | ✅ | Get conversation with all messages |
+| POST | `/conversations/{id}/continue` | ✅ | Generate the next turn |
+
+**Create conversation request body:**
+```json
+{
+  "topic": "Should we colonize Mars?",
+  "persona_ids": ["abc123", "xyz789"],
+  "is_public": true
+}
+```
+
+#### Discovery (public feed)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/discover` | — | Public feed — `?sort=hot\|top\|new` |
+| GET | `/p/{id}` | Optional | Public persona profile (tracks view) |
+| GET | `/c/{id}` | Optional | Public conversation (tracks view) |
+| POST | `/p/{id}/upvote` | ✅ | Toggle upvote on a persona |
+| POST | `/c/{id}/upvote` | ✅ | Toggle upvote on a conversation |
+| PATCH | `/personas/{id}/visibility` | ✅ | Set `is_public` on your persona |
+| PATCH | `/conversations/{id}/visibility` | ✅ | Set `is_public` on your conversation |
+| POST | `/conversations/{id}/fork` | ✅ | Fork a conversation (inherits message history) |
+| DELETE | `/personas/{id}/force` | ✅ Superuser | Delete any persona |
+| DELETE | `/conversations/{id}/force` | ✅ Superuser | Delete any conversation |
+
+**Discover query params:**
+
+| Param | Values | Default | Description |
+|---|---|---|---|
+| `sort` | `hot`, `top`, `new` | `hot` | Sort algorithm |
+| `limit` | 1–50 | 20 | Results per type (personas + conversations separately) |
+
+**Fork request body:**
+```json
+{
+  "topic": "Optional new topic — defaults to original",
+  "persona_ids": ["abc123"]
+}
+```
+If `persona_ids` is omitted, the fork inherits the original participants. If provided, they must be personas you own.
+
+**Visibility request body:**
+```json
+{ "is_public": false }
+```
+
+#### Admin
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/flagged` | ✅ Admin | List flagged content for review |
+
+---
+
+## Environment Variables
+
+All variables live in `backend/.env`. Copy from `backend/.env.example` to start.
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ | — | Auto-set by Docker Compose for local. RDS URL in prod (injected via Secrets Manager). |
+| `JWT_SECRET` | ✅ | — | Secret for JWT signing. Generate: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
+| `GOOGLE_CLIENT_ID` | ✅ | — | Google OAuth 2.0 client ID |
+| `GOOGLE_CLIENT_SECRET` | ✅ | — | Google OAuth 2.0 client secret |
+| `GOOGLE_REDIRECT_URI` | ✅ | — | `http://localhost:8000/auth/callback/google` (local) or `https://api.personacomposer.app/auth/callback/google` (prod) |
+| `ANTHROPIC_API_KEY` | ✅ | — | Claude API — OCEAN inference, mottos, conversations |
+| `OPENAI_API_KEY` | ✅ | — | DALL-E avatar generation + content moderation |
+| `TOXICITY_THRESHOLD` | ❌ | `0.7` | Moderation sensitivity (0.0–1.0). Set `1.1` to disable. |
+| `FRONTEND_URL` | ❌ | `http://localhost:3000` | CORS origin. Set to `https://personacomposer.app` in prod. |
+| `LOG_LEVEL` | ❌ | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
+
+---
+
+## Database Migrations
+
+The app uses a simple `ALTER TABLE IF NOT EXISTS` migration system run by `docker-entrypoint.sh` on every container start. This is safe to run multiple times — it only adds columns that don't already exist.
+
+New columns added automatically at startup:
+
+| Table | Column | Default |
+|---|---|---|
+| `personas` | `is_public` | `TRUE` |
+| `personas` | `view_count` | `0` |
+| `personas` | `upvote_count` | `0` |
+| `conversations` | `is_public` | `TRUE` |
+| `conversations` | `forked_from_id` | `NULL` |
+| `conversations` | `view_count` | `0` |
+| `conversations` | `upvote_count` | `0` |
+| `users` | `is_superuser` | `FALSE` |
+
+Two new tables are created on first run:
+- **`upvotes`** — one row per user per target, unique constraint enforces toggle semantics
+- **`page_views`** — one row per user (or IP hash) per target per day, deduplicates view counts
+
+The superuser seed (`ajtwisleton@gmail.com`) is applied on every startup via `UPDATE ... WHERE email = ...` — idempotent.
+
+---
+
+## AWS Deployment
+
+The production stack runs on AWS ECS Fargate with RDS PostgreSQL and an Application Load Balancer. Terraform manages all infrastructure.
+
+### Production architecture
+
+```
+Internet
+    │
+    ▼
+Route53 (personacomposer.app)
+    │
+    ▼
+ACM (TLS certificate)
+    │
+    ▼
+ALB (Application Load Balancer)
+    ├── personacomposer.app         → Frontend ECS service (port 3000)
+    └── api.personacomposer.app     → Backend ECS service  (port 8000)
+                                              │
+                                              ▼
+                                    RDS PostgreSQL 15 (private subnet)
+
+All secrets in AWS Secrets Manager (injected at ECS task start)
+All images in ECR (Elastic Container Registry)
+Logs in CloudWatch (/ecs/persona-composer/backend|frontend)
+```
+
+### Prerequisites
+
+- [Terraform](https://developer.hashicorp.com/terraform/install) ≥ 1.6
+- [AWS CLI](https://aws.amazon.com/cli/) configured
+- Docker Desktop running
+- Route53 hosted zone for `personacomposer.app`
+
+### First-time setup
+
+#### 1. Add production redirect URI to Google OAuth
+
+In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), add to **Authorised redirect URIs**:
+
+```
+https://api.personacomposer.app/auth/callback/google
+```
+
+#### 2. Configure AWS credentials
 
 ```bash
-cd backend
-
-# Run all tests with coverage
-pytest --cov=app --cov-report=html --cov-report=term-missing
-
-# Run specific test types
-pytest -m unit           # Only unit tests (fast)
-pytest -m integration    # Only integration tests
-pytest -m slow           # Only slow tests
-
-# Run with verbose output
-pytest -v
-
-# Run specific test file
-pytest tests/unit/test_vector_engine.py
-
-# Run tests matching pattern
-pytest -k "test_personality"
-
-# Run with print statements visible
-pytest -s
-
-# Run until first failure
-pytest -x
-
-# Run last failed tests
-pytest --lf
+export AWS_ACCESS_KEY_ID=your-access-key
+export AWS_SECRET_ACCESS_KEY=your-secret-key
+export AWS_DEFAULT_REGION=us-east-1
 ```
 
-### Continuous Testing
+The IAM user needs **AdministratorAccess** for the initial Terraform run.
+
+#### 3. Create the Terraform variables file
 
 ```bash
-# Auto-run tests on file changes (recommended during development)
-ptw  # pytest-watch
-
-# In a separate terminal, watch code and tests simultaneously
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
----
+Edit `terraform/terraform.tfvars`:
 
-## 🚀 Deployment
+```hcl
+anthropic_api_key    = "sk-ant-..."
+openai_api_key       = "sk-proj-..."
+jwt_secret           = "your-jwt-secret"
+google_client_id     = "your-client-id.apps.googleusercontent.com"
+google_client_secret = "GOCSPX-..."
+```
 
-### Production Deployment (AWS ECS)
+> `terraform.tfvars` is git-ignored. Never commit it.
 
-Deployment is automated via GitHub Actions. Pushing to `main` triggers:
-
-1. **CI Pipeline**:
-   - Lint checks (flake8, eslint)
-   - Type checking (mypy, tsc)
-   - **Tests must pass** (blocking)
-   - Coverage requirements enforced
-   - Docker images built
-
-2. **CD Pipeline** (only if CI passes):
-   - Terraform apply
-   - Docker images pushed to ECR
-   - ECS services updated
-   - Smoke tests run
-
-### Manual Deployment
+#### 4. Deploy
 
 ```bash
-# Deploy infrastructure
-cd infrastructure/environments/prod
-terraform init
-terraform plan
-terraform apply
+./deploy.sh
+```
 
-# Build and push Docker images
-docker build -t backend:latest backend/
-docker tag backend:latest <ecr-url>/backend:latest
-docker push <ecr-url>/backend:latest
+This runs three steps:
 
-# Update ECS service
-aws ecs update-service --cluster ai-focus-groups --service backend --force-new-deployment
+1. **`terraform apply`** — provisions VPC, ALB, ECS, RDS, ACM, Route53, ECR, Secrets Manager (~10 min)
+2. **Docker build + ECR push** — builds production images for backend and frontend
+3. **ECS force redeploy** — rolling deployment of new images, waits for stability
+
+#### Subsequent deploys
+
+```bash
+./deploy.sh images    # build + push images only
+./deploy.sh redeploy  # force ECS to pull latest images
+./deploy.sh images && ./deploy.sh redeploy  # code deploy
+```
+
+#### Deploy script reference
+
+```bash
+./deploy.sh          # Full: infra + images + redeploy
+./deploy.sh infra    # Terraform apply only
+./deploy.sh images   # Build and push Docker images only
+./deploy.sh redeploy # Force ECS services to redeploy
+```
+
+#### Terraform state
+
+State is stored in S3 (`ai-persona-app-terraform-state-bucket`) with DynamoDB locking (`terraform-state-lock`).
+
+### Monitoring
+
+| What | Where |
+|---|---|
+| ECS services | https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/persona-composer-cluster/services |
+| Backend logs | CloudWatch → `/ecs/persona-composer/backend` |
+| Frontend logs | CloudWatch → `/ecs/persona-composer/frontend` |
+| RDS | https://us-east-1.console.aws.amazon.com/rds/home |
+| ALB health | https://us-east-1.console.aws.amazon.com/ec2/home#LoadBalancers |
+
+### Teardown
+
+```bash
+cd terraform && terraform destroy
+```
+
+> This deletes the RDS instance and all data. The S3 state bucket is preserved.
+
+---
+
+## CI/CD — Bitbucket Pipelines
+
+### Behaviour
+
+| Branch | What runs |
+|---|---|
+| Any branch / PR | Backend tests |
+| `main` | Tests → build backend + frontend images in parallel → ECS deploy |
+
+### Setup
+
+Go to **Repository settings → Pipelines → Repository variables** and add:
+
+| Variable | Value | Secured |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` | Your AWS access key | Yes |
+| `AWS_SECRET_ACCESS_KEY` | Your AWS secret key | Yes |
+| `AWS_DEFAULT_REGION` | `us-east-1` | No |
+| `AWS_ACCOUNT_ID` | `912531404540` | No |
+
+### Required IAM permissions
+
+```
+ecr:GetAuthorizationToken
+ecr:BatchCheckLayerAvailability
+ecr:InitiateLayerUpload / UploadLayerPart / CompleteLayerUpload / PutImage
+ecs:UpdateService
+ecs:DescribeServices
 ```
 
 ---
 
-## 📈 Phase Implementation
+## Development Commands
 
-This project is being built in phases following the [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md):
+### Local
 
-### ✅ Phase 1: Infrastructure & Scaffolding (CURRENT)
-- ✅ Repository structure
-- ✅ Testing infrastructure (pytest, Jest)
-- ✅ Docker configuration
-- ✅ FastAPI app initialization
-- ✅ First TDD cycle (health endpoint)
+```bash
+# Start all services
+docker-compose --profile frontend up
 
-### 🔄 Phase 2: Core Backend Services (NEXT)
-- [ ] Database models (SQLAlchemy)
-- [ ] Authentication system (JWT)
-- [ ] Basic CRUD endpoints
+# Rebuild after Dockerfile or dependency changes
+docker-compose --profile frontend up --build
 
-### 📅 Future Phases
-- **Phase 3**: Persona Vector Space Engine
-- **Phase 4**: AI Integration (LLM & Image Generation)
-- **Phase 5**: Content Moderation System
-- **Phase 6**: Frontend Development (Next.js)
-- **Phase 7**: Focus Group / Conversation System
-- **Phase 8**: Deployment & CI/CD
-- **Phase 9**: Testing & Optimization
-- **Phase 10**: Polish & Launch Preparation
+# View live logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
 
----
+# Restart backend (picks up .env changes without rebuild)
+docker-compose --profile frontend restart backend
 
-## 🤝 Contributing
+# Wipe database and start fresh
+docker-compose --profile frontend down -v && docker-compose --profile frontend up
 
-1. **Follow TDD**: Write tests before code
-2. **Maintain Coverage**: Don't decrease test coverage
-3. **Write Clear Tests**: Test names should explain what they test
-4. **Check Phase Plan**: Refer to [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
+# Shell in backend container
+docker exec -it ai_focus_groups_backend bash
+```
 
----
+### Testing
 
-## 📖 Documentation
+```bash
+# Run all backend tests
+docker-compose exec backend pytest -q
 
-- [Implementation Plan](IMPLEMENTATION_PLAN.md) - Detailed phase-by-phase plan
-- [Project Specification](legacy/code/CLAUDE.md) - Original requirements
-- [API Documentation](http://localhost:8000/docs) - Interactive API docs (when running)
-- [Legacy Code](legacy/README.md) - Original Flask/Dash implementation
+# With coverage
+docker-compose exec backend pytest --cov=app --cov-report=html
+
+# Single test file
+docker-compose exec backend pytest tests/unit/test_ocean_inference_service.py -v
+```
 
 ---
 
-## 📝 License
+## Troubleshooting
 
-[Your License Here]
-
----
-
-## 🔗 Links
-
-- **Production**: [personacomposer.app](https://personacomposer.app) *(coming soon)*
-- **API Docs**: http://localhost:8000/docs (local)
-- **Issues**: GitHub Issues
-- **Design**: [Miro Board](https://miro.com/app/board/o9J_l3Gv7S0=/)
+**Docker daemon not running**
+```
+Cannot connect to the Docker daemon
+```
+Open Docker Desktop and wait for it to fully start.
 
 ---
 
-**Built with ❤️ using Test-Driven Development**
+**Database schema errors** (e.g. `column users.is_admin does not exist`)
 
-> "Legacy code is code without tests." - Michael Feathers
+Wipe the stale postgres volume:
+```bash
+docker-compose --profile frontend down -v && docker-compose --profile frontend up
+```
 
-Don't create legacy code from day one. Start with tests. ✅
+---
+
+**`npm ci` lock file error on frontend build**
+
+```bash
+cd frontend && npm install && cd ..
+docker-compose --profile frontend up --build
+```
+
+---
+
+**Content moderation blocking all persona creation**
+
+The OpenAI key is missing or invalid. Add a valid `OPENAI_API_KEY`, or disable moderation:
+```
+TOXICITY_THRESHOLD=1.1
+```
+
+---
+
+**OCEAN inference failing**
+
+Check `ANTHROPIC_API_KEY` is set in `backend/.env`, then:
+```bash
+docker-compose --profile frontend restart backend
+```
+
+---
+
+**Google OAuth Error 400: redirect_uri_mismatch**
+
+The redirect URI in Google Cloud Console must exactly match `GOOGLE_REDIRECT_URI` in `.env`:
+
+| Environment | Redirect URI |
+|---|---|
+| Local | `http://localhost:8000/auth/callback/google` |
+| Production | `https://api.personacomposer.app/auth/callback/google` |
+
+Both must be listed in your OAuth client's **Authorised redirect URIs**.
+
+---
+
+**Google OAuth Error 400: invalid_state (production)**
+
+This was caused by custom in-memory state storage that doesn't survive across multiple ECS task instances. Fixed in commit `5713b96` — authlib now manages CSRF state entirely via the Starlette session cookie (signed with `JWT_SECRET`).
+
+---
+
+**ECS tasks failing to start**
+
+```bash
+aws logs tail /ecs/persona-composer/backend --follow
+aws logs tail /ecs/persona-composer/frontend --follow
+```
+
+Common causes: ECR image not pushed, Secrets Manager permissions missing, RDS security group not allowing ECS.
+
+---
+
+**Terraform state lock stuck**
+
+```bash
+cd terraform && terraform force-unlock <lock-id>
+```
+
+Get the lock ID from the error message.

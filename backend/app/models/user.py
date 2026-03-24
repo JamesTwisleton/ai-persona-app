@@ -18,8 +18,8 @@ Fields:
 - updated_at: Last modification timestamp
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, func, event
-from sqlalchemy.orm import validates
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, event
+from sqlalchemy.orm import validates, relationship
 from app.database import Base
 from datetime import datetime
 
@@ -79,6 +79,22 @@ class User(Base):
         doc="Profile picture URL from Google (optional)"
     )
 
+    is_admin = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        doc="Whether this user has admin privileges"
+    )
+
+    is_superuser = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        doc="Whether this user can delete any content (site owner)"
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -98,8 +114,8 @@ class User(Base):
     # Relationships (Phase 3+)
     # ========================================================================
 
-    # Will be added in Phase 3 when Persona model is created:
-    # personas = relationship("Persona", back_populates="user", cascade="all, delete-orphan")
+    # Phase 3B: Persona relationship
+    personas = relationship("Persona", back_populates="user", cascade="all, delete-orphan")
 
     # Will be added in Phase 7 when Conversation model is created:
     # conversations = relationship("Conversation", back_populates="creator")
@@ -160,6 +176,8 @@ class User(Base):
             "google_id": self.google_id,
             "name": self.name,
             "picture_url": self.picture_url,
+            "is_admin": self.is_admin,
+            "is_superuser": self.is_superuser,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

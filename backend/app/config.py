@@ -61,6 +61,21 @@ class Settings(BaseSettings):
     GOOGLE_DISCOVERY_URL: str = "https://accounts.google.com/.well-known/openid-configuration"
 
     # ========================================================================
+    # AI API Keys (Phase 3B+)
+    # ========================================================================
+
+    ANTHROPIC_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    TOXICITY_THRESHOLD: float = 0.7
+
+    # ========================================================================
+    # S3 Avatar Storage
+    # ========================================================================
+
+    S3_AVATAR_BUCKET: str = ""
+    AWS_DEFAULT_REGION: str = "eu-west-1"
+
+    # ========================================================================
     # CORS Settings
     # ========================================================================
 

@@ -122,24 +122,27 @@ class TestOAuthCallback:
         }
         mock_oauth.google.authorize_access_token = AsyncMock(return_value=mock_token)
 
-        # Simulate OAuth callback with authorization code
+        # Simulate OAuth callback with authorization code (don't follow redirect)
         response = client.get(
             "/auth/callback/google",
-            params={"code": "valid_auth_code", "state": "valid_state"}
+            params={"code": "valid_auth_code", "state": "valid_state"},
+            follow_redirects=False,
         )
 
-        assert response.status_code == status.HTTP_200_OK
-
-        data = response.json()
-        assert "access_token" in data  # JWT session token
-        assert "token_type" in data
-        assert data["token_type"] == "bearer"
-        assert "user" in data
+        # Now redirects to frontend with token in query parameter
+        assert response.status_code == 302
+        location = response.headers["location"]
+        assert "/auth/callback?token=" in location
 
         # User should be created in database
-        user_data = data["user"]
-        assert user_data["email"] == "newuser@example.com"
-        assert user_data["name"] == "New User"
+        from app.models.user import User as UserModel
+        from sqlalchemy import select
+        result = db_session.execute(
+            select(UserModel).where(UserModel.email == "newuser@example.com")
+        )
+        user = result.scalar_one_or_none()
+        assert user is not None
+        assert user.name == "New User"
 
     @patch('app.routers.auth.verify_oauth_state')
     @patch('app.routers.auth.oauth')
@@ -179,14 +182,13 @@ class TestOAuthCallback:
 
         response = client.get(
             "/auth/callback/google",
-            params={"code": "valid_auth_code", "state": "valid_state"}
+            params={"code": "valid_auth_code", "state": "valid_state"},
+            follow_redirects=False,
         )
 
-        assert response.status_code == status.HTTP_200_OK
-
-        data = response.json()
-        assert "access_token" in data
-        assert data["user"]["email"] == "existing@example.com"
+        assert response.status_code == 302
+        location = response.headers["location"]
+        assert "/auth/callback?token=" in location
 
         # Should NOT create duplicate user
         from sqlalchemy import select

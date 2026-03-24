@@ -1,0 +1,5 @@
+anthropic_api_key    = "sk-ant-..."
+openai_api_key       = "sk-proj-..."
+jwt_secret           = "generate-with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+google_client_id     = "your-client-id.apps.googleusercontent.com"
+google_client_secret = "GOCSPX-..."

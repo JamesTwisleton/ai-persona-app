@@ -15,6 +15,7 @@ asyncpg==0.29.0
 # Authentication & Security
 python-jose[cryptography]==3.3.0
 authlib==1.3.0
+itsdangerous==2.1.2
 httpx==0.26.0
 python-dotenv==1.0.1
 pydantic==2.5.3
@@ -26,12 +27,12 @@ fastapi-cors==0.0.6
 # Scientific Computing (Phase 3 - Personality Vector Math)
 numpy==1.26.3
 
-# AI Integration (will be added in Phase 4)
-# openai==1.10.0
-# anthropic==0.8.1
+# AI Integration (Phase 4)
+openai==1.10.0
+anthropic>=0.40.0
 
-# Image Generation (will be added in Phase 4)
-# pillow==10.2.0
+# AWS S3 (avatar storage)
+boto3>=1.34.0
 
 # Caching (will be added in Phase 9)
 # redis==5.0.1
