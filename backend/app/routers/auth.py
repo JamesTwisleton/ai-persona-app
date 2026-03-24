@@ -57,8 +57,10 @@ async def google_login(request: Request):
     # Generate state for CSRF protection
     state = generate_oauth_state()
 
-    # Build redirect URI
-    redirect_uri = request.url_for('google_callback')
+    # Use the configured redirect URI directly so it matches exactly what is
+    # registered in Google Cloud Console. request.url_for() would produce http://
+    # because the ALB terminates TLS before the container sees the request.
+    redirect_uri = settings.GOOGLE_REDIRECT_URI
 
     # Redirect to Google OAuth authorization page
     return await oauth.google.authorize_redirect(
