@@ -212,34 +212,6 @@ def list_personas(
 
 
 # ============================================================================
-# GET /personas/{unique_id} - Get Single Persona
-# ============================================================================
-
-@router.get(
-    "/personas/{unique_id}",
-    summary="Get a persona by unique ID",
-    responses={
-        200: {"description": "Persona details"},
-        401: {"description": "Not authenticated"},
-        404: {"description": "Persona not found"},
-    },
-)
-def get_persona(
-    unique_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    persona = (
-        db.query(Persona)
-        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
-        .first()
-    )
-    if not persona:
-        raise HTTPException(status_code=404, detail="Persona not found")
-    return persona.to_dict()
-
-
-# ============================================================================
 # GET /personas/public - List public personas from other users
 # ============================================================================
 
@@ -266,6 +238,34 @@ def list_public_personas(
         query = query.filter(Persona.name.ilike(f"%{q}%"))
     personas = query.limit(100).all()
     return [p.to_dict() for p in personas]
+
+
+# ============================================================================
+# GET /personas/{unique_id} - Get Single Persona
+# ============================================================================
+
+@router.get(
+    "/personas/{unique_id}",
+    summary="Get a persona by unique ID",
+    responses={
+        200: {"description": "Persona details"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Persona not found"},
+    },
+)
+def get_persona(
+    unique_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    persona = (
+        db.query(Persona)
+        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
+        .first()
+    )
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+    return persona.to_dict()
 
 
 # ============================================================================

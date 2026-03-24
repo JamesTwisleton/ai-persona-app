@@ -97,19 +97,15 @@ class TestOAuthCallback:
         # Should not return 404
         assert response.status_code != status.HTTP_404_NOT_FOUND
 
-    @patch('app.routers.auth.verify_oauth_state')
     @patch('app.routers.auth.oauth')
     def test_oauth_callback_with_valid_code_creates_new_user(
-        self, mock_oauth, mock_verify_state, client, db_session
+        self, mock_oauth, client, db_session
     ):
         """
         RED: This will fail.
 
         Requirement: Valid OAuth code should create new user and return JWT
         """
-        # Mock state verification (CSRF protection)
-        mock_verify_state.return_value = True
-
         # Mock OAuth token exchange
         mock_token = {
             "access_token": "mock_access_token",
@@ -144,10 +140,9 @@ class TestOAuthCallback:
         assert user is not None
         assert user.name == "New User"
 
-    @patch('app.routers.auth.verify_oauth_state')
     @patch('app.routers.auth.oauth')
     def test_oauth_callback_with_existing_user_returns_user(
-        self, mock_oauth, mock_verify_state, client, db_session
+        self, mock_oauth, client, db_session
     ):
         """
         RED: This will fail.
@@ -164,9 +159,6 @@ class TestOAuthCallback:
         )
         db_session.add(existing_user)
         db_session.commit()
-
-        # Mock state verification
-        mock_verify_state.return_value = True
 
         # Mock OAuth token exchange with updated user info
         mock_token = {
@@ -209,19 +201,15 @@ class TestOAuthCallback:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "detail" in response.json()  # FastAPI standard error format
 
-    @patch('app.routers.auth.verify_oauth_state')
     @patch('app.routers.auth.oauth')
     def test_oauth_callback_with_invalid_code_returns_error(
-        self, mock_oauth, mock_verify_state, client
+        self, mock_oauth, client
     ):
         """
         RED: This will fail.
 
         Requirement: Invalid auth code should return 401 error
         """
-        # Mock state verification to pass
-        mock_verify_state.return_value = True
-
         # Mock failed token exchange (invalid authorization code)
         mock_oauth.google.authorize_access_token = AsyncMock(
             side_effect=Exception("invalid_grant")

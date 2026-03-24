@@ -70,9 +70,10 @@ class TestContentModerationServiceInit:
 
     def test_default_threshold(self):
         from app.services.content_moderation_service import ContentModerationService
+        from app.config import settings
         mock_client = MagicMock()
         service = ContentModerationService(http_client=mock_client)
-        assert service.threshold == 0.7
+        assert service.threshold == settings.TOXICITY_THRESHOLD
 
     def test_custom_threshold(self):
         from app.services.content_moderation_service import ContentModerationService
