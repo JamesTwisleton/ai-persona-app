@@ -1,10 +1,12 @@
+import Image from "next/image";
 import { ConversationMessage } from "@/types";
 
 interface MessageBubbleProps {
   message: ConversationMessage;
+  avatarUrl?: string | null;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, avatarUrl }: MessageBubbleProps) {
   const isFlagged = message.moderation_status === "flagged";
   const isUser = message.moderation_status === "user";
 
@@ -33,10 +35,21 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       }`}
     >
       {/* Avatar */}
-      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-        <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">
-          {message.persona_name.charAt(0).toUpperCase()}
-        </span>
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center">
+        {avatarUrl ? (
+          <Image
+            src={avatarUrl}
+            alt={message.persona_name}
+            width={40}
+            height={40}
+            className="object-cover w-full h-full"
+            unoptimized
+          />
+        ) : (
+          <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">
+            {message.persona_name.charAt(0).toUpperCase()}
+          </span>
+        )}
       </div>
 
       {/* Content */}

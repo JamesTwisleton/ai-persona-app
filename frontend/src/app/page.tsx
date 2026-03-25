@@ -101,7 +101,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
         </h3>
         {conv.participants && conv.participants.length > 0 && (
           <div className="mt-2">
-            <AvatarGroup participants={conv.participants} size={24} />
+            <AvatarGroup participants={conv.participants} size={40} />
           </div>
         )}
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{conv.turn_count} turns</p>

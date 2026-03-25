@@ -30,6 +30,8 @@ export default function PersonaProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
 
   // Conversations featuring this persona
   const [convSort, setConvSort] = useState<Sort>("hot");
@@ -59,6 +61,21 @@ export default function PersonaProfilePage() {
       .catch(() => setConversations([]))
       .finally(() => setConvLoading(false));
   }, [id, convSort]);
+
+  const handleRegenerate = async () => {
+    if (!persona) return;
+    setRegenerating(true);
+    setRegenError(null);
+    try {
+      const updated = await apiFetch<typeof persona>(`/personas/${persona.unique_id}/regenerate-avatar`, { method: "POST" });
+      setPersona(updated);
+    } catch (e) {
+      if (e instanceof ApiError) setRegenError(e.message);
+      else setRegenError("Avatar regeneration failed — try again.");
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!persona) return;
@@ -226,12 +243,24 @@ export default function PersonaProfilePage() {
                   </Link>
                 )}
                 {persona.is_owner && (
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full py-2 px-4 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                  >
-                    Delete this persona
-                  </button>
+                  <>
+                    <button
+                      onClick={handleRegenerate}
+                      disabled={regenerating}
+                      className="w-full py-2 px-4 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors disabled:opacity-50 border border-indigo-200 dark:border-indigo-700"
+                    >
+                      {regenerating ? "Generating new photo…" : "Regenerate profile photo"}
+                    </button>
+                    {regenError && (
+                      <p className="text-xs text-red-500 dark:text-red-400 text-center">{regenError}</p>
+                    )}
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full py-2 px-4 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    >
+                      Delete this persona
+                    </button>
+                  </>
                 )}
               </div>
             </div>

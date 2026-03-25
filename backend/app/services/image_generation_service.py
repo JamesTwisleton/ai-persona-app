@@ -105,11 +105,15 @@ class ImageGenerationService:
         demographic = " ".join(parts)
 
         prompt = (
-            f"Photorealistic portrait photograph of {name}, a {demographic}. "
+            f"A genuine candid photograph of a real {demographic} named {name}. "
             f"{description[:200] + '. ' if description else ''}"
-            f"Professional headshot, natural skin texture, real camera photo. "
-            f"Soft studio lighting, neutral background, sharp focus, 85mm lens. "
-            f"Photojournalism style, not illustrated, not digital art."
+            f"Shot on a 35mm camera with natural light, slightly imperfect framing as if a friend took it. "
+            f"Real human skin with natural pores, subtle asymmetry, authentic expression. "
+            f"Casual or semi-professional attire appropriate to their background. "
+            f"Cropped tightly from the shoulders up, as if extracted from a larger photo and used as a profile picture. "
+            f"No studio lighting. No digital effects. No AI smoothing. No idealized features. "
+            f"Looks like a real person's social media or LinkedIn profile photo. "
+            f"Ultra-realistic, candid, human, imperfect. Absolutely not AI-generated looking."
         )
 
         return prompt

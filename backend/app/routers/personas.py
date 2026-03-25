@@ -299,6 +299,51 @@ def delete_persona(
 
 
 # ============================================================================
+# POST /personas/{unique_id}/regenerate-avatar - Owner regenerates avatar
+# ============================================================================
+
+@router.post(
+    "/personas/{unique_id}/regenerate-avatar",
+    summary="Regenerate avatar for a persona (owner only)",
+    responses={
+        200: {"description": "Avatar regenerated"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not the owner"},
+        404: {"description": "Persona not found"},
+    },
+)
+def regenerate_persona_avatar(
+    unique_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    persona = (
+        db.query(Persona)
+        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
+        .first()
+    )
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+
+    img_service = ImageGenerationService()
+    new_avatar = img_service.generate_avatar_for_persona({
+        "name": persona.name,
+        "age": persona.age,
+        "gender": persona.gender,
+        "description": persona.description or "",
+        "attitude": persona.attitude or "Neutral",
+    })
+
+    if not new_avatar:
+        raise HTTPException(status_code=500, detail="Avatar generation failed — try again")
+
+    persona.avatar_url = new_avatar
+    db.commit()
+    db.refresh(persona)
+    return persona.to_dict()
+
+
+# ============================================================================
 # POST /personas/compatibility - Compatibility Analysis
 # ============================================================================
 
