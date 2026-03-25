@@ -64,6 +64,21 @@ function ConversationContent() {
     }
   };
 
+  const handleUpdateVisibility = async (isPublic: boolean) => {
+    if (!id) return;
+    setError(null);
+    try {
+      await apiFetch(`/conversations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
+      await fetchConversation();
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.detail ?? err.message);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -89,6 +104,7 @@ function ConversationContent() {
             conversation={conversation}
             onContinue={handleContinue}
             onSendMessage={handleSendMessage}
+            onUpdateVisibility={handleUpdateVisibility}
             isLoading={isContinuing}
           />
         ) : (

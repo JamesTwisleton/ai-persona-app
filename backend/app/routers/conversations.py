@@ -38,6 +38,9 @@ class ConversationCreateRequest(BaseModel):
     persona_ids: List[str] = Field(..., min_length=1)
     is_public: bool = True
 
+class ConversationUpdateRequest(BaseModel):
+    is_public: bool | None = None
+
 
 # ============================================================================
 # POST /conversations - Create Conversation
@@ -275,6 +278,44 @@ def inject_user_message(
     db.commit()
     db.refresh(msg)
     return msg.to_dict()
+
+
+# ============================================================================
+# PATCH /conversations/{unique_id} - Update Conversation
+# ============================================================================
+
+@router.patch(
+    "/conversations/{unique_id}",
+    summary="Update a conversation",
+    responses={
+        200: {"description": "Conversation updated"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Conversation not found"},
+    },
+)
+def update_conversation(
+    unique_id: str,
+    request: ConversationUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.unique_id == unique_id,
+            Conversation.created_by == current_user.id,
+        )
+        .first()
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    if request.is_public is not None:
+        conversation.is_public = request.is_public
+
+    db.commit()
+    db.refresh(conversation)
+    return conversation.to_dict(include_messages=True)
 
 
 # ============================================================================

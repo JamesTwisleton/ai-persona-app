@@ -9,6 +9,7 @@ interface ConversationViewProps {
   conversation: Conversation;
   onContinue: () => void;
   onSendMessage: (text: string) => Promise<void>;
+  onUpdateVisibility?: (isPublic: boolean) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -16,6 +17,7 @@ export function ConversationView({
   conversation,
   onContinue,
   onSendMessage,
+  onUpdateVisibility,
   isLoading = false,
 }: ConversationViewProps) {
   const messages = conversation.messages ?? [];
@@ -25,7 +27,9 @@ export function ConversationView({
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (bottomRef.current && typeof bottomRef.current.scrollIntoView === 'function') {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages.length]);
 
   const handleSend = async () => {
@@ -60,6 +64,22 @@ export function ConversationView({
             {conversation.is_complete && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 font-medium">
                 Complete
+              </span>
+            )}
+            {onUpdateVisibility && (
+              <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-500 dark:text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={conversation.is_public}
+                  onChange={(e) => onUpdateVisibility(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 bg-white dark:bg-gray-800"
+                />
+                Public
+              </label>
+            )}
+            {!onUpdateVisibility && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {conversation.is_public ? "Public" : "Private"}
               </span>
             )}
           </div>

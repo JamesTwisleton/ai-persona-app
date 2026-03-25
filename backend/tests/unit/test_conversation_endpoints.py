@@ -205,6 +205,46 @@ class TestGetConversation:
 
 
 # ============================================================================
+# PATCH /conversations/{unique_id} - Update Conversation
+# ============================================================================
+
+class TestUpdateConversation:
+    def test_update_conversation_visibility(self, client, auth_headers, test_conversation):
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": False},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_public"] is False
+
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": True},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_public"] is True
+
+    def test_update_conversation_not_found(self, client, auth_headers):
+        response = client.patch(
+            "/conversations/xxxxxx",
+            json={"is_public": False},
+            headers=auth_headers,
+        )
+        assert response.status_code == 404
+
+    def test_update_conversation_requires_auth(self, client, test_conversation):
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": False},
+        )
+        assert response.status_code == 401
+
+
+# ============================================================================
 # POST /conversations/{unique_id}/continue - Continue Conversation
 # ============================================================================
 
