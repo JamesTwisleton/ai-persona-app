@@ -318,6 +318,28 @@ class TestAdminRepairAvatars:
         data = response.json()
         assert data["failed"] >= 1
 
+    def test_repairs_personas_with_legacy_dicebear_url(self, client, superuser_headers, db_session, test_user):
+        """Personas with a DiceBear fallback URL (not an S3 key) are detected and repaired."""
+        from app.models.persona import Persona
+        p = Persona(
+            user_id=test_user.id,
+            name="LegacyAvatar",
+            avatar_url="https://api.dicebear.com/7.x/personas/svg?seed=default-avatar",
+            **OCEAN_DEFAULTS,
+        )
+        db_session.add(p)
+        db_session.commit()
+
+        mock_img_svc = MagicMock()
+        mock_img_svc.generate_avatar_for_persona.return_value = "avatars/fixed123.jpg"
+
+        with patch("app.services.image_generation_service.ImageGenerationService", return_value=mock_img_svc):
+            response = client.post("/admin/repair-avatars?limit=5", headers=superuser_headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["repaired"] >= 1
+
     def test_non_superuser_gets_403(self, client, auth_headers):
         response = client.post("/admin/repair-avatars", headers=auth_headers)
         assert response.status_code == 403

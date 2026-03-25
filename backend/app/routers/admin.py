@@ -229,18 +229,28 @@ def repair_avatars(
     limit: int = Query(10, ge=1, le=50, description="Max personas to repair per call"),
 ):
     """
-    Regenerate avatar images for personas with no avatar_url.
+    Regenerate avatar images for personas with no valid S3 avatar.
+
+    Detects personas where avatar_url is NULL or not a valid S3 key
+    (i.e. doesn't start with "avatars/") — this includes legacy personas
+    that had the DiceBear fallback URL stored before S3 was configured.
 
     Processes up to `limit` personas per call to avoid HTTP timeouts.
     Call repeatedly until remaining == 0.
     """
+    from sqlalchemy import or_, not_
     from app.services.image_generation_service import ImageGenerationService
 
-    total_pending = db.query(func.count(Persona.id)).filter(Persona.avatar_url == None).scalar()
+    needs_repair = or_(
+        Persona.avatar_url == None,
+        not_(Persona.avatar_url.like("avatars/%")),
+    )
+
+    total_pending = db.query(func.count(Persona.id)).filter(needs_repair).scalar()
 
     pending = (
         db.query(Persona)
-        .filter(Persona.avatar_url == None)
+        .filter(needs_repair)
         .order_by(Persona.created_at.asc())
         .limit(limit)
         .all()
@@ -274,6 +284,6 @@ def repair_avatars(
     elif repaired > 0:
         message = f"Repaired {repaired} avatar(s). All done!"
     else:
-        message = "No personas need avatar repair."
+        message = "No personas need avatar repair. All avatars are valid S3 keys."
 
     return {"repaired": repaired, "failed": failed, "remaining": remaining, "message": message}
