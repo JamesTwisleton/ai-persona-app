@@ -1,9 +1,8 @@
-name: Frontend Deploy
+name: Frontend Deploy (manual)
 
+# Manual-only trigger — frontend is deployed automatically by nextjs-ci.yml on push to main.
+# Use this for emergency re-deploys without re-running tests.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
