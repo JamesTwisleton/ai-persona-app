@@ -1,8 +1,8 @@
 """
-Image Generation Service Tests - Phase 4 (updated for S3 storage)
+Image Generation Service Tests
 
-Tests for ImageGenerationService: avatar creation via DALL-E + S3 upload.
-HTTP calls and S3 uploads are mocked — tests run fast without hitting external APIs.
+Tests for ImageGenerationService: avatar creation via DALL-E + local/S3 storage.
+HTTP calls and storage are mocked — tests run fast without hitting external APIs.
 """
 
 import base64
@@ -27,7 +27,7 @@ SAMPLE_PERSONA = {
 
 # Minimal valid base64-encoded bytes (simulates a DALL-E b64_json response)
 SAMPLE_B64 = base64.b64encode(b"fake_image_data").decode()
-SAMPLE_S3_KEY = "avatars/abc123def456.jpg"
+SAMPLE_AVATAR_KEY = "avatars/abc123def456.jpg"
 
 
 def _mock_dalle_response(b64=SAMPLE_B64):
@@ -107,15 +107,15 @@ class TestBuildAvatarPrompt:
 
 class TestGenerateAvatar:
 
-    def test_generate_avatar_returns_s3_key(self):
-        """Successful generation returns an S3 object key."""
+    def test_generate_avatar_returns_avatar_key(self):
+        """Successful generation returns an avatar storage key."""
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar("A professional portrait of a data scientist")
-        assert result == SAMPLE_S3_KEY
+        assert result == SAMPLE_AVATAR_KEY
 
     def test_generate_avatar_calls_api(self):
         """DALL-E API is called once per generate_avatar invocation."""
@@ -123,7 +123,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             service.generate_avatar("A portrait of a scientist")
         mock_client.images.generate.assert_called_once()
 
@@ -133,7 +133,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             service.generate_avatar("A portrait")
         call_kwargs = mock_client.images.generate.call_args[1]
         assert call_kwargs.get("response_format") == "b64_json"
@@ -145,14 +145,14 @@ class TestGenerateAvatar:
             service.generate_avatar("A portrait", model="invalid_model")
 
     def test_generate_avatar_dalle_model(self):
-        """Explicit 'dalle' model works and returns S3 key."""
+        """Explicit 'dalle' model works and returns avatar key."""
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar("A portrait", model="dalle")
-        assert result == SAMPLE_S3_KEY
+        assert result == SAMPLE_AVATAR_KEY
 
     def test_generate_avatar_on_api_failure_returns_none(self):
         """API failure returns None — caller handles the missing avatar gracefully."""
@@ -163,13 +163,13 @@ class TestGenerateAvatar:
         result = service.generate_avatar("A portrait")
         assert result is None
 
-    def test_generate_avatar_on_s3_failure_returns_none(self):
-        """S3 upload failure returns None — image was generated but not stored."""
+    def test_generate_avatar_on_storage_failure_returns_none(self):
+        """Storage failure returns None — image was generated but not stored."""
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=None):
+        with patch.object(service, "_store_avatar", return_value=None):
             result = service.generate_avatar("A portrait")
         assert result is None
 
@@ -186,9 +186,9 @@ class TestGenerateAvatarForPersona:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar_for_persona(SAMPLE_PERSONA)
-        assert result == SAMPLE_S3_KEY
+        assert result == SAMPLE_AVATAR_KEY
 
     def test_generate_avatar_for_persona_uses_model_field(self):
         """model_used field from persona dict is passed to generate_avatar."""
@@ -197,6 +197,6 @@ class TestGenerateAvatarForPersona:
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         persona_with_model = {**SAMPLE_PERSONA, "model_used": "dalle"}
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar_for_persona(persona_with_model)
         assert result is not None

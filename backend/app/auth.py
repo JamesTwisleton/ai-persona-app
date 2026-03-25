@@ -16,7 +16,8 @@ Features:
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from authlib.integrations.starlette_client import OAuth
 from app.config import settings
 import secrets
@@ -85,7 +86,7 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
             algorithms=[settings.JWT_ALGORITHM]
         )
         return payload
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 
