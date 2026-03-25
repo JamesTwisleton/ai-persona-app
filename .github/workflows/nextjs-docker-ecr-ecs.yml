@@ -47,3 +47,12 @@ jobs:
             --service persona-composer-frontend \
             --force-new-deployment \
             --query 'service.{name:serviceName,status:status}'
+
+      - name: Wait for deployment to stabilise
+        run: |
+          echo "Waiting for new tasks to be healthy and old tasks to be deprovisioned..."
+          aws ecs wait services-stable \
+            --region us-east-1 \
+            --cluster persona-composer-cluster \
+            --services persona-composer-frontend
+          echo "Service stable."
