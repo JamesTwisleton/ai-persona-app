@@ -9,6 +9,7 @@ import base64
 import pytest
 from unittest.mock import MagicMock, patch
 
+from app.services.image_generation_service import generate_presigned_url, FALLBACK_AVATAR_URL
 
 SAMPLE_PERSONA = {
     "name": "Alice",
@@ -33,6 +34,34 @@ SAMPLE_AVATAR_KEY = "avatars/abc123def456.jpg"
 def _mock_dalle_response(b64=SAMPLE_B64):
     """Return a MagicMock that looks like a DALL-E b64_json response."""
     return MagicMock(data=[MagicMock(b64_json=b64)])
+
+
+# ============================================================================
+# generate_presigned_url Tests
+# ============================================================================
+
+class TestGeneratePresignedUrl:
+
+    def test_returns_fallback_on_none(self):
+        assert generate_presigned_url(None) == FALLBACK_AVATAR_URL
+
+    def test_returns_fallback_on_empty(self):
+        assert generate_presigned_url("") == FALLBACK_AVATAR_URL
+
+    def test_returns_original_if_full_url(self):
+        url = "https://example.com/avatar.jpg"
+        assert generate_presigned_url(url) == url
+
+    def test_returns_fallback_on_invalid_key_format(self):
+        assert generate_presigned_url("not-an-avatar-key") == FALLBACK_AVATAR_URL
+
+    @patch("app.services.image_generation_service.settings")
+    def test_local_mode_returns_backend_url(self, mock_settings):
+        mock_settings.LOCAL_AVATAR_DIR = "local_avatars"
+        mock_settings.BACKEND_URL = "http://localhost:8000"
+        key = "avatars/test.jpg"
+        expected = "http://localhost:8000/avatars/test.jpg"
+        assert generate_presigned_url(key) == expected
 
 
 # ============================================================================

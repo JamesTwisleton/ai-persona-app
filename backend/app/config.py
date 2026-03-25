@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL_ID: str = "imagen-3.0-generate-001"
+    GEMINI_MODEL_ID: str = "gemini-3.1-flash-image-preview"
     TOXICITY_THRESHOLD: float = 0.7
 
     # ========================================================================
@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # Served at /avatars/{filename} via static files.
     # ========================================================================
 
-    LOCAL_AVATAR_DIR: str = ""
+    LOCAL_AVATAR_DIR: str = "local_avatars"
     BACKEND_URL: str = "http://localhost:8000"
 
     # ========================================================================

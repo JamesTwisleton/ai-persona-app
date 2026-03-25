@@ -38,15 +38,22 @@ def get_s3_client():
     return boto3.client("s3", region_name=settings.AWS_DEFAULT_REGION)
 
 
-def generate_presigned_url(s3_key: str) -> str:
+def generate_presigned_url(s3_key: Optional[str]) -> str:
     """
     Return a displayable URL for an avatar key.
 
+    - If s3_key is already a full URL (http/https), return it.
     - Local mode (LOCAL_AVATAR_DIR set): returns a static URL served by the backend.
     - S3 mode (S3_AVATAR_BUCKET set): returns a presigned S3 URL.
     - Otherwise: returns the fallback DiceBear URL.
     """
-    if not s3_key or not s3_key.startswith("avatars/"):
+    if not s3_key:
+        return FALLBACK_AVATAR_URL
+
+    if s3_key.startswith(("http://", "https://")):
+        return s3_key
+
+    if not s3_key.startswith("avatars/"):
         return FALLBACK_AVATAR_URL
 
     if settings.LOCAL_AVATAR_DIR:
@@ -185,7 +192,7 @@ class ImageGenerationService:
             logger.warning(f"Gemini API returned no images: {response}")
             return None
         except Exception as e:
-            logger.warning(f"Gemini API call failed: {e}")
+            logger.error(f"Gemini API call failed with exception: {str(e)}", exc_info=True)
             return None
 
     def generate_avatar(self, prompt: str, model: str = "nano-banana") -> str:
