@@ -253,7 +253,7 @@ class TestJWTTokenGeneration:
         """
         from app.models.user import User
         from app.auth import create_access_token
-        from jose import jwt
+        import jwt
         from app.config import settings
 
         user = User(
@@ -287,7 +287,7 @@ class TestJWTTokenGeneration:
         """
         from app.models.user import User
         from app.auth import create_access_token
-        from jose import jwt
+        import jwt
         from app.config import settings
         from datetime import datetime
 
