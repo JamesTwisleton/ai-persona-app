@@ -9,6 +9,7 @@ interface ConversationViewProps {
   conversation: Conversation;
   onContinue: () => void;
   onSendMessage: (text: string) => Promise<void>;
+  onUpdateVisibility?: (isPublic: boolean) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -16,16 +17,20 @@ export function ConversationView({
   conversation,
   onContinue,
   onSendMessage,
+  onUpdateVisibility,
   isLoading = false,
 }: ConversationViewProps) {
   const messages = conversation.messages ?? [];
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (bottomRef.current && typeof bottomRef.current.scrollIntoView === 'function') {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages.length]);
 
   const handleSend = async () => {
@@ -62,16 +67,33 @@ export function ConversationView({
                 Complete
               </span>
             )}
+            {!onUpdateVisibility && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {conversation.is_public ? "Public" : "Private"}
+              </span>
+            )}
           </div>
         </div>
-        <Button
-          onClick={onContinue}
-          disabled={conversation.is_complete || isLoading || isSending}
-          isLoading={isLoading}
-          variant="primary"
-        >
-          Next Turn
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {onUpdateVisibility && (
+            <button
+              onClick={() => setShowVisibilityModal(true)}
+              className="text-sm px-3 py-1.5 rounded-md font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              {conversation.is_public ? "Make Private" : "Make Public"}
+            </button>
+          )}
+
+          <Button
+            onClick={onContinue}
+            disabled={conversation.is_complete || isLoading || isSending}
+            isLoading={isLoading}
+            variant="primary"
+          >
+            Next Turn
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -85,6 +107,47 @@ export function ConversationView({
         )}
         <div ref={bottomRef} />
       </div>
+
+      {showVisibilityModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowVisibilityModal(false)} aria-hidden="true" />
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+              {conversation.is_public ? "Make Conversation Private?" : "Make Conversation Public?"}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+              {conversation.is_public
+                ? "This will hide the conversation from the public discovery feed. Only you will be able to see it."
+                : "This will make the conversation visible on the public discovery feed. Anyone will be able to view and fork it."}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowVisibilityModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (onUpdateVisibility) {
+                    await onUpdateVisibility(!conversation.is_public);
+                  }
+                  setShowVisibilityModal(false);
+                }}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                  conversation.is_public
+                    ? "bg-gray-600 hover:bg-gray-700"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
+              >
+                {conversation.is_public ? "Make Private" : "Make Public"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* User intervention input */}
       {!conversation.is_complete && (

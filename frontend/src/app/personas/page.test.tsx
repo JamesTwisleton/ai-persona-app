@@ -90,6 +90,11 @@ describe("PersonasPage", () => {
     const deleteBtn = screen.getByRole("button", { name: /delete alice/i });
     fireEvent.click(deleteBtn);
 
+    // Wait for the confirmation modal to appear, then click the confirm delete button
+    await waitFor(() => screen.getByRole("button", { name: "Delete" }));
+    const confirmDeleteBtn = screen.getByRole("button", { name: "Delete" });
+    fireEvent.click(confirmDeleteBtn);
+
     await waitFor(() =>
       expect(screen.queryByText("Alice")).not.toBeInTheDocument()
     );

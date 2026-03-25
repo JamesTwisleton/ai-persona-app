@@ -113,6 +113,10 @@ export interface ConversationCreateRequest {
   is_public?: boolean;
 }
 
+export interface ConversationUpdateRequest {
+  is_public?: boolean;
+}
+
 export interface ContinueConversationResponse {
   conversation_unique_id: string;
   turn_number: number;

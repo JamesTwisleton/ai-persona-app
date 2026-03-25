@@ -82,6 +82,7 @@ describe("PersonaCard", () => {
     window.confirm = jest.fn(() => true);
     render(<PersonaCard persona={mockPersona} onDelete={onDelete} />);
     fireEvent.click(screen.getByRole("button", { name: /delete alice/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onDelete).toHaveBeenCalledWith("abc123");
   });
 
@@ -90,6 +91,7 @@ describe("PersonaCard", () => {
     window.confirm = jest.fn(() => false);
     render(<PersonaCard persona={mockPersona} onDelete={onDelete} />);
     fireEvent.click(screen.getByRole("button", { name: /delete alice/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onDelete).not.toHaveBeenCalled();
   });
 });
