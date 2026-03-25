@@ -53,7 +53,7 @@ export function UpvoteButton({
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
         upvoted
           ? "bg-indigo-600 text-white border-indigo-600"
-          : "bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600"
+          : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-400 dark:hover:text-indigo-400"
       } disabled:opacity-50`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill={upvoted ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

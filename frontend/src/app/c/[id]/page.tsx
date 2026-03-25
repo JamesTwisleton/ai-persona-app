@@ -57,14 +57,14 @@ export default function PublicConversationPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">← Discover</Link>
+        <Link href="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 inline-block">← Discover</Link>
 
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">{conv.topic}</h1>
-          <p className="text-sm text-gray-400 mb-3">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{conv.topic}</h1>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">
             {conv.turn_count} turns · {conv.view_count} views
             {conv.forked_from_id && (
               <> · forked from <Link href={`/c/${conv.forked_from_id}`} className="text-indigo-500 hover:underline">#{conv.forked_from_id}</Link></>
@@ -82,7 +82,7 @@ export default function PublicConversationPage() {
             {user ? (
               <button
                 onClick={() => setShowFork(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01" />
@@ -91,7 +91,7 @@ export default function PublicConversationPage() {
               </button>
             ) : (
               <Link href="/login">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                   Log in to fork
                 </button>
               </Link>
@@ -117,13 +117,13 @@ export default function PublicConversationPage() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-400 py-12">No messages yet.</p>
+          <p className="text-center text-gray-400 dark:text-gray-500 py-12">No messages yet.</p>
         )}
 
         {/* Fork CTA if not logged in */}
         {!user && (
-          <div className="mt-8 bg-indigo-50 rounded-xl p-5 text-center">
-            <p className="text-gray-700 font-medium mb-3">Want to continue this conversation?</p>
+          <div className="mt-8 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-5 text-center">
+            <p className="text-gray-700 dark:text-gray-300 font-medium mb-3">Want to continue this conversation?</p>
             <Link href="/login">
               <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                 Sign in to fork

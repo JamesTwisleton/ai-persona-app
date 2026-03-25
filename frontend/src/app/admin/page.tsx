@@ -74,50 +74,50 @@ function UsersTab({ currentUserId }: { currentUserId: number }) {
 
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-4">{total} users</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{total} users</p>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left border-b border-gray-200">
-              <th className="pb-2 pr-4 font-medium text-gray-600">User</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Email</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Personas</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Joined</th>
-              <th className="pb-2 font-medium text-gray-600">Roles</th>
+            <tr className="text-left border-b border-gray-200 dark:border-gray-700">
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">User</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Email</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Personas</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Joined</th>
+              <th className="pb-2 font-medium text-gray-600 dark:text-gray-400">Roles</th>
             </tr>
           </thead>
           <tbody>
             {data.map((u) => (
-              <tr key={u.id} className="border-b border-gray-100 last:border-0">
+              <tr key={u.id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="py-3 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {u.avatar_url ? (
                         <Image src={u.avatar_url} alt={u.name ?? u.email} width={32} height={32} className="object-cover" unoptimized />
                       ) : (
-                        <span className="text-indigo-700 font-semibold text-xs">{(u.name ?? u.email).charAt(0).toUpperCase()}</span>
+                        <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{(u.name ?? u.email).charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="font-medium text-gray-900">{u.name ?? "—"}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{u.name ?? "—"}</span>
                   </div>
                 </td>
-                <td className="py-3 pr-4 text-gray-600">{u.email}</td>
-                <td className="py-3 pr-4 text-gray-600">{u.persona_count}</td>
-                <td className="py-3 pr-4 text-gray-500">
+                <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{u.email}</td>
+                <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{u.persona_count}</td>
+                <td className="py-3 pr-4 text-gray-500 dark:text-gray-500">
                   {new Date(u.created_at).toLocaleDateString()}
                 </td>
                 <td className="py-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     {u.is_admin && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">admin</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium">admin</span>
                     )}
                     {u.is_superuser && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">superuser</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-medium">superuser</span>
                     )}
                     <button
                       onClick={() => toggleSuperuser(u.id, u.is_superuser)}
                       disabled={u.id === currentUserId && u.is_superuser}
-                      className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                      className="text-xs px-2 py-0.5 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-colors"
                     >
                       {u.is_superuser ? "Remove superuser" : "Make superuser"}
                     </button>
@@ -204,7 +204,7 @@ function PersonasTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <p className="text-sm text-gray-500">{total} personas</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{total} personas</p>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Repair avatars */}
           <button
@@ -225,14 +225,14 @@ function PersonasTab() {
               }
             }}
             disabled={isRepairing}
-            className="px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-40 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-40 transition-colors"
           >
             {isRepairing ? "Repairing…" : "Repair avatars"}
           </button>
 
           <button
             onClick={() => setSelected(selected.size === data.length ? new Set() : new Set(data.map((p) => p.unique_id)))}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             {selected.size === data.length ? "Deselect all" : "Select all"}
           </button>
@@ -250,8 +250,8 @@ function PersonasTab() {
       {repairStatus && (
         <p className={`text-sm mb-3 px-3 py-2 rounded-lg ${
           repairStatus.includes("failed") || repairStatus.includes("Failed")
-            ? "bg-red-50 text-red-700"
-            : "bg-green-50 text-green-700"
+            ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+            : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
         }`}>
           {repairStatus}
           {repairStatus.includes("pending") && (
@@ -268,18 +268,18 @@ function PersonasTab() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left border-b border-gray-200">
+            <tr className="text-left border-b border-gray-200 dark:border-gray-700">
               <th className="pb-2 w-8" />
-              <th className="pb-2 pr-4 font-medium text-gray-600">Persona</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Owner</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Views</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Upvotes</th>
-              <th className="pb-2 font-medium text-gray-600">Created</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Persona</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Owner</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Views</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Upvotes</th>
+              <th className="pb-2 font-medium text-gray-600 dark:text-gray-400">Created</th>
             </tr>
           </thead>
           <tbody>
             {data.map((p) => (
-              <tr key={p.unique_id} className="border-b border-gray-100 last:border-0">
+              <tr key={p.unique_id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="py-2 pr-2">
                   <input
                     type="checkbox"
@@ -290,21 +290,21 @@ function PersonasTab() {
                 </td>
                 <td className="py-2 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {p.avatar_url ? (
                         <Image src={p.avatar_url} alt={p.name} width={28} height={28} className="object-cover" unoptimized />
                       ) : (
-                        <span className="text-indigo-700 font-semibold text-xs">{p.name.charAt(0)}</span>
+                        <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{p.name.charAt(0)}</span>
                       )}
                     </div>
-                    <span className="font-medium text-gray-900">{p.name}</span>
-                    {!p.is_public && <span className="text-xs text-gray-400">(private)</span>}
+                    <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
+                    {!p.is_public && <span className="text-xs text-gray-400 dark:text-gray-500">(private)</span>}
                   </div>
                 </td>
-                <td className="py-2 pr-4 text-gray-500">{p.owner_email ?? "—"}</td>
-                <td className="py-2 pr-4 text-gray-600">{p.view_count}</td>
-                <td className="py-2 pr-4 text-gray-600">{p.upvote_count}</td>
-                <td className="py-2 text-gray-500">{new Date(p.created_at!).toLocaleDateString()}</td>
+                <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{p.owner_email ?? "—"}</td>
+                <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{p.view_count}</td>
+                <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{p.upvote_count}</td>
+                <td className="py-2 text-gray-500 dark:text-gray-500">{new Date(p.created_at!).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
@@ -395,11 +395,11 @@ function ConversationsTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{total} conversations</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{total} conversations</p>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSelected(selected.size === data.length ? new Set() : new Set(data.map((c) => c.unique_id)))}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             {selected.size === data.length ? "Deselect all" : "Select all"}
           </button>
@@ -417,18 +417,18 @@ function ConversationsTab() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left border-b border-gray-200">
+            <tr className="text-left border-b border-gray-200 dark:border-gray-700">
               <th className="pb-2 w-8" />
-              <th className="pb-2 pr-4 font-medium text-gray-600">Topic</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Owner</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Turns</th>
-              <th className="pb-2 pr-4 font-medium text-gray-600">Status</th>
-              <th className="pb-2 font-medium text-gray-600">Created</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Topic</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Owner</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Turns</th>
+              <th className="pb-2 pr-4 font-medium text-gray-600 dark:text-gray-400">Status</th>
+              <th className="pb-2 font-medium text-gray-600 dark:text-gray-400">Created</th>
             </tr>
           </thead>
           <tbody>
             {data.map((c) => (
-              <tr key={c.unique_id} className="border-b border-gray-100 last:border-0">
+              <tr key={c.unique_id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="py-2 pr-2">
                   <input
                     type="checkbox"
@@ -438,19 +438,19 @@ function ConversationsTab() {
                   />
                 </td>
                 <td className="py-2 pr-4">
-                  <span className="font-medium text-gray-900 line-clamp-1">{c.topic}</span>
-                  {!c.is_public && <span className="ml-1 text-xs text-gray-400">(private)</span>}
+                  <span className="font-medium text-gray-900 dark:text-white line-clamp-1">{c.topic}</span>
+                  {!c.is_public && <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">(private)</span>}
                 </td>
-                <td className="py-2 pr-4 text-gray-500">{c.owner_email ?? "—"}</td>
-                <td className="py-2 pr-4 text-gray-600">{c.turn_count} / {c.max_turns}</td>
+                <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{c.owner_email ?? "—"}</td>
+                <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{c.turn_count} / {c.max_turns}</td>
                 <td className="py-2 pr-4">
                   {c.is_complete ? (
-                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">Complete</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">Complete</span>
                   ) : (
-                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Active</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">Active</span>
                   )}
                 </td>
-                <td className="py-2 text-gray-500">{new Date(c.created_at!).toLocaleDateString()}</td>
+                <td className="py-2 text-gray-500 dark:text-gray-500">{new Date(c.created_at!).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
@@ -504,18 +504,18 @@ function AdminContent() {
     <>
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Panel</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Admin Panel</h1>
 
         {/* Tab bar */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
           {tabs.map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 tab === id
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
               {label}
@@ -523,7 +523,7 @@ function AdminContent() {
           ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           {tab === "users" && <UsersTab currentUserId={user.id} />}
           {tab === "personas" && <PersonasTab />}
           {tab === "conversations" && <ConversationsTab />}

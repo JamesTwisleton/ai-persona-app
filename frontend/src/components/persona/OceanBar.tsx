@@ -20,10 +20,10 @@ export function OceanBar({ scores }: OceanBarProps) {
         return (
           <div key={key}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600 font-medium">{label}</span>
-              <span className="text-gray-500">{pct}%</span>
+              <span className="text-gray-600 dark:text-gray-300 font-medium">{label}</span>
+              <span className="text-gray-500 dark:text-gray-400">{pct}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 role="progressbar"
                 aria-valuenow={pct}

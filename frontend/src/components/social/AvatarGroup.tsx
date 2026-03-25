@@ -20,7 +20,7 @@ export function AvatarGroup({ participants, max = 3, size = 28 }: AvatarGroupPro
       {shown.map((p, i) => (
         <div
           key={i}
-          className="rounded-full border-2 border-white bg-indigo-100 overflow-hidden flex items-center justify-center flex-shrink-0"
+          className="rounded-full border-2 border-white dark:border-gray-800 bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center flex-shrink-0"
           style={{
             width: size,
             height: size,
@@ -40,7 +40,7 @@ export function AvatarGroup({ participants, max = 3, size = 28 }: AvatarGroupPro
             />
           ) : (
             <span
-              className="text-indigo-700 font-semibold"
+              className="text-indigo-700 dark:text-indigo-300 font-semibold"
               style={{ fontSize: size * 0.4 }}
             >
               {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
@@ -50,7 +50,7 @@ export function AvatarGroup({ participants, max = 3, size = 28 }: AvatarGroupPro
       ))}
       {overflow > 0 && (
         <div
-          className="rounded-full border-2 border-white bg-gray-200 flex items-center justify-center flex-shrink-0"
+          className="rounded-full border-2 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0"
           style={{
             width: size,
             height: size,
@@ -58,7 +58,7 @@ export function AvatarGroup({ participants, max = 3, size = 28 }: AvatarGroupPro
             fontSize: size * 0.35,
           }}
         >
-          <span className="text-gray-600 font-medium">+{overflow}</span>
+          <span className="text-gray-600 dark:text-gray-300 font-medium">+{overflow}</span>
         </div>
       )}
     </div>

@@ -17,18 +17,18 @@ export default function LoginPage() {
   }, [user, isLoading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Focus Groups</h1>
-          <p className="text-gray-500">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">AI Focus Groups</h1>
+          <p className="text-gray-500 dark:text-gray-400">
             Create psychologically realistic personas and run AI-powered focus group conversations.
           </p>
         </div>
 
         <a
           href={`${API_URL}/auth/login/google`}
-          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700"
+          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors font-medium text-gray-700 dark:text-gray-200"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -51,7 +51,7 @@ export default function LoginPage() {
           Sign in with Google
         </a>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
           Your data is only used to power your focus group sessions.
         </p>
       </div>

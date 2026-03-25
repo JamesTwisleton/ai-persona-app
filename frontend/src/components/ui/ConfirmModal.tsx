@@ -38,15 +38,15 @@ export function ConfirmModal({
       />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">{title}</h2>
-        <p className="text-sm text-gray-600 mb-6">{message}</p>
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 transition-colors"
           >
             Cancel
           </button>
