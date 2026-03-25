@@ -177,4 +177,5 @@ class ConversationOrchestrator:
                 "neuroticism": persona.ocean_neuroticism,
             },
             "archetype_affinities": persona.archetype_affinities or {},
+            "reddit_flair": persona.reddit_flair or "",
         }

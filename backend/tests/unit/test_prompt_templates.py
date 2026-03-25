@@ -191,6 +191,19 @@ class TestConversationPromptTemplate:
         # Should reference personality/traits in some form
         assert any(word in prompt.lower() for word in ["personality", "trait", "open", "conscientious", "character"])
 
+    def test_render_includes_reddit_flair(self):
+        template = ConversationPromptTemplate()
+        prompt = template.render(
+            persona_name="Alice",
+            ocean_scores=SAMPLE_OCEAN,
+            attitude="Neutral",
+            topic="Climate change",
+            history=[],
+            reddit_flair="Logic > Emotions"
+        )
+        assert "Reddit flair" in prompt
+        assert "Logic > Emotions" in prompt
+
     def test_render_returns_string(self):
         template = ConversationPromptTemplate()
         prompt = template.render(

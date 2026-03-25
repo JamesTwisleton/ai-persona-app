@@ -32,6 +32,14 @@ MOTTO_SYSTEM_PROMPT = (
     "Respond with only the motto text. No explanation, no quotation marks."
 )
 
+FLAIR_SYSTEM_PROMPT = (
+    "You are an expert at creating Reddit user flairs. "
+    "A Reddit flair is a short, punchy, and descriptive tag (usually 1-4 words) "
+    "that captures the essence of a user's persona or their role in a community. "
+    "Given a persona description, generate a single Reddit flair that fits them. "
+    "Respond with ONLY the flair text. No quotes, no explanation."
+)
+
 CONVERSATION_SYSTEM_PROMPT = (
     "You are roleplaying as a specific person in a heated focus group. "
     "You have real opinions and you state them. You are not a moderator. You are not diplomatic by default. "
@@ -100,6 +108,35 @@ class LLMService:
         # Strip surrounding quotation marks if Claude added them
         return raw.strip('"').strip("'").strip()
 
+    def generate_reddit_flair(self, description: str) -> str:
+        """
+        Generate a short, punchy Reddit user flair for a persona.
+
+        Args:
+            description: Persona backstory or description text
+
+        Returns:
+            str: Generated Reddit flair, stripped of surrounding whitespace and quotes
+
+        Raises:
+            Exception: Re-raises any Anthropic API errors
+        """
+        if not description:
+            description = "A mysterious user with no background."
+
+        user_message = f"Persona Description: {description}\n\nGenerate a Reddit flair for this persona."
+
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=64,
+            system=FLAIR_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_message}],
+        )
+
+        raw = message.content[0].text.strip()
+        # Strip surrounding quotation marks if Claude added them
+        return raw.strip('"').strip("'").strip()
+
     def generate_response(
         self,
         persona_details: Dict[str, Any],
@@ -127,6 +164,7 @@ class LLMService:
             topic=topic,
             history=conversation_history,
             description=persona_details.get("description", ""),
+            reddit_flair=persona_details.get("reddit_flair", ""),
         )
 
         message = self.client.messages.create(
