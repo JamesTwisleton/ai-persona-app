@@ -94,3 +94,18 @@ jobs:
             --service persona-composer-backend \
             --force-new-deployment \
             --query 'service.{name:serviceName,status:status}'
+
+      - name: Wait for deployment to stabilise
+        run: |
+          echo "Waiting for new tasks to be healthy and old tasks to be deprovisioned..."
+          aws ecs wait services-stable \
+            --region us-east-1 \
+            --cluster persona-composer-cluster \
+            --services persona-composer-backend
+          echo "Service stable."
+
+      - name: Smoke test
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-connrefused \
+            https://api.personacomposer.app/health
