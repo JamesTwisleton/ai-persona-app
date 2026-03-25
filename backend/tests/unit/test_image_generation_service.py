@@ -113,7 +113,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             result = service.generate_avatar("A professional portrait of a data scientist")
         assert result == SAMPLE_S3_KEY
 
@@ -123,7 +123,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             service.generate_avatar("A portrait of a scientist")
         mock_client.images.generate.assert_called_once()
 
@@ -133,7 +133,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             service.generate_avatar("A portrait")
         call_kwargs = mock_client.images.generate.call_args[1]
         assert call_kwargs.get("response_format") == "b64_json"
@@ -150,7 +150,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             result = service.generate_avatar("A portrait", model="dalle")
         assert result == SAMPLE_S3_KEY
 
@@ -169,7 +169,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=None):
+        with patch.object(service, "_store_avatar", return_value=None):
             result = service.generate_avatar("A portrait")
         assert result is None
 
@@ -186,7 +186,7 @@ class TestGenerateAvatarForPersona:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             result = service.generate_avatar_for_persona(SAMPLE_PERSONA)
         assert result == SAMPLE_S3_KEY
 
@@ -197,6 +197,6 @@ class TestGenerateAvatarForPersona:
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         persona_with_model = {**SAMPLE_PERSONA, "model_used": "dalle"}
-        with patch.object(service, "_upload_to_s3", return_value=SAMPLE_S3_KEY):
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_S3_KEY):
             result = service.generate_avatar_for_persona(persona_with_model)
         assert result is not None

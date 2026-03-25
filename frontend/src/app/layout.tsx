@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "PersonaComposer",
   description: "AI-powered focus group simulator with psychologically realistic personas",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/logo-b.svg" },
 };
 
 export default function RootLayout({
