@@ -28,7 +28,7 @@ ATTITUDE_DESCRIPTIONS = {
     "Cynical":         "assumes bad faith, skewers idealism, trusts no institution",
 }
 
-# Phrases that make responses sound like an AI performing politeness
+# Phrases that make responses sound like an AI performing politeness or using formulaic starters
 BANNED_PHRASES = [
     "Absolutely", "Great point", "That's a great", "That's an interesting",
     "I completely agree", "Totally agree", "Couldn't agree more",
@@ -38,6 +38,16 @@ BANNED_PHRASES = [
     "At the end of the day", "Moving forward", "As an AI", "I must say",
     "Certainly", "Indeed", "Of course", "Naturally", "Without a doubt",
     "That being said", "Having said that", "To be fair",
+    "Look,", "Listen,", "So,", "Well,", "Actually,", "Essentially,", "Basically,",
+    "To be honest,", "Honestly,", "I mean,", "You see,", "Interestingly,",
+]
+
+# Recommended natural, direct opening styles to encourage authentic responses
+NATURAL_STARTERS = [
+    "The problem is...", "I disagree because...", "From my experience...",
+    "What you're missing is...", "Think about it:", "The reality is...",
+    "That's just wrong because...", "I'm more concerned about...",
+    "It's simple:", "I've always found that...",
 ]
 
 
@@ -91,7 +101,7 @@ class ConversationPromptTemplate:
     ) -> str:
         attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "speaks plainly")
         personality_traits = self._describe_personality(ocean_scores)
-        banned = ", ".join(f'"{p}"' for p in BANNED_PHRASES[:12])
+        banned = ", ".join(f'"{p}"' for p in BANNED_PHRASES)
 
         # Detect if the last few messages are stagnating (same speakers saying similar things)
         stagnation_warning = ""
@@ -115,6 +125,8 @@ class ConversationPromptTemplate:
 
         background = f"Your background: {description}\n" if description else ""
 
+        starters = ", ".join(f'"{s}"' for s in NATURAL_STARTERS)
+
         return (
             f"You are {persona_name}.\n"
             f"{background}"
@@ -127,10 +139,11 @@ class ConversationPromptTemplate:
             f"1. State YOUR OWN position first. Do not open by asking what others think.\n"
             f"2. You are NOT required to be nice. Low agreeableness means you push back hard.\n"
             f"3. NEVER open with any of these: {banned}\n"
-            f"4. Do not repeat points already made. If you agree, say so in one clause then move on.\n"
-            f"5. If someone said something wrong or naive, call it out directly.\n"
-            f"6. Keep it to 2-3 sentences. Be dense, not verbose.\n"
-            f"7. Sound like a real human, not a panel discussion moderator.\n\n"
+            f"4. Aim for a direct, authentic opening. Examples: {starters}\n"
+            f"5. Do not repeat points already made. If you agree, say so in one clause then move on.\n"
+            f"6. If someone said something wrong or naive, call it out directly.\n"
+            f"7. Keep it to 2-3 sentences. Be dense, not verbose.\n"
+            f"8. Sound like a real human, not a panel discussion moderator. No filler phrases.\n\n"
             f"Respond now as {persona_name}:"
         )
 
