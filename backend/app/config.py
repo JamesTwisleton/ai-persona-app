@@ -66,8 +66,8 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    BANANA_API_KEY: str = ""
-    BANANA_MODEL_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL_ID: str = "imagen-3.0-generate-001"
     TOXICITY_THRESHOLD: float = 0.7
 
     # ========================================================================

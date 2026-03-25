@@ -9,14 +9,12 @@ not a URL. Call generate_presigned_url() to get a displayable URL.
 """
 
 import base64
-import json
 import logging
 import os
 import uuid
 from typing import Dict, Any, Optional
 
 import boto3
-import httpx
 from botocore.exceptions import ClientError
 
 from app.config import settings
@@ -26,9 +24,6 @@ logger = logging.getLogger(__name__)
 SUPPORTED_MODELS = {"dalle", "nano-banana"}
 
 FALLBACK_AVATAR_URL = "https://api.dicebear.com/7.x/personas/svg?seed=default-avatar"
-
-# Banana.dev constants
-BANANA_API_URL = "https://api.banana.dev/v1/run"
 
 DALLE_MODEL = "dall-e-3"
 DALLE_SIZE = "1024x1024"
@@ -161,45 +156,36 @@ class ImageGenerationService:
 
     def _generate_with_banana(self, prompt: str) -> Optional[bytes]:
         """
-        Internal method to call the Banana.dev API for image generation.
+        Internal method to call the Gemini API for image generation (Nano Banana).
         Returns the raw image bytes on success, or None on failure.
         """
-        if not settings.BANANA_API_KEY or not settings.BANANA_MODEL_KEY:
-            logger.warning("BANANA_API_KEY or BANANA_MODEL_KEY not configured")
+        if not settings.GEMINI_API_KEY:
+            logger.warning("GEMINI_API_KEY not configured")
             return None
 
-        payload = {
-            "apiKey": settings.BANANA_API_KEY,
-            "modelKey": settings.BANANA_MODEL_KEY,
-            "modelInputs": {
-                "prompt": prompt,
-                "negative_prompt": "cartoon, illustration, animation, drawing, painting, 3d render, low quality, blurry",
-                "num_inference_steps": 30,
-                "guidance_scale": 7.5,
-                "width": 1024,
-                "height": 1024,
-            }
-        }
-
         try:
-            with httpx.Client(timeout=60.0) as client:
-                response = client.post(BANANA_API_URL, json=payload)
-                response.raise_for_status()
-                result = response.json()
+            from google import genai
+            from google.genai import types
 
-                # Banana.dev usually returns output in modelOutputs
-                # We expect a base64 string in the first output
-                if "modelOutputs" in result and result["modelOutputs"]:
-                    output = result["modelOutputs"][0]
-                    # The output might be the raw b64 string or a dict containing it
-                    b64_data = output if isinstance(output, str) else output.get("image_base64")
-                    if b64_data:
-                        return base64.b64decode(b64_data)
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-                logger.warning(f"Unexpected Banana API response format: {result}")
-                return None
+            response = client.models.generate_images(
+                model=settings.GEMINI_MODEL_ID,
+                prompt=prompt,
+                config=types.GenerateImagesConfig(
+                    negative_prompt="cartoon, illustration, animation, drawing, painting, 3d render, low quality, blurry",
+                    number_of_images=1,
+                    output_mime_type="image/jpeg",
+                )
+            )
+
+            if response.generated_images:
+                return response.generated_images[0].image_bytes
+
+            logger.warning(f"Gemini API returned no images: {response}")
+            return None
         except Exception as e:
-            logger.warning(f"Banana API call failed: {e}")
+            logger.warning(f"Gemini API call failed: {e}")
             return None
 
     def generate_avatar(self, prompt: str, model: str = "nano-banana") -> str:

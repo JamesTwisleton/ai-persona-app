@@ -180,21 +180,21 @@ class TestGenerateAvatar:
             result = service.generate_avatar("A portrait", model="dalle")
         assert result is None
 
-    @patch("app.services.image_generation_service.httpx.Client")
+    @patch("google.genai.Client")
     @patch("app.services.image_generation_service.settings")
-    def test_generate_avatar_banana_success(self, mock_settings, mock_httpx_class):
-        mock_settings.BANANA_API_KEY = "test-api-key"
-        mock_settings.BANANA_MODEL_KEY = "test-model-key"
+    def test_generate_avatar_banana_success(self, mock_settings, mock_genai_client_class):
+        mock_settings.GEMINI_API_KEY = "test-api-key"
+        mock_settings.GEMINI_MODEL_ID = "imagen-3.0-generate-001"
+
+        mock_image = MagicMock()
+        mock_image.image_bytes = base64.b64decode(SAMPLE_B64)
 
         mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "modelOutputs": [{"image_base64": SAMPLE_B64}]
-        }
+        mock_response.generated_images = [mock_image]
 
         mock_client = MagicMock()
-        mock_client.__enter__.return_value.post.return_value = mock_response
-        mock_httpx_class.return_value = mock_client
+        mock_client.models.generate_images.return_value = mock_response
+        mock_genai_client_class.return_value = mock_client
 
         from app.services.image_generation_service import ImageGenerationService
         service = ImageGenerationService(client=MagicMock())
@@ -202,12 +202,11 @@ class TestGenerateAvatar:
             result = service.generate_avatar("A portrait", model="nano-banana")
 
         assert result == SAMPLE_AVATAR_KEY
-        mock_client.__enter__.return_value.post.assert_called_once()
+        mock_client.models.generate_images.assert_called_once()
 
     @patch("app.services.image_generation_service.settings")
     def test_generate_avatar_banana_missing_config(self, mock_settings):
-        mock_settings.BANANA_API_KEY = None
-        mock_settings.BANANA_MODEL_KEY = None
+        mock_settings.GEMINI_API_KEY = None
 
         from app.services.image_generation_service import ImageGenerationService
         service = ImageGenerationService(client=MagicMock())
@@ -222,21 +221,21 @@ class TestGenerateAvatar:
 class TestGenerateAvatarForPersona:
     """Integration test of build_avatar_prompt + generate_avatar."""
 
-    @patch("app.services.image_generation_service.httpx.Client")
+    @patch("google.genai.Client")
     @patch("app.services.image_generation_service.settings")
-    def test_generate_avatar_for_persona(self, mock_settings, mock_httpx_class):
-        mock_settings.BANANA_API_KEY = "test-api-key"
-        mock_settings.BANANA_MODEL_KEY = "test-model-key"
+    def test_generate_avatar_for_persona(self, mock_settings, mock_genai_client_class):
+        mock_settings.GEMINI_API_KEY = "test-api-key"
+        mock_settings.GEMINI_MODEL_ID = "imagen-3.0-generate-001"
+
+        mock_image = MagicMock()
+        mock_image.image_bytes = base64.b64decode(SAMPLE_B64)
 
         mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "modelOutputs": [{"image_base64": SAMPLE_B64}]
-        }
+        mock_response.generated_images = [mock_image]
 
         mock_client = MagicMock()
-        mock_client.__enter__.return_value.post.return_value = mock_response
-        mock_httpx_class.return_value = mock_client
+        mock_client.models.generate_images.return_value = mock_response
+        mock_genai_client_class.return_value = mock_client
 
         from app.services.image_generation_service import ImageGenerationService
         service = ImageGenerationService(client=MagicMock())
