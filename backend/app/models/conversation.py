@@ -224,7 +224,14 @@ class ConversationMessage(Base):
         nullable=False
     )
 
+    reply_to_id = Column(
+        Integer, ForeignKey("conversation_messages.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+        doc="ID of the message this is a reply to"
+    )
+
     conversation = relationship("Conversation", back_populates="messages")
+    reply_to = relationship("ConversationMessage", remote_side=[id])
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -237,6 +244,9 @@ class ConversationMessage(Base):
             "toxicity_score": self.toxicity_score,
             "moderation_status": self.moderation_status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "reply_to_id": self.reply_to_id,
+            "reply_to_persona_name": self.reply_to.persona_name if self.reply_to else None,
+            "reply_to_text": self.reply_to.message_text if self.reply_to else None,
         }
 
     def __repr__(self) -> str:

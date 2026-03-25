@@ -60,6 +60,7 @@ class ConversationOrchestrator:
         history: List[Dict[str, str]],
         db,
     ) -> list:
+        topic = conversation.topic
         """
         Generate one full turn — one message from each persona.
 
@@ -85,13 +86,39 @@ class ConversationOrchestrator:
         next_turn = conversation.turn_count + 1
         new_messages = []
 
+        # Work on a copy of history to avoid side effects for the caller
+        history = list(history)
+
+        # Map current history to original message IDs if possible
+        # This helps link REPLY_TO indices to DB IDs
+        from app.models.conversation import ConversationMessage
+        existing_msgs = db.query(ConversationMessage).filter_by(
+            conversation_id=conversation.id
+        ).order_by(ConversationMessage.turn_number, ConversationMessage.id).all()
+
+        # We need a list of message IDs that correspond to the indices in 'history'
+        history_ids = [m.id for m in existing_msgs if m.moderation_status in ("approved", "user")]
+
         for persona in personas:
             persona_details = self._build_persona_details(persona)
+            # Pass a copy of history so the record of the call in tests (and any accidental mutations)
+            # doesn't reflect subsequent appends in this turn.
             message_text, toxicity_score, moderation_status = self._generate_safe_message(
                 persona_details=persona_details,
-                history=history,
-                topic=conversation.topic,
+                history=list(history),
+                topic=topic,
             )
+
+            # Parse REPLY_TO: [index]
+            reply_to_id = None
+            import re
+            match = re.search(r"^REPLY_TO:\s*\[(\d+)\]", message_text)
+            if match:
+                idx = int(match.group(1)) - 1  # 1-indexed to 0-indexed
+                if 0 <= idx < len(history_ids):
+                    reply_to_id = history_ids[idx]
+                # Strip the prefix
+                message_text = re.sub(r"^REPLY_TO:\s*\[\d+\]\s*", "", message_text).strip()
 
             msg = ConversationMessage(
                 conversation_id=conversation.id,
@@ -101,9 +128,16 @@ class ConversationOrchestrator:
                 turn_number=next_turn,
                 toxicity_score=toxicity_score,
                 moderation_status=moderation_status,
+                reply_to_id=reply_to_id,
             )
             db.add(msg)
+            db.flush() # Flush to get msg.id
             new_messages.append(msg)
+
+            # Update history and history_ids for subsequent personas in this turn
+            if moderation_status == "approved":
+                history.append({"speaker": persona.name, "message": message_text})
+                history_ids.append(msg.id)
 
             if moderation_status == "flagged":
                 from app.models.moderation import ModerationAuditLog
