@@ -160,12 +160,12 @@ class ImageGenerationService:
             if s3_key:
                 return s3_key
 
-            logger.warning("S3 upload failed — using fallback avatar")
-            return FALLBACK_AVATAR_URL
+            logger.warning("S3 upload failed — avatar not stored")
+            return None
 
         except Exception as e:
-            logger.warning(f"Image generation failed, using fallback avatar: {e}")
-            return FALLBACK_AVATAR_URL
+            logger.warning(f"Image generation failed: {e}")
+            return None
 
     def generate_avatar_for_persona(
         self,
