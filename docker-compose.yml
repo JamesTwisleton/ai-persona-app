@@ -2,8 +2,9 @@
 # For local development environment
 #
 # Usage:
-#   docker-compose up           # Start all services
+#   docker-compose up           # Start full app (db, backend, frontend)
 #   docker-compose up -d        # Start in background
+#   docker-compose up --profile test  # Also start test_db
 #   docker-compose down         # Stop all services
 #   docker-compose logs -f      # View logs
 #   docker-compose exec backend pytest  # Run tests in backend container
@@ -108,22 +109,8 @@ services:
       - backend
     networks:
       - app_network
-    profiles:
-      - frontend  # Optional - only start when explicitly requested in Phase 1
     command: npm run dev
 
-  # ==========================================================================
-  # Redis Cache (Phase 9+)
-  # ==========================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: ai_focus_groups_redis
-    ports:
-      - "6379:6379"
-    networks:
-      - app_network
-    profiles:
-      - cache  # Optional - only start when needed
 
 # ============================================================================
 # Volumes
