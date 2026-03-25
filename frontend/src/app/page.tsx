@@ -166,7 +166,9 @@ export default function Home() {
       {/* Hero */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-12 px-4 text-center">
         <div className="flex justify-center mb-4">
-          <img src="/logo-b.svg" alt="PersonaComposer" className="w-16 h-16" />
+          <div className="bg-white/90 rounded-xl p-2 inline-block">
+            <img src="/logo.jpeg" alt="PersonaComposer" className="w-16 h-16 block" />
+          </div>
         </div>
         <h1 className="text-4xl font-bold mb-3">PersonaComposer</h1>
         <p className="text-indigo-100 max-w-xl mx-auto mb-6">

@@ -29,7 +29,9 @@ export function Navbar() {
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Image src="/logo-b.svg" alt="PersonaComposer" width={32} height={32} priority unoptimized />
+          <div className="dark:bg-white dark:rounded dark:p-0.5 shrink-0">
+            <Image src="/logo.jpeg" alt="PersonaComposer" width={32} height={32} priority unoptimized />
+          </div>
           <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">PersonaComposer</span>
         </Link>
 

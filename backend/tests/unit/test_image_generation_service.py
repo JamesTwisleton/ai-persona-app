@@ -154,36 +154,24 @@ class TestGenerateAvatar:
             result = service.generate_avatar("A portrait", model="dalle")
         assert result == SAMPLE_S3_KEY
 
-    def test_generate_avatar_on_api_failure_returns_fallback(self):
-        """API failure returns fallback placeholder URL, not raise."""
+    def test_generate_avatar_on_api_failure_returns_none(self):
+        """API failure returns None — caller handles the missing avatar gracefully."""
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         mock_client.images.generate.side_effect = Exception("API Error")
         service = ImageGenerationService(client=mock_client)
         result = service.generate_avatar("A portrait")
-        assert result is not None
-        assert isinstance(result, str)
-        assert len(result) > 0
+        assert result is None
 
-    def test_generate_avatar_on_s3_failure_returns_fallback(self):
-        """S3 upload failure returns fallback placeholder URL."""
+    def test_generate_avatar_on_s3_failure_returns_none(self):
+        """S3 upload failure returns None — image was generated but not stored."""
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         with patch.object(service, "_upload_to_s3", return_value=None):
             result = service.generate_avatar("A portrait")
-        assert result is not None
-        assert isinstance(result, str)
-
-    def test_fallback_url_is_placeholder(self):
-        """Fallback URL should indicate it's a placeholder."""
-        from app.services.image_generation_service import ImageGenerationService
-        mock_client = MagicMock()
-        mock_client.images.generate.side_effect = Exception("API Error")
-        service = ImageGenerationService(client=mock_client)
-        result = service.generate_avatar("A portrait")
-        assert any(word in result.lower() for word in ["placeholder", "default", "avatar", "dicebear"])
+        assert result is None
 
 
 # ============================================================================
