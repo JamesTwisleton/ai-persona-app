@@ -9,21 +9,26 @@ not a URL. Call generate_presigned_url() to get a displayable URL.
 """
 
 import base64
+import json
 import logging
 import os
 import uuid
 from typing import Dict, Any, Optional
 
 import boto3
+import httpx
 from botocore.exceptions import ClientError
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_MODELS = {"dalle"}
+SUPPORTED_MODELS = {"dalle", "nano-banana"}
 
 FALLBACK_AVATAR_URL = "https://api.dicebear.com/7.x/personas/svg?seed=default-avatar"
+
+# Banana.dev constants
+BANANA_API_URL = "https://api.banana.dev/v1/run"
 
 DALLE_MODEL = "dall-e-3"
 DALLE_SIZE = "1024x1024"
@@ -76,7 +81,7 @@ class ImageGenerationService:
     Use generate_presigned_url() to get a displayable URL from that key.
     """
 
-    def __init__(self, client=None, default_model: str = "dalle"):
+    def __init__(self, client=None, default_model: str = "nano-banana"):
         if client is not None:
             self.client = client
         else:
@@ -115,7 +120,7 @@ class ImageGenerationService:
             f"Casual or semi-professional attire appropriate to their background. "
             f"Cropped tightly from the shoulders up, as if extracted from a larger photo and used as a profile picture. "
             f"No studio lighting. No digital effects. No AI smoothing. No idealized features. "
-            f"Looks like a real person's social media or LinkedIn profile photo. "
+            f"Incredibly realistic display picture that you might find on any social media website. "
             f"Ultra-realistic, candid, human, imperfect. Absolutely not AI-generated looking."
         )
 
@@ -154,7 +159,50 @@ class ImageGenerationService:
             logger.warning(f"Failed to upload avatar to S3: {e}")
             return None
 
-    def generate_avatar(self, prompt: str, model: str = "dalle") -> str:
+    def _generate_with_banana(self, prompt: str) -> Optional[bytes]:
+        """
+        Internal method to call the Banana.dev API for image generation.
+        Returns the raw image bytes on success, or None on failure.
+        """
+        if not settings.BANANA_API_KEY or not settings.BANANA_MODEL_KEY:
+            logger.warning("BANANA_API_KEY or BANANA_MODEL_KEY not configured")
+            return None
+
+        payload = {
+            "apiKey": settings.BANANA_API_KEY,
+            "modelKey": settings.BANANA_MODEL_KEY,
+            "modelInputs": {
+                "prompt": prompt,
+                "negative_prompt": "cartoon, illustration, animation, drawing, painting, 3d render, low quality, blurry",
+                "num_inference_steps": 30,
+                "guidance_scale": 7.5,
+                "width": 1024,
+                "height": 1024,
+            }
+        }
+
+        try:
+            with httpx.Client(timeout=60.0) as client:
+                response = client.post(BANANA_API_URL, json=payload)
+                response.raise_for_status()
+                result = response.json()
+
+                # Banana.dev usually returns output in modelOutputs
+                # We expect a base64 string in the first output
+                if "modelOutputs" in result and result["modelOutputs"]:
+                    output = result["modelOutputs"][0]
+                    # The output might be the raw b64 string or a dict containing it
+                    b64_data = output if isinstance(output, str) else output.get("image_base64")
+                    if b64_data:
+                        return base64.b64decode(b64_data)
+
+                logger.warning(f"Unexpected Banana API response format: {result}")
+                return None
+        except Exception as e:
+            logger.warning(f"Banana API call failed: {e}")
+            return None
+
+    def generate_avatar(self, prompt: str, model: str = "nano-banana") -> str:
         """
         Generate an avatar image from a text prompt, upload to S3.
 
@@ -166,16 +214,24 @@ class ImageGenerationService:
             raise ValueError(f"Unsupported model: '{model}'. Choose from: {sorted(SUPPORTED_MODELS)}")
 
         try:
-            response = self.client.images.generate(
-                model=DALLE_MODEL,
-                prompt=prompt,
-                n=1,
-                size=DALLE_SIZE,
-                quality=DALLE_QUALITY,
-                response_format="b64_json",
-            )
-            b64_data = response.data[0].b64_json
-            image_bytes = base64.b64decode(b64_data)
+            image_bytes = None
+            if model == "dalle":
+                response = self.client.images.generate(
+                    model=DALLE_MODEL,
+                    prompt=prompt,
+                    n=1,
+                    size=DALLE_SIZE,
+                    quality=DALLE_QUALITY,
+                    response_format="b64_json",
+                )
+                b64_data = response.data[0].b64_json
+                image_bytes = base64.b64decode(b64_data)
+            elif model == "nano-banana":
+                image_bytes = self._generate_with_banana(prompt)
+
+            if not image_bytes:
+                logger.warning(f"Image generation failed for model {model}")
+                return None
 
             s3_key = self._store_avatar(image_bytes)
             if s3_key:

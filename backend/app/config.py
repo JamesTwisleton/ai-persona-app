@@ -66,6 +66,8 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
+    BANANA_API_KEY: str = ""
+    BANANA_MODEL_KEY: str = ""
     TOXICITY_THRESHOLD: float = 0.7
 
     # ========================================================================

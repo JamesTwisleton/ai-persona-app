@@ -51,7 +51,7 @@ class TestImageGenerationServiceInit:
         from app.services.image_generation_service import ImageGenerationService
         mock_client = MagicMock()
         service = ImageGenerationService(client=mock_client)
-        assert service.default_model == "dalle"
+        assert service.default_model == "nano-banana"
 
 
 # ============================================================================
@@ -98,7 +98,13 @@ class TestBuildAvatarPrompt:
         from app.services.image_generation_service import ImageGenerationService
         service = ImageGenerationService(client=MagicMock())
         prompt = service.build_avatar_prompt(SAMPLE_PERSONA)
-        assert any(word in prompt.lower() for word in ["portrait", "avatar", "illustration", "profile"])
+        assert any(word in prompt.lower() for word in ["portrait", "avatar", "illustration", "profile", "display picture"])
+
+    def test_build_prompt_includes_social_media_requirement(self):
+        from app.services.image_generation_service import ImageGenerationService
+        service = ImageGenerationService(client=MagicMock())
+        prompt = service.build_avatar_prompt(SAMPLE_PERSONA)
+        assert "social media website" in prompt.lower()
 
 
 # ============================================================================
@@ -113,8 +119,9 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
+        # Force model to dalle for this test as nano-banana is now default
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
-            result = service.generate_avatar("A professional portrait of a data scientist")
+            result = service.generate_avatar("A professional portrait of a data scientist", model="dalle")
         assert result == SAMPLE_AVATAR_KEY
 
     def test_generate_avatar_calls_api(self):
@@ -124,7 +131,7 @@ class TestGenerateAvatar:
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
-            service.generate_avatar("A portrait of a scientist")
+            service.generate_avatar("A portrait of a scientist", model="dalle")
         mock_client.images.generate.assert_called_once()
 
     def test_generate_avatar_uses_b64_json_format(self):
@@ -134,7 +141,7 @@ class TestGenerateAvatar:
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
-            service.generate_avatar("A portrait")
+            service.generate_avatar("A portrait", model="dalle")
         call_kwargs = mock_client.images.generate.call_args[1]
         assert call_kwargs.get("response_format") == "b64_json"
 
@@ -160,7 +167,7 @@ class TestGenerateAvatar:
         mock_client = MagicMock()
         mock_client.images.generate.side_effect = Exception("API Error")
         service = ImageGenerationService(client=mock_client)
-        result = service.generate_avatar("A portrait")
+        result = service.generate_avatar("A portrait", model="dalle")
         assert result is None
 
     def test_generate_avatar_on_storage_failure_returns_none(self):
@@ -170,7 +177,41 @@ class TestGenerateAvatar:
         mock_client.images.generate.return_value = _mock_dalle_response()
         service = ImageGenerationService(client=mock_client)
         with patch.object(service, "_store_avatar", return_value=None):
-            result = service.generate_avatar("A portrait")
+            result = service.generate_avatar("A portrait", model="dalle")
+        assert result is None
+
+    @patch("app.services.image_generation_service.httpx.Client")
+    @patch("app.services.image_generation_service.settings")
+    def test_generate_avatar_banana_success(self, mock_settings, mock_httpx_class):
+        mock_settings.BANANA_API_KEY = "test-api-key"
+        mock_settings.BANANA_MODEL_KEY = "test-model-key"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "modelOutputs": [{"image_base64": SAMPLE_B64}]
+        }
+
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value.post.return_value = mock_response
+        mock_httpx_class.return_value = mock_client
+
+        from app.services.image_generation_service import ImageGenerationService
+        service = ImageGenerationService(client=MagicMock())
+        with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
+            result = service.generate_avatar("A portrait", model="nano-banana")
+
+        assert result == SAMPLE_AVATAR_KEY
+        mock_client.__enter__.return_value.post.assert_called_once()
+
+    @patch("app.services.image_generation_service.settings")
+    def test_generate_avatar_banana_missing_config(self, mock_settings):
+        mock_settings.BANANA_API_KEY = None
+        mock_settings.BANANA_MODEL_KEY = None
+
+        from app.services.image_generation_service import ImageGenerationService
+        service = ImageGenerationService(client=MagicMock())
+        result = service.generate_avatar("A portrait", model="nano-banana")
         assert result is None
 
 
@@ -181,11 +222,24 @@ class TestGenerateAvatar:
 class TestGenerateAvatarForPersona:
     """Integration test of build_avatar_prompt + generate_avatar."""
 
-    def test_generate_avatar_for_persona(self):
-        from app.services.image_generation_service import ImageGenerationService
+    @patch("app.services.image_generation_service.httpx.Client")
+    @patch("app.services.image_generation_service.settings")
+    def test_generate_avatar_for_persona(self, mock_settings, mock_httpx_class):
+        mock_settings.BANANA_API_KEY = "test-api-key"
+        mock_settings.BANANA_MODEL_KEY = "test-model-key"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "modelOutputs": [{"image_base64": SAMPLE_B64}]
+        }
+
         mock_client = MagicMock()
-        mock_client.images.generate.return_value = _mock_dalle_response()
-        service = ImageGenerationService(client=mock_client)
+        mock_client.__enter__.return_value.post.return_value = mock_response
+        mock_httpx_class.return_value = mock_client
+
+        from app.services.image_generation_service import ImageGenerationService
+        service = ImageGenerationService(client=MagicMock())
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar_for_persona(SAMPLE_PERSONA)
         assert result == SAMPLE_AVATAR_KEY
@@ -200,3 +254,11 @@ class TestGenerateAvatarForPersona:
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar_for_persona(persona_with_model)
         assert result is not None
+
+    def test_generate_avatar_for_persona_defaults_to_banana(self):
+        from app.services.image_generation_service import ImageGenerationService
+        service = ImageGenerationService(client=MagicMock())
+        with patch.object(service, "generate_avatar", return_value=SAMPLE_AVATAR_KEY) as mock_gen:
+            service.generate_avatar_for_persona(SAMPLE_PERSONA)
+            mock_gen.assert_called_once()
+            assert mock_gen.call_args[1]["model"] == "nano-banana"
