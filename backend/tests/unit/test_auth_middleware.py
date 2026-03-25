@@ -26,7 +26,7 @@ Test Coverage:
 import pytest
 from fastapi import status, HTTPException
 from datetime import datetime, timedelta
-from jose import jwt
+import jwt
 
 
 @pytest.mark.unit
