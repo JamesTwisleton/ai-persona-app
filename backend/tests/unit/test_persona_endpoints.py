@@ -37,6 +37,7 @@ def mock_all_ai_services(ocean_cls, llm_cls, img_cls, mod_cls=None):
 
     llm_svc = MagicMock()
     llm_svc.generate_motto.return_value = "Question everything, trust data."
+    llm_svc.generate_reddit_flair.return_value = "Data Scientist"
     llm_cls.return_value = llm_svc
 
     img_svc = MagicMock()
