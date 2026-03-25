@@ -72,11 +72,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr describe-repositories --repository-names persona-composer/backend --region eu-west-1 \
-            || aws ecr create-repository --repository-name persona-composer/backend --region eu-west-1
-
       - name: Build, tag, and push backend image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -90,12 +85,6 @@ jobs:
             ./backend
           docker push $ECR_REGISTRY/persona-composer/backend:latest
           docker push $ECR_REGISTRY/persona-composer/backend:$IMAGE_TAG
-
-      - name: Ensure ECS cluster exists
-        run: |
-          aws ecs describe-clusters --clusters persona-composer-cluster --region eu-west-1 \
-            --query 'clusters[?status==`ACTIVE`].clusterName' --output text | grep -q persona-composer-cluster \
-            || aws ecs create-cluster --cluster-name persona-composer-cluster --region eu-west-1
 
       - name: Deploy backend service to ECS
         run: |
