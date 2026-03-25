@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import logging
@@ -207,6 +208,12 @@ async def root():
 # ============================================================================
 # Route Imports (Phase 2+)
 # ============================================================================
+
+# Local avatar static file serving (development only)
+if settings.LOCAL_AVATAR_DIR:
+    os.makedirs(settings.LOCAL_AVATAR_DIR, exist_ok=True)
+    app.mount("/avatars", StaticFiles(directory=settings.LOCAL_AVATAR_DIR), name="avatars")
+    logger.info(f"Serving local avatars from {settings.LOCAL_AVATAR_DIR} at /avatars")
 
 # Authentication routes (OAuth 2.0)
 from app.routers import auth, users, personas, admin, conversations, discovery

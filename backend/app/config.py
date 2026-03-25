@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     AWS_DEFAULT_REGION: str = "eu-west-1"
 
     # ========================================================================
+    # Local Avatar Storage (development only)
+    # Set LOCAL_AVATAR_DIR to store avatars on disk instead of S3.
+    # Served at /avatars/{filename} via static files.
+    # ========================================================================
+
+    LOCAL_AVATAR_DIR: str = ""
+    BACKEND_URL: str = "http://localhost:8000"
+
+    # ========================================================================
     # CORS Settings
     # ========================================================================
 

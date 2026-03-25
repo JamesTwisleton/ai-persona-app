@@ -1,15 +1,16 @@
 """
-Image Generation Service - Phase 4 (updated: S3 storage)
+Image Generation Service - Phase 4 (updated: S3 storage + local fallback)
 
 Generates avatar images for personas using DALL-E via the OpenAI API.
-Images are uploaded to S3 and a presigned URL is returned for display.
+Images are uploaded to S3 (production) or saved locally (development).
 
-The avatar_url stored in the database is an S3 object key ("avatars/{id}.jpg"),
+The avatar_url stored in the database is an object key ("avatars/{id}.jpg"),
 not a URL. Call generate_presigned_url() to get a displayable URL.
 """
 
 import base64
 import logging
+import os
 import uuid
 from typing import Dict, Any, Optional
 
@@ -39,18 +40,20 @@ def get_s3_client():
 
 def generate_presigned_url(s3_key: str) -> str:
     """
-    Generate a presigned GET URL for an S3 object key.
+    Return a displayable URL for an avatar key.
 
-    Args:
-        s3_key: The S3 object key, e.g. "avatars/abc123.jpg"
-
-    Returns:
-        str: A presigned HTTPS URL valid for PRESIGNED_URL_EXPIRY_SECONDS seconds,
-             or the fallback avatar URL if S3 is not configured or an error occurs.
+    - Local mode (LOCAL_AVATAR_DIR set): returns a static URL served by the backend.
+    - S3 mode (S3_AVATAR_BUCKET set): returns a presigned S3 URL.
+    - Otherwise: returns the fallback DiceBear URL.
     """
-    if not settings.S3_AVATAR_BUCKET:
-        return FALLBACK_AVATAR_URL
     if not s3_key or not s3_key.startswith("avatars/"):
+        return FALLBACK_AVATAR_URL
+
+    if settings.LOCAL_AVATAR_DIR:
+        filename = os.path.basename(s3_key)
+        return f"{settings.BACKEND_URL}/avatars/{filename}"
+
+    if not settings.S3_AVATAR_BUCKET:
         return FALLBACK_AVATAR_URL
     try:
         client = get_s3_client()
@@ -118,21 +121,35 @@ class ImageGenerationService:
 
         return prompt
 
-    def _upload_to_s3(self, image_bytes: bytes) -> Optional[str]:
-        """Upload image bytes to S3. Returns the S3 key, or None on failure."""
+    def _store_avatar(self, image_bytes: bytes) -> Optional[str]:
+        """Store image bytes locally or in S3. Returns the avatar key, or None on failure."""
+        avatar_key = f"avatars/{uuid.uuid4().hex}.jpg"
+
+        if settings.LOCAL_AVATAR_DIR:
+            try:
+                os.makedirs(settings.LOCAL_AVATAR_DIR, exist_ok=True)
+                filename = os.path.basename(avatar_key)
+                path = os.path.join(settings.LOCAL_AVATAR_DIR, filename)
+                with open(path, "wb") as f:
+                    f.write(image_bytes)
+                logger.info(f"Avatar saved locally: {path}")
+                return avatar_key
+            except OSError as e:
+                logger.warning(f"Failed to save avatar locally: {e}")
+                return None
+
         if not settings.S3_AVATAR_BUCKET:
-            logger.warning("S3_AVATAR_BUCKET not configured — cannot store avatar")
+            logger.warning("Neither LOCAL_AVATAR_DIR nor S3_AVATAR_BUCKET configured — cannot store avatar")
             return None
         try:
-            s3_key = f"avatars/{uuid.uuid4().hex}.jpg"
             client = get_s3_client()
             client.put_object(
                 Bucket=settings.S3_AVATAR_BUCKET,
-                Key=s3_key,
+                Key=avatar_key,
                 Body=image_bytes,
                 ContentType="image/jpeg",
             )
-            return s3_key
+            return avatar_key
         except ClientError as e:
             logger.warning(f"Failed to upload avatar to S3: {e}")
             return None
@@ -160,11 +177,11 @@ class ImageGenerationService:
             b64_data = response.data[0].b64_json
             image_bytes = base64.b64decode(b64_data)
 
-            s3_key = self._upload_to_s3(image_bytes)
+            s3_key = self._store_avatar(image_bytes)
             if s3_key:
                 return s3_key
 
-            logger.warning("S3 upload failed — avatar not stored")
+            logger.warning("Avatar storage failed — avatar not stored")
             return None
 
         except Exception as e:
