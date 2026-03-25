@@ -81,7 +81,20 @@ export function ConversationView({
             No messages yet — click &ldquo;Next Turn&rdquo; to start the conversation.
           </p>
         ) : (
-          messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
+          (() => {
+            const avatarMap = Object.fromEntries(
+              (conversation.participants ?? [])
+                .filter((p) => p.persona_name)
+                .map((p) => [p.persona_name!, p.avatar_url])
+            );
+            return messages.map((msg) => (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                avatarUrl={avatarMap[msg.persona_name]}
+              />
+            ));
+          })()
         )}
         <div ref={bottomRef} />
       </div>
