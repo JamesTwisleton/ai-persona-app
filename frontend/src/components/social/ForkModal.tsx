@@ -44,18 +44,18 @@ export function ForkModal({ conversation, onClose }: ForkModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Fork conversation</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Fork conversation</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Creates a copy with the full message history. You can then continue it independently.
         </p>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
         />
 
         {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -63,7 +63,7 @@ export function ForkModal({ conversation, onClose }: ForkModalProps) {
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           >
             Cancel
           </button>

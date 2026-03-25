@@ -96,7 +96,7 @@ function PersonaForm() {
     <>
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Persona</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Create Persona</h1>
 
         {error && (
           <div className="mb-4">
@@ -104,10 +104,10 @@ function PersonaForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-gray-200 p-6">
+        <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -117,7 +117,7 @@ function PersonaForm() {
               required
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Alice"
             />
           </div>
@@ -125,7 +125,7 @@ function PersonaForm() {
           {/* Age + Gender row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Age
               </label>
               <input
@@ -136,13 +136,13 @@ function PersonaForm() {
                 value={form.age ?? ""}
                 onChange={handleChange}
                 onKeyDown={handleAgeKeyDown}
-                className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ageError ? "border-red-400" : "border-gray-300"}`}
+                className={`w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ageError ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
                 placeholder="e.g. 35"
               />
               {ageError && <p className="text-xs text-red-500 mt-1">{ageError}</p>}
             </div>
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Gender
               </label>
               <input
@@ -151,7 +151,7 @@ function PersonaForm() {
                 type="text"
                 value={form.gender ?? ""}
                 onChange={handleChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="e.g. Female"
               />
             </div>
@@ -159,7 +159,7 @@ function PersonaForm() {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description / Backstory
             </label>
             <textarea
@@ -168,17 +168,17 @@ function PersonaForm() {
               rows={4}
               value={form.description ?? ""}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
               placeholder="Describe this persona's background, job, values, personality…"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               Claude AI will infer OCEAN personality traits from this description.
             </p>
           </div>
 
           {/* Attitude */}
           <div>
-            <label htmlFor="attitude" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="attitude" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Communication Attitude
             </label>
             <select
@@ -186,7 +186,7 @@ function PersonaForm() {
               name="attitude"
               value={form.attitude ?? "Neutral"}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {ATTITUDES.map((a) => (
                 <option key={a} value={a}>
@@ -199,13 +199,13 @@ function PersonaForm() {
           {/* Visibility */}
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm font-medium text-gray-700">Public</p>
-              <p className="text-xs text-gray-400">Visible on the discovery feed</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Public</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Visible on the discovery feed</p>
             </div>
             <button
               type="button"
               onClick={() => setIsPublic((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-600"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
             </button>

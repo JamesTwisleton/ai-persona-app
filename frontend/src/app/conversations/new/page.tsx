@@ -23,7 +23,7 @@ function PersonaPickerItem({
   return (
     <label
       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-        selected ? "border-indigo-300 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
+        selected ? "border-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 dark:border-indigo-600" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
       }`}
     >
       <input
@@ -33,17 +33,17 @@ function PersonaPickerItem({
         className="rounded text-indigo-600"
       />
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 flex-shrink-0 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex-shrink-0 flex items-center justify-center">
           {persona.avatar_url ? (
             <Image src={persona.avatar_url} alt={persona.name} width={32} height={32} className="object-cover" unoptimized />
           ) : (
-            <span className="text-indigo-700 font-semibold text-sm">{persona.name.charAt(0)}</span>
+            <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">{persona.name.charAt(0)}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-sm text-gray-900 truncate block">{persona.name}</span>
+          <span className="font-medium text-sm text-gray-900 dark:text-white truncate block">{persona.name}</span>
           {persona.attitude && (
-            <span className="text-xs text-gray-400">{persona.attitude}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">{persona.attitude}</span>
           )}
         </div>
       </div>
@@ -120,7 +120,7 @@ function NewConversationForm() {
     <>
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">New Conversation</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">New Conversation</h1>
 
         {error && (
           <div className="mb-4">
@@ -128,10 +128,10 @@ function NewConversationForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-xl border border-gray-200 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           {/* Topic */}
           <div>
-            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Discussion Topic <span className="text-red-500">*</span>
             </label>
             <input
@@ -140,14 +140,14 @@ function NewConversationForm() {
               required
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Should we colonize Mars?"
             />
           </div>
 
           {/* Persona selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Select Personas
             </label>
             {isLoadingPersonas ? (
@@ -158,13 +158,13 @@ function NewConversationForm() {
               <div className="space-y-4">
                 {/* My personas */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                     My Personas
                   </p>
                   {myPersonas.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">
+                    <p className="text-sm text-gray-400 dark:text-gray-500 italic">
                       No personas yet.{" "}
-                      <a href="/personas/new" className="text-indigo-600 hover:underline">
+                      <a href="/personas/new" className="text-indigo-600 dark:text-indigo-400 hover:underline">
                         Create one first.
                       </a>
                     </p>
@@ -185,7 +185,7 @@ function NewConversationForm() {
                 {/* Public personas */}
                 {publicPersonas.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                       Public Personas
                     </p>
                     <input
@@ -193,7 +193,7 @@ function NewConversationForm() {
                       value={publicSearch}
                       onChange={(e) => setPublicSearch(e.target.value)}
                       placeholder="Search by name…"
-                      className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-1.5 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {filteredPublic.map((persona) => (
@@ -205,14 +205,14 @@ function NewConversationForm() {
                         />
                       ))}
                       {filteredPublic.length === 0 && (
-                        <p className="text-sm text-gray-400 italic">No public personas match.</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500 italic">No public personas match.</p>
                       )}
                     </div>
                   </div>
                 )}
               </div>
             )}
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               {selectedIds.size} selected
             </p>
           </div>
@@ -220,13 +220,13 @@ function NewConversationForm() {
           {/* Visibility */}
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm font-medium text-gray-700">Public</p>
-              <p className="text-xs text-gray-400">Visible on the discovery feed</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Public</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Visible on the discovery feed</p>
             </div>
             <button
               type="button"
               onClick={() => setIsPublic((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-600"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
             </button>

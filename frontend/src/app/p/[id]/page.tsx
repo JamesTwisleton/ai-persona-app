@@ -105,11 +105,11 @@ export default function PersonaProfilePage() {
         />
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-2xl mx-auto px-4 py-10">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-block">← Discover</Link>
+          <Link href="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-6 inline-block">← Discover</Link>
 
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
               <div className="flex items-center gap-5">
                 <div className="w-20 h-20 rounded-full overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -138,7 +138,7 @@ export default function PersonaProfilePage() {
             <div className="p-6 space-y-6">
               {/* Stats + upvote */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">{persona.view_count} views</span>
+                <span className="text-sm text-gray-400 dark:text-gray-500">{persona.view_count} views</span>
                 <UpvoteButton
                   targetType="persona"
                   uniqueId={persona.unique_id}
@@ -148,27 +148,27 @@ export default function PersonaProfilePage() {
               </div>
 
               {persona.motto && (
-                <blockquote className="border-l-4 border-indigo-300 pl-4 italic text-gray-600 text-lg">
+                <blockquote className="border-l-4 border-indigo-300 pl-4 italic text-gray-600 dark:text-gray-300 text-lg">
                   &ldquo;{persona.motto}&rdquo;
                 </blockquote>
               )}
 
               {persona.description && (
                 <div>
-                  <h2 className="font-semibold text-gray-700 mb-2">About</h2>
-                  <p className="text-gray-600 text-sm leading-relaxed">{persona.description}</p>
+                  <h2 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">About</h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{persona.description}</p>
                 </div>
               )}
 
               <div>
-                <h2 className="font-semibold text-gray-700 mb-3">Personality Profile</h2>
+                <h2 className="font-semibold text-gray-700 dark:text-gray-300 mb-3">Personality Profile</h2>
                 <OceanBar scores={oceanScores} />
               </div>
 
               {/* Conversations featuring this persona */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-semibold text-gray-700">Conversations</h2>
+                  <h2 className="font-semibold text-gray-700 dark:text-gray-300">Conversations</h2>
                   <div className="flex gap-1">
                     {SORT_TABS.map((tab) => (
                       <button
@@ -177,7 +177,7 @@ export default function PersonaProfilePage() {
                         className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                           convSort === tab.key
                             ? "bg-indigo-600 text-white"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
                       >
                         {tab.label}
@@ -188,21 +188,21 @@ export default function PersonaProfilePage() {
                 {convLoading ? (
                   <div className="flex justify-center py-4"><Spinner /></div>
                 ) : conversations.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">No public conversations featuring this persona yet.</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 italic">No public conversations featuring this persona yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {conversations.map((conv) => (
                       <Link key={conv.unique_id} href={`/c/${conv.unique_id}`} className="block group">
-                        <div className="border border-gray-100 rounded-lg p-3 hover:border-indigo-200 hover:bg-indigo-50/40 transition-all">
-                          <p className="text-sm font-medium text-gray-800 group-hover:text-indigo-600 line-clamp-1">
+                        <div className="border border-gray-100 dark:border-gray-700 rounded-lg p-3 hover:border-indigo-200 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/20 transition-all">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-1">
                             {conv.topic}
                           </p>
                           <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-xs text-gray-400">{conv.turn_count} turns</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{conv.turn_count} turns</span>
                             {conv.participants && conv.participants.length > 0 && (
                               <AvatarGroup participants={conv.participants} size={18} />
                             )}
-                            <span className="text-xs text-gray-400">{conv.upvote_count} upvotes</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{conv.upvote_count} upvotes</span>
                           </div>
                         </div>
                       </Link>
@@ -228,7 +228,7 @@ export default function PersonaProfilePage() {
                 {persona.is_owner && (
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full py-2 px-4 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-full py-2 px-4 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                   >
                     Delete this persona
                   </button>

@@ -80,13 +80,13 @@ function PersonasContent() {
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6 gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">My Personas</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Personas</h1>
           <div className="flex items-center gap-2">
             {selectMode ? (
               <>
                 <button
                   onClick={toggleSelectAll}
-                  className="text-sm text-gray-500 hover:text-gray-700"
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 >
                   {selected.size === personas.length ? "Deselect all" : "Select all"}
                 </button>
@@ -124,7 +124,7 @@ function PersonasContent() {
             <Spinner size="lg" />
           </div>
         ) : personas.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500">
             <p className="text-lg mb-4">No personas yet.</p>
             <Link href="/personas/new">
               <Button>Create your first persona</Button>

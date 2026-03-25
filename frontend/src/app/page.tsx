@@ -34,7 +34,7 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
             value === tab.key
               ? "bg-indigo-600 text-white"
-              : "bg-white text-gray-500 border border-gray-200 hover:border-indigo-300"
+              : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 hover:border-indigo-300"
           }`}
         >
           {tab.label}
@@ -47,9 +47,9 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
 function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: boolean }) {
   return (
     <Link href={`/p/${persona.unique_id}`} className="block group">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
         {/* Photo-first: square avatar at top */}
-        <div className="relative w-full aspect-square bg-indigo-50">
+        <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
           {persona.avatar_url ? (
             <Image
               src={persona.avatar_url}
@@ -69,14 +69,14 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
 
         {/* Info */}
         <div className="p-3">
-          <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate text-sm">
+          <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate text-sm">
             {persona.name}
           </h3>
           {persona.motto && (
-            <p className="text-xs text-gray-500 italic truncate mt-0.5">&ldquo;{persona.motto}&rdquo;</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 italic truncate mt-0.5">&ldquo;{persona.motto}&rdquo;</p>
           )}
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-400">{persona.view_count} views</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">{persona.view_count} views</span>
             <div onClick={(e) => e.preventDefault()}>
               <UpvoteButton
                 targetType="persona"
@@ -95,8 +95,8 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
 function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn: boolean }) {
   return (
     <Link href={`/c/${conv.unique_id}`} className="block group">
-      <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-md transition-all">
-        <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2 text-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 hover:shadow-md transition-all">
+        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 text-sm">
           {conv.topic}
         </h3>
         {conv.participants && conv.participants.length > 0 && (
@@ -104,9 +104,9 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
             <AvatarGroup participants={conv.participants} size={24} />
           </div>
         )}
-        <p className="text-xs text-gray-400 mt-2">{conv.turn_count} turns</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{conv.turn_count} turns</p>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-gray-400">{conv.view_count} views</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{conv.view_count} views</span>
           <div onClick={(e) => e.preventDefault()}>
             <UpvoteButton
               targetType="conversation"
@@ -160,7 +160,7 @@ export default function Home() {
   }, [convSort]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       {/* Hero */}
@@ -206,7 +206,7 @@ export default function Home() {
             {/* Personas column */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-gray-700 text-sm uppercase tracking-wide">Personas</h2>
+                <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Personas</h2>
                 <SortTabBar value={personaSort} onChange={setPersonaSort} />
               </div>
               {feed?.personas.length === 0 ? (
@@ -223,7 +223,7 @@ export default function Home() {
             {/* Conversations column */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-gray-700 text-sm uppercase tracking-wide">Conversations</h2>
+                <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Conversations</h2>
                 <SortTabBar value={convSort} onChange={setConvSort} />
               </div>
               {convLoading ? (

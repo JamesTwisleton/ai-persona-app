@@ -46,6 +46,7 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "FRONTEND_URL",          value = "https://${var.domain_name}" },
         { name = "TOXICITY_THRESHOLD",    value = "0.7" },
         { name = "LOG_LEVEL",             value = "INFO" },
+        { name = "S3_AVATAR_BUCKET",      value = "${var.app_name}-avatars" },
       ]
 
       # Sensitive values injected from Secrets Manager at task start
