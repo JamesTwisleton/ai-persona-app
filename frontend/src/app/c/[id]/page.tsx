@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
@@ -71,6 +72,35 @@ export default function PublicConversationPage() {
             )}
           </p>
 
+          {/* Participant avatars */}
+          {conv.participants && conv.participants.length > 0 && (
+            <div className="flex gap-4 mb-4 flex-wrap">
+              {conv.participants.map((p, i) => (
+                <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center gap-1.5 group">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center ring-2 ring-white dark:ring-gray-700 shadow-md">
+                    {p.avatar_url ? (
+                      <Image
+                        src={p.avatar_url}
+                        alt={p.persona_name ?? ""}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-indigo-700 dark:text-indigo-300 font-bold text-xl">
+                        {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium text-center max-w-[72px] truncate">
+                    {p.persona_name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-2 flex-wrap">
             <UpvoteButton
               targetType="conversation"
@@ -112,9 +142,14 @@ export default function PublicConversationPage() {
         {/* Messages */}
         {conv.messages && conv.messages.length > 0 ? (
           <div className="space-y-3">
-            {conv.messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
+            {(() => {
+              const avatarMap = Object.fromEntries(
+                (conv.participants ?? []).map((p) => [p.persona_name, p.avatar_url])
+              );
+              return conv.messages!.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} avatarUrl={avatarMap[msg.persona_name]} />
+              ));
+            })()}
           </div>
         ) : (
           <p className="text-center text-gray-400 dark:text-gray-500 py-12">No messages yet.</p>
