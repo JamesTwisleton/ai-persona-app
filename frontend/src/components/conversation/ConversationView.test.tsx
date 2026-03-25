@@ -111,4 +111,65 @@ describe("ConversationView", () => {
     );
     expect(screen.getByText(/complete/i)).toBeInTheDocument();
   });
+
+  it("shows make public button and opens modal when clicked", async () => {
+    const mockOnUpdateVisibility = jest.fn();
+    render(
+      <ConversationView
+        conversation={{ ...mockConversation, is_public: false }}
+        onContinue={mockOnContinue}
+        onSendMessage={jest.fn()}
+        onUpdateVisibility={mockOnUpdateVisibility}
+      />
+    );
+
+    // Check that button exists
+    const makePublicBtn = screen.getByRole("button", { name: "Make Public" });
+    expect(makePublicBtn).toBeInTheDocument();
+
+    // Click button to open modal
+    fireEvent.click(makePublicBtn);
+
+    // Check modal contents
+    expect(screen.getByText("Make Conversation Public?")).toBeInTheDocument();
+    expect(screen.getByText(/Anyone will be able to view and fork it/i)).toBeInTheDocument();
+
+    // Click confirm
+    // Note: We might have two buttons with "Make Public" now (one on page, one in modal),
+    // let's grab the one inside the modal by finding the one that is inside the dialog/modal div.
+    // Or just use getAllByRole and click the second one.
+    const buttons = screen.getAllByRole("button", { name: "Make Public" });
+    fireEvent.click(buttons[1]);
+
+    expect(mockOnUpdateVisibility).toHaveBeenCalledWith(true);
+  });
+
+  it("shows make private button and opens modal when clicked", async () => {
+    const mockOnUpdateVisibility = jest.fn();
+    render(
+      <ConversationView
+        conversation={{ ...mockConversation, is_public: true }}
+        onContinue={mockOnContinue}
+        onSendMessage={jest.fn()}
+        onUpdateVisibility={mockOnUpdateVisibility}
+      />
+    );
+
+    // Check that button exists
+    const makePrivateBtn = screen.getByRole("button", { name: "Make Private" });
+    expect(makePrivateBtn).toBeInTheDocument();
+
+    // Click button to open modal
+    fireEvent.click(makePrivateBtn);
+
+    // Check modal contents
+    expect(screen.getByText("Make Conversation Private?")).toBeInTheDocument();
+    expect(screen.getByText(/Only you will be able to see it/i)).toBeInTheDocument();
+
+    // Click confirm
+    const buttons = screen.getAllByRole("button", { name: "Make Private" });
+    fireEvent.click(buttons[1]);
+
+    expect(mockOnUpdateVisibility).toHaveBeenCalledWith(false);
+  });
 });
