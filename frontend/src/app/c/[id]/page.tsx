@@ -72,33 +72,81 @@ export default function PublicConversationPage() {
             )}
           </p>
 
-          {/* Participant avatars */}
-          {conv.participants && conv.participants.length > 0 && (
-            <div className="flex gap-4 mb-4 flex-wrap">
-              {conv.participants.map((p, i) => (
-                <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center gap-1.5 group">
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center ring-2 ring-white dark:ring-gray-700 shadow-md">
-                    {p.avatar_url ? (
-                      <Image
-                        src={p.avatar_url}
-                        alt={p.persona_name ?? ""}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="text-indigo-700 dark:text-indigo-300 font-bold text-xl">
-                        {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium text-center max-w-[72px] truncate">
-                    {p.persona_name}
-                  </span>
-                </Link>
-              ))}
+          {/* Challenge proposal */}
+          {conv.is_challenge && conv.proposal && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 mb-4">
+              <h3 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1">
+                Challenge Proposal {conv.challenge_type ? `(${conv.challenge_type})` : ""}
+              </h3>
+              <p className="text-gray-900 dark:text-white font-medium italic">
+                &ldquo;{conv.proposal}&rdquo;
+              </p>
             </div>
+          )}
+
+          {/* Participant avatars — persuasion tracker for challenges, plain grid otherwise */}
+          {conv.participants && conv.participants.length > 0 && (
+            conv.is_challenge ? (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Persona Persuasion</span>
+                  {(() => {
+                    const persuadedCount = conv.participants!.filter(p => (p.persuaded_score ?? 0) >= 0.5).length;
+                    const percent = Math.round((persuadedCount / conv.participants!.length) * 100);
+                    const isSuccess = percent >= 60;
+                    return (
+                      <span className={`text-xs font-bold ${isSuccess ? "text-green-600" : "text-red-600"}`}>
+                        Overall: {percent}% Convinced {isSuccess ? "(Success!)" : ""}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2">
+                  {conv.participants.map((p, i) => {
+                    const score = p.persuaded_score ?? 0;
+                    const isPersuaded = score >= 0.5;
+                    const statusLabel = score >= 0.7 ? "Strongly Persuaded" :
+                                       score >= 0.5 ? "Persuaded" :
+                                       score >= 0.3 ? "Not Persuaded" : "Strongly Against";
+                    return (
+                      <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center min-w-[100px] hover:opacity-80 transition-opacity">
+                        <div className={`relative w-12 h-12 rounded-full ring-2 ${isPersuaded ? "ring-green-500" : "ring-red-500"} mb-2`}>
+                          {p.avatar_url ? (
+                            <Image src={p.avatar_url} alt={p.persona_name ?? ""} width={48} height={48} className="w-full h-full rounded-full object-cover" unoptimized />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
+                              {p.persona_name?.charAt(0)}
+                            </div>
+                          )}
+                          <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${isPersuaded ? "bg-green-500" : "bg-red-500"}`} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate w-full text-center">{p.persona_name}</span>
+                        <span className={`text-[9px] font-medium ${isPersuaded ? "text-green-600" : "text-red-600"}`}>{statusLabel}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-4 mb-4 flex-wrap">
+                {conv.participants.map((p, i) => (
+                  <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center gap-1.5 group">
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center ring-2 ring-white dark:ring-gray-700 shadow-md">
+                      {p.avatar_url ? (
+                        <Image src={p.avatar_url} alt={p.persona_name ?? ""} width={64} height={64} className="object-cover w-full h-full" unoptimized />
+                      ) : (
+                        <span className="text-indigo-700 dark:text-indigo-300 font-bold text-xl">
+                          {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium text-center max-w-[72px] truncate">
+                      {p.persona_name}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )
           )}
 
           <div className="flex items-center gap-2 flex-wrap">
