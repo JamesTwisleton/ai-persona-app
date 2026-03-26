@@ -101,6 +101,7 @@ export interface Conversation {
   forked_from_id: string | null;
   view_count: number;
   upvote_count: number;
+  image_url: string | null;
   is_owner?: boolean;
   created_at: string;
   messages?: ConversationMessage[];
@@ -111,6 +112,7 @@ export interface ConversationCreateRequest {
   topic: string;
   persona_ids: string[];
   is_public?: boolean;
+  image_data?: string | null;
 }
 
 export interface ConversationUpdateRequest {

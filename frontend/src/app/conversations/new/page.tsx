@@ -62,6 +62,8 @@ function NewConversationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [publicSearch, setPublicSearch] = useState("");
+  const [imageData, setImageData] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -89,6 +91,24 @@ function NewConversationForm() {
     publicSearch === "" || p.name.toLowerCase().includes(publicSearch.toLowerCase())
   );
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setImageData(null);
+      setImagePreview(null);
+      return;
+    }
+
+    // Preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setImageData(base64);
+      setImagePreview(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedIds.size < 1) {
@@ -102,6 +122,7 @@ function NewConversationForm() {
         topic,
         persona_ids: Array.from(selectedIds),
         is_public: isPublic,
+        image_data: imageData,
       };
       const conv = await apiFetch<Conversation>("/conversations", {
         method: "POST",
@@ -143,6 +164,57 @@ function NewConversationForm() {
               className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Should we colonize Mars?"
             />
+          </div>
+
+          {/* Image Evaluation */}
+          <div>
+            <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Evaluation Image (Optional)
+            </label>
+            <div className="mt-1 flex flex-col gap-4">
+              <input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-indigo-50 file:text-indigo-700
+                  dark:file:bg-indigo-900/30 dark:file:text-indigo-400
+                  hover:file:bg-indigo-100 dark:hover:file:bg-indigo-900/50
+                  cursor-pointer"
+              />
+              {imagePreview && (
+                <div className="relative w-full aspect-video max-h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                  <Image
+                    src={imagePreview}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageData(null);
+                      setImagePreview(null);
+                      const input = document.getElementById('image') as HTMLInputElement;
+                      if (input) input.value = '';
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              Upload an image (UI, mockup, feature) for the personas to evaluate.
+            </p>
           </div>
 
           {/* Persona selection */}

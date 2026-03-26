@@ -98,6 +98,7 @@ class ConversationPromptTemplate:
         topic: str,
         history: List[Dict[str, str]],
         description: str = "",
+        has_image: bool = False,
     ) -> str:
         attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "speaks plainly")
         personality_traits = self._describe_personality(ocean_scores)
@@ -125,6 +126,15 @@ class ConversationPromptTemplate:
 
         background = f"Your background: {description}\n" if description else ""
 
+        image_directive = ""
+        if has_image:
+            image_directive = (
+                "An image has been provided for your evaluation. "
+                "You MUST look at the image and incorporate your analysis of it into your response. "
+                "What do you see? What are the merits? What are the issues? "
+                "Be specific and stay in character.\n\n"
+            )
+
         starters = ", ".join(f'"{s}"' for s in NATURAL_STARTERS)
 
         return (
@@ -133,6 +143,7 @@ class ConversationPromptTemplate:
             f"Your personality:\n{personality_traits}\n"
             f"Your communication style: {attitude} — {attitude_desc}\n\n"
             f"Topic: {topic}\n\n"
+            f"{image_directive}"
             f"{history_section}"
             f"{stagnation_warning}"
             f"RULES — read carefully:\n"

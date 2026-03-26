@@ -213,7 +213,14 @@ async def root():
 if settings.LOCAL_AVATAR_DIR:
     os.makedirs(settings.LOCAL_AVATAR_DIR, exist_ok=True)
     app.mount("/avatars", StaticFiles(directory=settings.LOCAL_AVATAR_DIR), name="avatars")
+
+    # Also serve generic uploads
+    uploads_dir = os.path.join(settings.LOCAL_AVATAR_DIR, "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
     logger.info(f"Serving local avatars from {settings.LOCAL_AVATAR_DIR} at /avatars")
+    logger.info(f"Serving local uploads from {uploads_dir} at /uploads")
 
 # Authentication routes (OAuth 2.0)
 from app.routers import auth, users, personas, admin, conversations, discovery

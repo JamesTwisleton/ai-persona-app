@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Image from "next/image";
 import { Conversation } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Button } from "@/components/ui/Button";
@@ -95,6 +96,26 @@ export function ConversationView({
           </Button>
         </div>
       </div>
+
+      {/* Evaluation Image */}
+      {conversation.image_url && (
+        <div className="w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 shadow-sm mb-2">
+          <div className="relative aspect-video max-h-[400px] w-full">
+            <Image
+              src={conversation.image_url}
+              alt={conversation.topic}
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+          <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50">
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">
+              Topic Image Evaluation
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="space-y-3">

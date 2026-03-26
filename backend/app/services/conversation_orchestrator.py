@@ -91,6 +91,7 @@ class ConversationOrchestrator:
                 persona_details=persona_details,
                 history=history,
                 topic=conversation.topic,
+                image_url=conversation.image_url,
             )
 
             msg = ConversationMessage(
@@ -128,6 +129,7 @@ class ConversationOrchestrator:
         persona_details: Dict[str, Any],
         history: List[Dict[str, str]],
         topic: str,
+        image_url: str = None,
     ):
         """
         Generate a message, regenerating up to max_regeneration_attempts if toxic.
@@ -143,6 +145,7 @@ class ConversationOrchestrator:
                 persona_details=persona_details,
                 conversation_history=history,
                 topic=topic,
+                image_url=image_url,
             )
             score = self.moderation_service.analyze_toxicity(text)
             last_text = text
