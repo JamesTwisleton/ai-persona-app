@@ -137,6 +137,15 @@ try:
             "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS challenge_type VARCHAR(50)",
             "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'",
             "ALTER TABLE conversation_participants ADD COLUMN IF NOT EXISTS persuaded_score FLOAT NOT NULL DEFAULT 0.0",
+            # Backfill: make existing challenge personas public so their profiles are viewable
+            """
+            UPDATE personas SET is_public = TRUE
+            WHERE id IN (
+                SELECT cp.persona_id FROM conversation_participants cp
+                JOIN conversations c ON c.id = cp.conversation_id
+                WHERE c.is_challenge = TRUE
+            )
+            """,
             # Clear expired DALL-E avatar URLs so they fall back to initials
             # (New avatars are stored as S3 keys starting with "avatars/")
             """
