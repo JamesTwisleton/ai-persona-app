@@ -122,6 +122,37 @@ class TestCreateConversation:
         ).all()
         assert len(participants) == 2
 
+    @patch("app.routers.conversations.ImageGenerationService")
+    def test_create_conversation_with_image_success(self, mock_img_service_cls, client, auth_headers, test_personas, db_session):
+        from app.models.conversation import Conversation
+
+        mock_img_service = MagicMock()
+        mock_img_service.upload_image.return_value = "uploads/test-image.jpg"
+        mock_img_service_cls.return_value = mock_img_service
+
+        persona_ids = [p.unique_id for p in test_personas[:2]]
+        fake_base64 = "data:image/jpeg;base64,/9j/4AAQSkZJRg=="
+
+        response = client.post(
+            "/conversations",
+            json={
+                "topic": "Evaluation Topic",
+                "persona_ids": persona_ids,
+                "image_data": fake_base64
+            },
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["image_url"] is not None
+        # In testing mode, generate_presigned_url might return the key or a fake URL
+
+        unique_id = data["unique_id"]
+        conv = db_session.query(Conversation).filter_by(unique_id=unique_id).first()
+        assert conv.image_url == "uploads/test-image.jpg"
+        mock_img_service.upload_image.assert_called_once()
+
 
 # ============================================================================
 # GET /conversations - List Conversations

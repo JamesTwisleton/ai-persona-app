@@ -18,10 +18,13 @@ Usage:
     response = service.generate_response(persona_details, history, topic)
 """
 
+import logging
 from typing import Dict, List, Any, Optional
 
 from app.config import settings
 from app.services.prompt_templates import MottoPromptTemplate, ConversationPromptTemplate
+
+logger = logging.getLogger(__name__)
 
 # Use a capable but cost-effective model for generation tasks
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
@@ -105,6 +108,7 @@ class LLMService:
         persona_details: Dict[str, Any],
         conversation_history: List[Dict[str, str]],
         topic: str,
+        image_url: Optional[str] = None,
     ) -> str:
         """
         Generate a conversation response for a persona in a focus group.
@@ -113,6 +117,7 @@ class LLMService:
             persona_details: Dict with name, ocean_scores, attitude, etc.
             conversation_history: List of {"speaker": ..., "message": ...} dicts
             topic: The focus group discussion topic
+            image_url: Optional key for an image to evaluate
 
         Returns:
             str: Generated response text, stripped of whitespace
@@ -120,20 +125,46 @@ class LLMService:
         Raises:
             Exception: Re-raises any Anthropic API errors
         """
-        user_message = self._conversation_template.render(
+        user_message_text = self._conversation_template.render(
             persona_name=persona_details.get("name", "Participant"),
             ocean_scores=persona_details.get("ocean_scores", {}),
             attitude=persona_details.get("attitude", "Neutral"),
             topic=topic,
             history=conversation_history,
             description=persona_details.get("description", ""),
+            has_image=bool(image_url),
         )
+
+        content = []
+        if image_url:
+            try:
+                from app.services.image_generation_service import ImageGenerationService
+                import base64
+                img_service = ImageGenerationService()
+                image_bytes = img_service.get_image_bytes(image_url)
+                base64_image = base64.b64encode(image_bytes).decode("utf-8")
+
+                content.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": base64_image,
+                    },
+                })
+            except Exception as e:
+                logger.warning(f"Failed to fetch image for LLM vision: {e}")
+
+        content.append({
+            "type": "text",
+            "text": user_message_text,
+        })
 
         message = self.client.messages.create(
             model=self.model,
             max_tokens=512,
             system=CONVERSATION_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
+            messages=[{"role": "user", "content": content}],
         )
 
         return message.content[0].text.strip()

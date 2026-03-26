@@ -82,6 +82,11 @@ class Conversation(Base):
         doc="Number of upvotes"
     )
 
+    image_url = Column(
+        String(255), nullable=True,
+        doc="Optional image for evaluation (S3 key or local path)"
+    )
+
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(),
         nullable=False, doc="Creation timestamp"
@@ -125,6 +130,11 @@ class Conversation(Base):
             "forked_from_id": self.forked_from_id,
             "view_count": self.view_count,
             "upvote_count": self.upvote_count,
+            "image_url": (
+                generate_presigned_url(self.image_url)
+                if self.image_url
+                else None
+            ),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "participants": [

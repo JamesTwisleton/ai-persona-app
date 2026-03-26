@@ -46,12 +46,20 @@ def generate_presigned_url(s3_key: str) -> str:
     - S3 mode (S3_AVATAR_BUCKET set): returns a presigned S3 URL.
     - Otherwise: returns the fallback DiceBear URL.
     """
-    if not s3_key or not s3_key.startswith("avatars/"):
+    if not s3_key:
         return FALLBACK_AVATAR_URL
 
+    if not s3_key.startswith("avatars/") and not s3_key.startswith("uploads/"):
+        return s3_key if s3_key.startswith("http") else FALLBACK_AVATAR_URL
+
     if settings.LOCAL_AVATAR_DIR:
-        filename = os.path.basename(s3_key)
-        return f"{settings.BACKEND_URL}/avatars/{filename}"
+        if s3_key.startswith("avatars/"):
+            filename = os.path.basename(s3_key)
+            return f"{settings.BACKEND_URL}/avatars/{filename}"
+        elif s3_key.startswith("uploads/"):
+            # We need to serve /uploads/ as well if we use it
+            filename = os.path.basename(s3_key)
+            return f"{settings.BACKEND_URL}/uploads/{filename}"
 
     if not settings.S3_AVATAR_BUCKET:
         return FALLBACK_AVATAR_URL
@@ -204,3 +212,73 @@ class ImageGenerationService:
 
         prompt = self.build_avatar_prompt(persona_details)
         return self.generate_avatar(prompt, model=resolved_model)
+
+    def upload_image(self, image_bytes: bytes, prefix: str = "uploads") -> Optional[str]:
+        """
+        Store image bytes locally or in S3.
+        Returns the object key (e.g., "uploads/{uuid}.jpg"), or None on failure.
+        """
+        image_key = f"{prefix}/{uuid.uuid4().hex}.jpg"
+
+        if settings.LOCAL_AVATAR_DIR:
+            try:
+                os.makedirs(os.path.join(settings.LOCAL_AVATAR_DIR, prefix), exist_ok=True)
+                filename = os.path.basename(image_key)
+                path = os.path.join(settings.LOCAL_AVATAR_DIR, prefix, filename)
+                with open(path, "wb") as f:
+                    f.write(image_bytes)
+                logger.info(f"Image saved locally: {path}")
+                return image_key
+            except OSError as e:
+                logger.warning(f"Failed to save image locally: {e}")
+                return None
+
+        if not settings.S3_AVATAR_BUCKET:
+            logger.warning("Neither LOCAL_AVATAR_DIR nor S3_AVATAR_BUCKET configured — cannot store image")
+            return None
+
+        try:
+            client = get_s3_client()
+            client.put_object(
+                Bucket=settings.S3_AVATAR_BUCKET,
+                Key=image_key,
+                Body=image_bytes,
+                ContentType="image/jpeg",
+            )
+            return image_key
+        except ClientError as e:
+            logger.warning(f"Failed to upload image to S3: {e}")
+            return None
+
+    def get_image_bytes(self, image_key: str) -> bytes:
+        """
+        Retrieve image bytes from S3 or local storage.
+        Raises ValueError or FileNotFoundError if the image cannot be found.
+        """
+        if settings.LOCAL_AVATAR_DIR:
+            # key is e.g. "uploads/abc.jpg" or "avatars/def.jpg"
+            path = os.path.join(settings.LOCAL_AVATAR_DIR, image_key)
+            if not os.path.exists(path):
+                # Check if it's just the filename (legacy or direct avatars)
+                fallback_path = os.path.join(settings.LOCAL_AVATAR_DIR, os.path.basename(image_key))
+                if os.path.exists(fallback_path):
+                    path = fallback_path
+                else:
+                    raise FileNotFoundError(f"Local image not found: {path}")
+
+            with open(path, "rb") as f:
+                return f.read()
+
+        if not settings.S3_AVATAR_BUCKET:
+            raise ValueError("S3 bucket not configured")
+
+        try:
+            client = get_s3_client()
+            response = client.get_object(
+                Bucket=settings.S3_AVATAR_BUCKET,
+                Key=image_key,
+            )
+            return response["Body"].read()
+        except ClientError as e:
+            logger.error(f"Failed to get image from S3: {e}")
+            raise ValueError(f"S3 image retrieval failed: {e}")

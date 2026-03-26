@@ -11,7 +11,7 @@ Endpoints:
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -20,9 +20,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
+import base64
 from app.models.persona import Persona
 from app.models.conversation import Conversation, ConversationParticipant, ConversationMessage
 from app.services.conversation_orchestrator import ConversationOrchestrator
+from app.services.image_generation_service import ImageGenerationService
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,7 @@ class ConversationCreateRequest(BaseModel):
     topic: str = Field(..., min_length=1, max_length=1000)
     persona_ids: List[str] = Field(..., min_length=1)
     is_public: bool = True
+    image_data: Optional[str] = None  # Base64 encoded image
 
 class ConversationUpdateRequest(BaseModel):
     is_public: bool | None = None
@@ -80,11 +83,29 @@ def create_conversation(
             detail=f"Personas not found: {missing}",
         )
 
+    # Handle image upload if provided
+    image_url = None
+    if request.image_data:
+        try:
+            # Expected format: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+            if "," in request.image_data:
+                _, encoded = request.image_data.split(",", 1)
+            else:
+                encoded = request.image_data
+
+            image_bytes = base64.b64decode(encoded)
+            img_service = ImageGenerationService()
+            image_url = img_service.upload_image(image_bytes, prefix="uploads")
+        except Exception as e:
+            logger.warning(f"Failed to upload conversation image: {e}")
+            # Non-blocking, continue without image if upload fails
+
     # Create conversation
     conversation = Conversation(
         topic=request.topic,
         created_by=current_user.id,
         is_public=request.is_public,
+        image_url=image_url,
     )
     db.add(conversation)
     db.flush()  # Get the ID without committing
