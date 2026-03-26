@@ -13,11 +13,11 @@ Endpoints:
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.dependencies import get_current_user
 from app.models.user import User
 import base64
@@ -41,6 +41,11 @@ class ConversationCreateRequest(BaseModel):
     is_public: bool = True
     image_data: Optional[str] = None  # Base64 encoded image
 
+class ChallengeCreateRequest(BaseModel):
+    proposal: str = Field(..., min_length=1, max_length=2000)
+    challenge_type: str = "Public Debate"
+    n_personas: int = Field(3, ge=1, le=8)
+
 class ConversationUpdateRequest(BaseModel):
     is_public: bool | None = None
 
@@ -48,6 +53,82 @@ class ConversationUpdateRequest(BaseModel):
 # ============================================================================
 # POST /conversations - Create Conversation
 # ============================================================================
+
+def _build_challenge_background(
+    conversation_unique_id: str,
+    user_id: int,
+    proposal: str,
+    challenge_type: str,
+    n_personas: int,
+) -> None:
+    """Background task: generate personas and attach them to the pending challenge conversation."""
+    from app.services.challenge_service import ChallengeService
+    db = SessionLocal()
+    try:
+        challenge_svc = ChallengeService()
+        personas = challenge_svc.generate_challenge_personas(
+            db=db,
+            user_id=user_id,
+            proposal=proposal,
+            challenge_type=challenge_type,
+            n=n_personas,
+        )
+        conversation = db.query(Conversation).filter(
+            Conversation.unique_id == conversation_unique_id
+        ).first()
+        if conversation:
+            for persona in personas:
+                db.add(ConversationParticipant(
+                    conversation_id=conversation.id,
+                    persona_id=persona.id,
+                    persuaded_score=0.1,
+                ))
+            conversation.status = "active"
+            db.commit()
+    except Exception as e:
+        logger.error(f"Background challenge build failed for {conversation_unique_id}: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+@router.post(
+    "/conversations/challenge",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new challenge mode conversation",
+)
+def create_challenge(
+    request: ChallengeCreateRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # Create the conversation immediately so we can redirect the user right away
+    conversation = Conversation(
+        topic=f"Challenge: {request.proposal[:100]}",
+        proposal=request.proposal,
+        challenge_type=request.challenge_type,
+        is_challenge=True,
+        status="pending",
+        created_by=current_user.id,
+        is_public=False,
+    )
+    db.add(conversation)
+    db.commit()
+    db.refresh(conversation)
+
+    # Generate personas in the background; the conversation page polls until status="active"
+    background_tasks.add_task(
+        _build_challenge_background,
+        conversation.unique_id,
+        current_user.id,
+        request.proposal,
+        request.challenge_type,
+        request.n_personas,
+    )
+
+    return conversation.to_dict()
+
 
 @router.post(
     "/conversations",

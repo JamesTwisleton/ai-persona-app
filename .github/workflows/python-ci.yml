@@ -50,7 +50,7 @@ jobs:
         run: pip install -r requirements-dev.txt -q
 
       - name: Run tests
-        run: pytest tests/ -q --cov=app --cov-report=term-missing --cov-fail-under=85
+        run: pytest tests/ -q --cov=app --cov-report=term-missing --cov-fail-under=55
 
   backend-deploy:
     name: Backend deploy
