@@ -97,11 +97,6 @@ class Conversation(Base):
         doc="Type of challenge: Interview, Public Debate, Court of Law, Presentation"
     )
 
-    status = Column(
-        String(20), nullable=False, default="active", server_default="'active'",
-        doc="Conversation status: 'active' (ready) | 'pending' (challenge personas being generated)"
-    )
-
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(),
         nullable=False, doc="Creation timestamp"
@@ -145,7 +140,6 @@ class Conversation(Base):
             "is_challenge": self.is_challenge,
             "proposal": self.proposal,
             "challenge_type": self.challenge_type,
-            "status": self.status,
             "forked_from_id": self.forked_from_id,
             "view_count": self.view_count,
             "upvote_count": self.upvote_count,
