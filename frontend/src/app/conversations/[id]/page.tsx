@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -11,26 +11,51 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { apiFetch } from "@/lib/api";
 import { Conversation, ContinueConversationResponse, ApiError } from "@/types";
 
+const POLL_INTERVAL_MS = 3000;
+
 function ConversationContent() {
   const { id } = useParams<{ id: string }>();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isContinuing, setIsContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchConversation = useCallback(async () => {
     if (!id) return;
     try {
       const data = await apiFetch<Conversation>(`/conversations/${id}`);
       setConversation(data);
+      return data;
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);
+      return null;
     }
   }, [id]);
 
+  // Stop polling helper
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
-    fetchConversation().finally(() => setIsLoading(false));
-  }, [fetchConversation]);
+    fetchConversation().then((data) => {
+      setIsLoading(false);
+      // If this is a pending challenge, start polling
+      if (data?.is_challenge && data?.status === "pending") {
+        pollRef.current = setInterval(async () => {
+          const updated = await fetchConversation();
+          if (updated?.status === "active") {
+            stopPolling();
+          }
+        }, POLL_INTERVAL_MS);
+      }
+    });
+    return () => stopPolling();
+  }, [fetchConversation, stopPolling]);
 
   const handleContinue = async () => {
     if (!id || !conversation) return;
@@ -98,6 +123,18 @@ function ConversationContent() {
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Spinner size="lg" />
+          </div>
+        ) : conversation?.is_challenge && conversation?.status === "pending" ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+            <Spinner size="lg" />
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                Building your challenge...
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+                Come back soon to see this challenging conversation. We&apos;re generating your personas now — this page will refresh automatically when ready.
+              </p>
+            </div>
           </div>
         ) : conversation ? (
           <ConversationView
