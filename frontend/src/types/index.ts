@@ -101,6 +101,7 @@ export interface Conversation {
   is_challenge?: boolean;
   proposal?: string | null;
   challenge_type?: string | null;
+  status?: "active" | "pending";
   forked_from_id: string | null;
   view_count: number;
   upvote_count: number;

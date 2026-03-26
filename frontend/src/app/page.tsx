@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Spinner } from "@/components/ui/Spinner";
@@ -123,12 +124,14 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
   const [convSort, setConvSort] = useState<Sort>("hot");
   const [feed, setFeed] = useState<FeedData | null>(null);
   const [convFeed, setConvFeed] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [convLoading, setConvLoading] = useState(false);
+  const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
   // Initial full feed load (hot sort)
   useEffect(() => {
@@ -208,13 +211,15 @@ export default function Home() {
                   const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
                   const nPersonas = parseInt((form.elements.namedItem("n_personas") as HTMLInputElement).value) || 3;
 
+                  setChallengeSubmitting(true);
                   try {
                     const res = await apiFetch<Conversation>("/conversations/challenge", {
                       method: "POST",
                       body: JSON.stringify({ proposal, challenge_type: challengeType, n_personas: nPersonas }),
                     });
-                    window.location.href = `/conversations/${res.unique_id}`;
+                    router.push(`/conversations/${res.unique_id}`);
                   } catch (err) {
+                    setChallengeSubmitting(false);
                     alert("Failed to start challenge. Please try again.");
                   }
                 }}
@@ -224,12 +229,14 @@ export default function Home() {
                   name="proposal"
                   placeholder="Enter a proposal to be challenged (e.g. 'Cycle lanes should be everywhere')"
                   required
-                  className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  disabled={challengeSubmitting}
+                  className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
                 />
                 <div className="flex gap-3 items-center">
                   <select
                     name="type"
-                    className="flex-1 px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    disabled={challengeSubmitting}
+                    className="flex-1 px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
                   >
                     <option>Public Debate</option>
                     <option>Interview</option>
@@ -244,14 +251,17 @@ export default function Home() {
                       min="1"
                       max="8"
                       defaultValue="3"
-                      className="w-12 focus:outline-none font-bold"
+                      disabled={challengeSubmitting}
+                      className="w-12 focus:outline-none font-bold disabled:opacity-60"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors shadow-lg"
+                    disabled={challengeSubmitting}
+                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg"
                   >
-                    Start Challenge
+                    {challengeSubmitting && <Spinner size="sm" />}
+                    {challengeSubmitting ? "Starting..." : "Start Challenge"}
                   </button>
                 </div>
               </form>

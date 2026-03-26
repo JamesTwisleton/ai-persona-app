@@ -9,15 +9,9 @@ from unittest.mock import patch, MagicMock
 
 class TestCreateChallenge:
 
-    @patch("app.services.challenge_service.ChallengeService")
-    def test_create_challenge_success(self, mock_svc_cls, client, auth_headers, test_user, test_personas, db_session):
-        from app.models.persona import Persona
-
-        # Mock ChallengeService to return some personas
-        mock_svc = MagicMock()
-        mock_svc.generate_challenge_personas.return_value = test_personas[:3]
-        mock_svc_cls.return_value = mock_svc
-
+    def test_create_challenge_success(self, client, auth_headers, test_user, db_session):
+        # Endpoint returns immediately with status="pending"; persona generation is
+        # handled by a background task, so participants are not in the response yet.
         response = client.post(
             "/conversations/challenge",
             json={"proposal": "Cycle lanes should be everywhere", "challenge_type": "Public Debate", "n_personas": 3},
@@ -28,8 +22,9 @@ class TestCreateChallenge:
         data = response.json()
         assert data["is_challenge"] is True
         assert data["proposal"] == "Cycle lanes should be everywhere"
-        assert len(data["participants"]) == 3
-        assert data["participants"][0]["persuaded_score"] == 0.1
+        assert data["challenge_type"] == "Public Debate"
+        assert data["status"] == "pending"
+        assert data["participants"] == []
 
     def test_create_challenge_requires_auth(self, client):
         response = client.post(

@@ -135,6 +135,7 @@ try:
             "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_challenge BOOLEAN NOT NULL DEFAULT FALSE",
             "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS proposal TEXT",
             "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS challenge_type VARCHAR(50)",
+            "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'",
             "ALTER TABLE conversation_participants ADD COLUMN IF NOT EXISTS persuaded_score FLOAT NOT NULL DEFAULT 0.0",
             # Clear expired DALL-E avatar URLs so they fall back to initials
             # (New avatars are stored as S3 keys starting with "avatars/")
