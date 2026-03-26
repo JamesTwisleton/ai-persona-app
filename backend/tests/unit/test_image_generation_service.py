@@ -200,3 +200,127 @@ class TestGenerateAvatarForPersona:
         with patch.object(service, "_store_avatar", return_value=SAMPLE_AVATAR_KEY):
             result = service.generate_avatar_for_persona(persona_with_model)
         assert result is not None
+
+# ============================================================================
+# upload_image Tests
+# ============================================================================
+
+class TestUploadImage:
+
+    def test_upload_image_local(self, tmp_path):
+        from app.services.image_generation_service import ImageGenerationService
+        from app.config import settings
+
+        # Mock settings for local storage
+        with patch.object(settings, "LOCAL_AVATAR_DIR", str(tmp_path)):
+            service = ImageGenerationService(client=MagicMock())
+            image_bytes = b"test_image_data"
+
+            key = service.upload_image(image_bytes, prefix="test_uploads")
+
+            assert key.startswith("test_uploads/")
+            assert key.endswith(".jpg")
+
+            # Verify file exists
+            file_path = tmp_path / "test_uploads" / key.split("/")[-1]
+            assert file_path.exists()
+            assert file_path.read_bytes() == image_bytes
+
+    @patch("app.services.image_generation_service.get_s3_client")
+    def test_upload_image_s3(self, mock_get_s3, tmp_path):
+        from app.services.image_generation_service import ImageGenerationService
+        from app.config import settings
+
+        mock_s3 = MagicMock()
+        mock_get_s3.return_value = mock_s3
+
+        with patch.object(settings, "LOCAL_AVATAR_DIR", None), \
+             patch.object(settings, "S3_AVATAR_BUCKET", "test-bucket"):
+            service = ImageGenerationService(client=MagicMock())
+            image_bytes = b"test_image_data"
+
+            key = service.upload_image(image_bytes, prefix="uploads")
+
+            assert key.startswith("uploads/")
+            mock_s3.put_object.assert_called_once()
+            call_kwargs = mock_s3.put_object.call_args[1]
+            assert call_kwargs["Bucket"] == "test-bucket"
+            assert call_kwargs["Key"] == key
+            assert call_kwargs["Body"] == image_bytes
+
+# ============================================================================
+# get_image_bytes Tests
+# ============================================================================
+
+class TestGetImageBytes:
+
+    def test_get_image_bytes_local(self, tmp_path):
+        from app.services.image_generation_service import ImageGenerationService
+        from app.config import settings
+
+        image_dir = tmp_path / "uploads"
+        image_dir.mkdir()
+        image_file = image_dir / "test.jpg"
+        image_bytes = b"image_content"
+        image_file.write_bytes(image_bytes)
+
+        with patch.object(settings, "LOCAL_AVATAR_DIR", str(tmp_path)):
+            service = ImageGenerationService(client=MagicMock())
+            result = service.get_image_bytes("uploads/test.jpg")
+            assert result == image_bytes
+
+    def test_get_image_bytes_local_fallback(self, tmp_path):
+        from app.services.image_generation_service import ImageGenerationService
+        from app.config import settings
+
+        image_bytes = b"avatar_content"
+        image_file = tmp_path / "avatar.jpg"
+        image_file.write_bytes(image_bytes)
+
+        with patch.object(settings, "LOCAL_AVATAR_DIR", str(tmp_path)):
+            service = ImageGenerationService(client=MagicMock())
+            # Test looking for "avatars/avatar.jpg" but it's directly in LOCAL_AVATAR_DIR
+            result = service.get_image_bytes("avatars/avatar.jpg")
+            assert result == image_bytes
+
+    @patch("app.services.image_generation_service.get_s3_client")
+    def test_get_image_bytes_s3(self, mock_get_s3):
+        from app.services.image_generation_service import ImageGenerationService
+        from app.config import settings
+
+        mock_s3 = MagicMock()
+        mock_response = {"Body": MagicMock()}
+        mock_response["Body"].read.return_value = b"s3_content"
+        mock_s3.get_object.return_value = mock_response
+        mock_get_s3.return_value = mock_s3
+
+        with patch.object(settings, "LOCAL_AVATAR_DIR", None), \
+             patch.object(settings, "S3_AVATAR_BUCKET", "test-bucket"):
+            service = ImageGenerationService(client=MagicMock())
+            result = service.get_image_bytes("uploads/test.jpg")
+            assert result == b"s3_content"
+            mock_s3.get_object.assert_called_with(Bucket="test-bucket", Key="uploads/test.jpg")
+
+# ============================================================================
+# generate_presigned_url Tests
+# ============================================================================
+
+class TestGeneratePresignedUrl:
+
+    def test_generate_presigned_url_local_uploads(self):
+        from app.services.image_generation_service import generate_presigned_url
+        from app.config import settings
+
+        with patch.object(settings, "LOCAL_AVATAR_DIR", "/tmp"), \
+             patch.object(settings, "BACKEND_URL", "http://backend"):
+            url = generate_presigned_url("uploads/test.jpg")
+            assert url == "http://backend/uploads/test.jpg"
+
+    def test_generate_presigned_url_http(self):
+        from app.services.image_generation_service import generate_presigned_url
+        url = generate_presigned_url("http://example.com/img.jpg")
+        assert url == "http://example.com/img.jpg"
+
+    def test_generate_presigned_url_none(self):
+        from app.services.image_generation_service import generate_presigned_url, FALLBACK_AVATAR_URL
+        assert generate_presigned_url(None) == FALLBACK_AVATAR_URL

@@ -203,3 +203,51 @@ class TestGenerateResponse:
             topic="Test",
         )
         assert response == response.strip()
+
+    def test_generate_response_with_image_calls_claude_with_vision_payload(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("The design looks good.")
+
+        # Mock ImageGenerationService
+        with patch("app.services.image_generation_service.ImageGenerationService") as mock_img_service_cls:
+            mock_img_service = mock_img_service_cls.return_value
+            mock_img_service.get_image_bytes.return_value = b"fake_bytes"
+
+            service = LLMService(client=mock_client)
+            service.generate_response(
+                persona_details=SAMPLE_PERSONA,
+                conversation_history=[],
+                topic="Test",
+                image_url="uploads/test.jpg"
+            )
+
+            call_args = mock_client.messages.create.call_args[1]
+            messages = call_args["messages"]
+            content = messages[0]["content"]
+
+            # Should have image and text
+            assert any(item["type"] == "image" for item in content)
+            assert any(item["type"] == "text" for item in content)
+
+    def test_generate_response_with_image_fetch_failure_continues_with_text_only(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("Text only response.")
+
+        with patch("app.services.image_generation_service.ImageGenerationService") as mock_img_service_cls:
+            mock_img_service = mock_img_service_cls.return_value
+            mock_img_service.get_image_bytes.side_effect = Exception("Fetch failed")
+
+            service = LLMService(client=mock_client)
+            service.generate_response(
+                persona_details=SAMPLE_PERSONA,
+                conversation_history=[],
+                topic="Test",
+                image_url="uploads/test.jpg"
+            )
+
+            call_args = mock_client.messages.create.call_args[1]
+            content = call_args["messages"][0]["content"]
+
+            # Content should only have text if image fetch failed
+            assert len(content) == 1
+            assert content[0]["type"] == "text"

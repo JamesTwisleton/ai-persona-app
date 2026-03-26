@@ -18,10 +18,13 @@ Usage:
     response = service.generate_response(persona_details, history, topic)
 """
 
+import logging
 from typing import Dict, List, Any, Optional
 
 from app.config import settings
 from app.services.prompt_templates import MottoPromptTemplate, ConversationPromptTemplate
+
+logger = logging.getLogger(__name__)
 
 # Use a capable but cost-effective model for generation tasks
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
