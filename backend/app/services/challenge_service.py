@@ -136,7 +136,7 @@ class ChallengeService:
                 archetype_affinities=affinities,
                 motto=motto,
                 avatar_url=avatar_url,
-                is_public=False # Challenge personas are private by default
+                is_public=True
             )
             db.add(persona)
             created_personas.append(persona)

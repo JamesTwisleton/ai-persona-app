@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import { Conversation } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Button } from "@/components/ui/Button";
@@ -94,8 +95,8 @@ export function ConversationView({
                 const statusLabel = score >= 0.7 ? "Strongly Persuaded" :
                                    score >= 0.5 ? "Persuaded" :
                                    score >= 0.3 ? "Not Persuaded" : "Strongly Against";
-                return (
-                  <div key={i} className="flex flex-col items-center min-w-[100px]">
+                const card = (
+                  <div className="flex flex-col items-center min-w-[100px]">
                     <div className={`relative w-12 h-12 rounded-full ring-2 ${isPersuaded ? "ring-green-500" : "ring-red-500"} mb-2`}>
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -109,6 +110,13 @@ export function ConversationView({
                     <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate w-full text-center">{p.persona_name}</span>
                     <span className={`text-[9px] font-medium ${isPersuaded ? "text-green-600" : "text-red-600"}`}>{statusLabel}</span>
                   </div>
+                );
+                return p.persona_unique_id ? (
+                  <Link key={i} href={`/p/${p.persona_unique_id}`} className="hover:opacity-80 transition-opacity">
+                    {card}
+                  </Link>
+                ) : (
+                  <div key={i}>{card}</div>
                 );
               })}
             </div>
