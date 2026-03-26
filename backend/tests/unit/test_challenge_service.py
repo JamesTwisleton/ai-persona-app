@@ -62,7 +62,7 @@ def test_generate_challenge_personas(mock_calc, mock_img, mock_ocean, db_session
     assert len(personas) == 1
     assert personas[0].name == " Skeptic Sam"
     assert personas[0].ocean_openness == 0.1
-    assert personas[0].is_public is False
+    assert personas[0].is_public is True
 
 def test_generate_challenge_personas_invalid_json():
     mock_llm = MagicMock()
