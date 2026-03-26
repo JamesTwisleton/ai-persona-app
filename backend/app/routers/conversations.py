@@ -38,6 +38,11 @@ class ConversationCreateRequest(BaseModel):
     persona_ids: List[str] = Field(..., min_length=1)
     is_public: bool = True
 
+class ChallengeCreateRequest(BaseModel):
+    proposal: str = Field(..., min_length=1, max_length=2000)
+    challenge_type: str = "Public Debate"
+    n_personas: int = Field(3, ge=1, le=8)
+
 class ConversationUpdateRequest(BaseModel):
     is_public: bool | None = None
 
@@ -45,6 +50,53 @@ class ConversationUpdateRequest(BaseModel):
 # ============================================================================
 # POST /conversations - Create Conversation
 # ============================================================================
+
+@router.post(
+    "/conversations/challenge",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new challenge mode conversation",
+)
+def create_challenge(
+    request: ChallengeCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.services.challenge_service import ChallengeService
+    challenge_svc = ChallengeService()
+
+    # Generate personas
+    personas = challenge_svc.generate_challenge_personas(
+        db=db,
+        user_id=current_user.id,
+        proposal=request.proposal,
+        challenge_type=request.challenge_type,
+        n=request.n_personas
+    )
+
+    # Create conversation
+    conversation = Conversation(
+        topic=f"Challenge: {request.proposal[:100]}",
+        proposal=request.proposal,
+        challenge_type=request.challenge_type,
+        is_challenge=True,
+        created_by=current_user.id,
+        is_public=False, # Challenge mode is private by default
+    )
+    db.add(conversation)
+    db.flush()
+
+    # Add participants
+    for persona in personas:
+        db.add(ConversationParticipant(
+            conversation_id=conversation.id,
+            persona_id=persona.id,
+            persuaded_score=0.1, # Start with low persuasion
+        ))
+
+    db.commit()
+    db.refresh(conversation)
+    return conversation.to_dict()
+
 
 @router.post(
     "/conversations",
