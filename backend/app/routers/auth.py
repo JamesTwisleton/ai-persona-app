@@ -176,11 +176,36 @@ async def google_callback(
 
 
 # ============================================================================
-# TDD Status: GREEN Phase
+# Preview Environment: Test Login
 # ============================================================================
-#
-# This implementation should make OAuth tests pass!
-#
-# Run: pytest tests/unit/test_oauth_handler.py -v
-#
-# ============================================================================
+
+@router.get("/test-login")
+def test_login(db: Session = Depends(get_db)):
+    """
+    Auto-login as a test superuser. Only available when ENV=preview.
+
+    Returns a JWT token for a pre-seeded test user, bypassing Google OAuth.
+    This endpoint does NOT exist in production or development environments.
+    """
+    if settings.ENV != "preview":
+        raise HTTPException(status_code=404, detail="Not found")
+
+    # Find or create the test user
+    test_email = "test@preview.local"
+    result = db.execute(select(User).where(User.email == test_email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user = User(
+            email=test_email,
+            google_id="preview-test-user",
+            name="Preview Tester",
+            is_admin=True,
+            is_superuser=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(user.id)
+    return {"token": access_token}

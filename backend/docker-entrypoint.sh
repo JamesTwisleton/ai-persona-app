@@ -166,6 +166,12 @@ except Exception as e:
     sys.exit(1)
 END
 
+# Seed preview data (if ENV=preview)
+if [ "$ENV" = "preview" ]; then
+  echo "Seeding preview data..."
+  python -m seed_preview_data
+fi
+
 # Start the application
 echo "Starting FastAPI application..."
 exec "$@"
