@@ -16,6 +16,10 @@ env:
   DB_APP: persona-pr-${{ github.event.pull_request.number }}-db
   FLY_REGION: lhr
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   deploy:
     name: Deploy preview
