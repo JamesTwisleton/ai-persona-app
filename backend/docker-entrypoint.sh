@@ -5,6 +5,12 @@ set -e
 
 echo "Starting AI Focus Groups Backend..."
 
+# Fix Fly Postgres DATABASE_URL scheme (postgres:// -> postgresql://)
+# SQLAlchemy 2.0 requires the 'postgresql' dialect, not the shorthand 'postgres'
+if [ -n "$DATABASE_URL" ]; then
+  export DATABASE_URL="${DATABASE_URL/postgres:\/\//postgresql:\/\/}"
+fi
+
 # Wait for database to be ready
 echo "Waiting for PostgreSQL to be ready..."
 python << END
