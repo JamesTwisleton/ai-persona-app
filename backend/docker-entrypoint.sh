@@ -20,28 +20,9 @@ import os
 
 db_url = os.getenv("DATABASE_URL", "")
 if db_url.startswith("postgresql"):
-    # Extract connection details from DATABASE_URL
-    # Format: postgresql://user:password@host:port/dbname
-    parts = db_url.replace("postgresql://", "").split("@")
-    user_pass = parts[0].split(":")
-    host_port_db = parts[1].split("/")
-    host_port = host_port_db[0].split(":")
-
-    user = user_pass[0]
-    password = user_pass[1] if len(user_pass) > 1 else ""
-    host = host_port[0]
-    port = host_port[1] if len(host_port) > 1 else "5432"
-    dbname = host_port_db[1]
-
     for i in range(30):
         try:
-            conn = psycopg2.connect(
-                host=host,
-                port=port,
-                user=user,
-                password=password,
-                dbname=dbname
-            )
+            conn = psycopg2.connect(db_url)
             conn.close()
             print("✅ PostgreSQL is ready!")
             break
