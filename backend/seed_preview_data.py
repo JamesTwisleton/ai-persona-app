@@ -28,6 +28,7 @@ PERSONAS = [
         "archetype_affinities": {"AN": 0.82, "PR": 0.71, "EX": 0.65, "IN": 0.58},
         "motto": "Evidence first, opinions second.",
         "unique_id": "prev01",
+        "avatar_url": "https://api.dicebear.com/7.x/personas/svg?seed=elena-vasquez",
     },
     {
         "name": "Marcus Chen",
@@ -43,6 +44,7 @@ PERSONAS = [
         "archetype_affinities": {"EX": 0.90, "CR": 0.85, "RE": 0.55, "AN": 0.30},
         "motto": "If it's not weird, it's not worth doing.",
         "unique_id": "prev02",
+        "avatar_url": "https://api.dicebear.com/7.x/personas/svg?seed=marcus-chen",
     },
     {
         "name": "Grandma Phyllis",
@@ -58,6 +60,7 @@ PERSONAS = [
         "archetype_affinities": {"PR": 0.80, "SE": 0.75, "AN": 0.50, "EX": 0.45},
         "motto": "Common sense isn't common anymore, love.",
         "unique_id": "prev03",
+        "avatar_url": "https://api.dicebear.com/7.x/personas/svg?seed=grandma-phyllis",
     },
     {
         "name": "Kai Okafor",
@@ -73,6 +76,7 @@ PERSONAS = [
         "archetype_affinities": {"AN": 0.78, "EX": 0.72, "CR": 0.68, "PR": 0.60},
         "motto": "The planet doesn't negotiate.",
         "unique_id": "prev04",
+        "avatar_url": "https://api.dicebear.com/7.x/personas/svg?seed=kai-okafor",
     },
 ]
 
