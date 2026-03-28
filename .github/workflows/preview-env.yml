@@ -33,14 +33,14 @@ jobs:
       - name: Create backend app (if not exists)
         run: |
           flyctl apps list --json | jq -e ".[] | select(.Name==\"$BE_APP\")" > /dev/null 2>&1 \
-            || flyctl apps create "$BE_APP" --org personal-rlrv120
+            || flyctl apps create "$BE_APP" --org personal
 
       - name: Create Postgres cluster (if not exists)
         run: |
           flyctl apps list --json | jq -e ".[] | select(.Name==\"$DB_APP\")" > /dev/null 2>&1 \
             || flyctl postgres create \
                 --name "$DB_APP" \
-                --org personal-rlrv120 \
+                --org personal \
                 --region "$FLY_REGION" \
                 --vm-size shared-cpu-1x \
                 --initial-cluster-size 1 \
@@ -116,7 +116,7 @@ jobs:
       - name: Create frontend app (if not exists)
         run: |
           flyctl apps list --json | jq -e ".[] | select(.Name==\"$FE_APP\")" > /dev/null 2>&1 \
-            || flyctl apps create "$FE_APP" --org personal-rlrv120
+            || flyctl apps create "$FE_APP" --org personal
 
       - name: Deploy frontend
         working-directory: frontend
