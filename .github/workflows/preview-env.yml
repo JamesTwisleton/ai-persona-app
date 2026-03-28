@@ -71,14 +71,22 @@ jobs:
             "" \
             "[build]" \
             "dockerfile = \"Dockerfile\"" \
-            "target = \"production\"" \
             "" \
             "[http_service]" \
             "internal_port = 8000" \
             "force_https = true" \
-            "auto_stop_machines = \"stop\"" \
+            "auto_stop_machines = \"suspend\"" \
             "auto_start_machines = true" \
             "min_machines_running = 0" \
+            "" \
+            "[checks]" \
+            "[checks.health]" \
+            "type = \"http\"" \
+            "port = 8000" \
+            "path = \"/health\"" \
+            "interval = \"10s\"" \
+            "timeout = \"5s\"" \
+            "grace_period = \"30s\"" \
             "" \
             "[[vm]]" \
             "size = \"shared-cpu-1x\"" \
@@ -86,18 +94,19 @@ jobs:
             > fly.toml
 
           flyctl deploy \
+            --build-target production \
             --strategy immediate \
             --wait-timeout 300
 
       - name: Verify backend health
         run: |
-          for i in $(seq 1 15); do
+          for i in $(seq 1 10); do
             if curl -sf "https://${BE_APP}.fly.dev/health" > /dev/null 2>&1; then
               echo "Backend is healthy"
               exit 0
             fi
-            echo "Waiting for backend... ($i/15)"
-            sleep 10
+            echo "Waiting for backend... ($i/10)"
+            sleep 5
           done
           echo "Warning: backend health check timed out (may still be starting)"
 
@@ -118,7 +127,6 @@ jobs:
             "" \
             "[build]" \
             "dockerfile = \"Dockerfile\"" \
-            "target = \"production\"" \
             "" \
             "[build.args]" \
             "NEXT_PUBLIC_API_URL = \"https://${BE_APP}.fly.dev\"" \
@@ -127,7 +135,7 @@ jobs:
             "[http_service]" \
             "internal_port = 3000" \
             "force_https = true" \
-            "auto_stop_machines = \"stop\"" \
+            "auto_stop_machines = \"suspend\"" \
             "auto_start_machines = true" \
             "min_machines_running = 0" \
             "" \
@@ -137,6 +145,7 @@ jobs:
             > fly.toml
 
           flyctl deploy \
+            --build-target production \
             --strategy immediate \
             --wait-timeout 300
 
