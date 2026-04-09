@@ -15,13 +15,13 @@ export function MessageBubble({ message, avatarUrl }: MessageBubbleProps) {
       <div className="flex justify-end gap-3 px-1">
         <div className="max-w-[80%]">
           <div className="flex items-center justify-end gap-2 mb-1">
-            <span className="text-xs text-indigo-400">You</span>
+            <span className="text-xs text-teal-400">You</span>
           </div>
-          <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5">
+          <div className="bg-teal-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5">
             <p className="text-sm leading-relaxed">{message.message_text}</p>
           </div>
         </div>
-        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center">
+        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center">
           <span className="text-white font-semibold text-sm">Y</span>
         </div>
       </div>
@@ -35,7 +35,7 @@ export function MessageBubble({ message, avatarUrl }: MessageBubbleProps) {
       }`}
     >
       {/* Avatar */}
-      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex items-center justify-center">
         {avatarUrl ? (
           <Image
             src={avatarUrl}
@@ -46,7 +46,7 @@ export function MessageBubble({ message, avatarUrl }: MessageBubbleProps) {
             unoptimized
           />
         ) : (
-          <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">
+          <span className="text-teal-700 dark:text-teal-300 font-semibold text-sm">
             {message.persona_name.charAt(0).toUpperCase()}
           </span>
         )}
