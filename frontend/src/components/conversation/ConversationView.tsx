@@ -221,7 +221,7 @@ export function ConversationView({
                 className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
                   conversation.is_public
                     ? "bg-gray-600 hover:bg-gray-700"
-                    : "bg-indigo-600 hover:bg-indigo-700"
+                    : "bg-teal-600 hover:bg-teal-700"
                 }`}
               >
                 {conversation.is_public ? "Make Private" : "Make Public"}
@@ -244,12 +244,12 @@ export function ConversationView({
               onKeyDown={handleKeyDown}
               placeholder="Jump in... (Enter to send, Shift+Enter for new line)"
               rows={2}
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
             />
             <button
               onClick={handleSend}
               disabled={!inputText.trim() || isSending}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors self-end"
+              className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg font-medium hover:bg-teal-700 disabled:opacity-40 transition-colors self-end"
             >
               {isSending ? "…" : "Send"}
             </button>

@@ -21,7 +21,7 @@ export function Navbar() {
   const linkClass = (href: string) =>
     `text-sm font-medium transition-colors ${
       pathname?.startsWith(href)
-        ? "text-indigo-600 dark:text-indigo-400"
+        ? "text-teal-600 dark:text-teal-400"
         : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
     }`;
 
@@ -32,7 +32,7 @@ export function Navbar() {
           <div className="dark:bg-white dark:rounded dark:p-0.5 shrink-0">
             <Image src="/logo.jpeg" alt="PersonaComposer" width={32} height={32} priority unoptimized />
           </div>
-          <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">PersonaComposer</span>
+          <span className="font-bold text-teal-600 dark:text-teal-400 text-lg">PersonaComposer</span>
         </Link>
 
         {/* Desktop nav */}
