@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
+import { PersonaPreview } from "@/components/persona/PersonaPreview";
 import { apiFetch } from "@/lib/api";
 import { Persona, Conversation, ApiError } from "@/types";
 
@@ -46,9 +47,34 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
 }
 
 function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: boolean }) {
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
-    <Link href={`/p/${persona.unique_id}`} className="block group">
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
+    <div
+      className="relative"
+      onMouseEnter={() => setShowPreview(true)}
+      onMouseLeave={() => setShowPreview(false)}
+      onTouchStart={() => setShowPreview(true)}
+    >
+      {/* Hover/Touch Preview Popover */}
+      {showPreview && (
+        <div className="absolute inset-0 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm overflow-y-auto rounded-xl border border-indigo-300 shadow-xl">
+          <div className="sticky top-0 right-0 p-2 flex justify-end">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}
+              className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <PersonaPreview persona={persona} />
+        </div>
+      )}
+
+      <Link href={`/p/${persona.unique_id}`} className="block">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
         {/* Photo-first: square avatar at top */}
         <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
           {persona.avatar_url ? (
@@ -88,8 +114,9 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+        </div>
+      </Link>
+    </div>
   );
 }
 

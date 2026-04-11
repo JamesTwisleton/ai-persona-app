@@ -36,6 +36,7 @@ export interface Persona {
   is_public: boolean;
   view_count: number;
   upvote_count: number;
+  conversation_count: number;
   is_owner?: boolean;
   created_at: string;
 }

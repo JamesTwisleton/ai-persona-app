@@ -269,6 +269,12 @@ class Persona(Base):
         doc="Owner user"
     )
 
+    participations = relationship(
+        "ConversationParticipant",
+        back_populates="persona",
+        doc="Conversations this persona has participated in"
+    )
+
     # =========================================================================
     # Methods
     # =========================================================================
@@ -316,6 +322,7 @@ class Persona(Base):
             "archetype_affinities": self.archetype_affinities,
             "motto": self.motto,
             "avatar_url": generate_presigned_url(self.avatar_url) if self.avatar_url and self.avatar_url.startswith("avatars/") else self.avatar_url,
+            "conversation_count": len(self.participations),
             "is_public": self.is_public,
             "view_count": self.view_count,
             "upvote_count": self.upvote_count,

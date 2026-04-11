@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Persona } from "@/types";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { PersonaPreview } from "./PersonaPreview";
 
 function getTopArchetype(affinities: Record<string, number>): string {
   const entries = Object.entries(affinities);
@@ -33,6 +34,7 @@ export function PersonaCard({
 }: PersonaCardProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const topArchetype = getTopArchetype(persona.archetype_affinities ?? {});
 
   const handleConfirmDelete = async () => {
@@ -45,10 +47,30 @@ export function PersonaCard({
 
   const cardContent = (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-xl border overflow-hidden hover:shadow-md transition-all ${
+      className={`bg-white dark:bg-gray-800 rounded-xl border overflow-hidden hover:shadow-md transition-all relative ${
         isSelected ? "border-indigo-400 ring-2 ring-indigo-300" : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
       }`}
+      onMouseEnter={() => setShowPreview(true)}
+      onMouseLeave={() => setShowPreview(false)}
+      onTouchStart={() => setShowPreview(true)}
     >
+      {/* Hover/Touch Preview Popover */}
+      {showPreview && (
+        <div className="absolute inset-0 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm overflow-y-auto">
+          <div className="sticky top-0 right-0 p-2 flex justify-end">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}
+              className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <PersonaPreview persona={persona} />
+        </div>
+      )}
+
       {/* Photo-first: avatar fills top 60% */}
       <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
         {persona.avatar_url ? (
