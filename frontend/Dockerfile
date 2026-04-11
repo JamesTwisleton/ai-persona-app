@@ -32,9 +32,7 @@ COPY . .
 
 # Bake the API URL in at build time (Next.js NEXT_PUBLIC_* vars are build-time)
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
-ARG NEXT_PUBLIC_PREVIEW_MODE=false
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_PREVIEW_MODE=$NEXT_PUBLIC_PREVIEW_MODE
 
 RUN npm run build
 

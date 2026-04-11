@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { apiFetch } from "@/lib/api";
-import { Persona, Conversation, ApiError } from "@/types";
+import { Persona, Conversation } from "@/types";
 
 type Sort = "hot" | "top" | "new";
 
@@ -49,7 +49,6 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
   return (
     <Link href={`/p/${persona.unique_id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-teal-300 hover:shadow-md transition-all">
-        {/* Photo-first: square avatar at top */}
         <div className="relative w-full aspect-square bg-teal-50 dark:bg-teal-950">
           {persona.avatar_url ? (
             <Image
@@ -64,11 +63,9 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
               <span className="text-teal-300 font-bold text-5xl">{persona.name.charAt(0)}</span>
             </div>
           )}
-          {/* Gradient ring effect */}
           <div className="absolute inset-0 rounded-t-xl ring-inset ring-1 ring-black/5" />
         </div>
 
-        {/* Info */}
         <div className="p-3">
           <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate text-sm">
             {persona.name}
@@ -133,7 +130,6 @@ export default function Home() {
   const [convLoading, setConvLoading] = useState(false);
   const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
-  // Initial full feed load (hot sort)
   useEffect(() => {
     setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover?sort=${personaSort}`)
@@ -147,10 +143,8 @@ export default function Home() {
         setConvFeed([]);
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaSort]);
 
-  // Separate reload when conversation sort changes (after initial load)
   useEffect(() => {
     if (loading) return;
     setConvLoading(true);
@@ -159,14 +153,12 @@ export default function Home() {
       .then((data: FeedData) => setConvFeed(data.conversations))
       .catch(() => setConvFeed([]))
       .finally(() => setConvLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [convSort]);
+  }, [convSort, loading]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
-      {/* Hero */}
       <div className="bg-gradient-to-br from-teal-600 to-rose-700 text-white py-12 px-4 text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-white/90 rounded-xl p-2 inline-block">
@@ -232,7 +224,7 @@ export default function Home() {
                   disabled={challengeSubmitting}
                   className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-300 disabled:opacity-60"
                 />
-                <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex gap-3 items-center">
                   <select
                     name="type"
                     disabled={challengeSubmitting}
@@ -270,13 +262,11 @@ export default function Home() {
         )}
       </div>
 
-      {/* Feed */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Personas column */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Personas</h2>
@@ -293,7 +283,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Conversations column */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Conversations</h2>
