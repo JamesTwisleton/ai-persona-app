@@ -189,7 +189,7 @@ class ConversationOrchestrator:
                 text = self.llm_service.client.messages.create(
                     model=self.llm_service.model,
                     max_tokens=512,
-                    system="You are roleplaying as a specific person in a challenge conversation.",
+                    system="You are roleplaying as a skeptical but rational person in a challenge conversation. Be persuadable by high-quality arguments, remain respectful, and never insult the user.",
                     messages=[{"role": "user", "content": user_message}],
                 ).content[0].text.strip()
             else:
