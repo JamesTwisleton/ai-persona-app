@@ -232,7 +232,7 @@ export default function Home() {
                   disabled={challengeSubmitting}
                   className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-300 disabled:opacity-60"
                 />
-                <div className="flex gap-3 items-center">
+                <div className="flex flex-wrap gap-3 items-center">
                   <select
                     name="type"
                     disabled={challengeSubmitting}
@@ -258,7 +258,11 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={challengeSubmitting}
+<<<<<<< HEAD
                     className="flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg"
+=======
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg w-full sm:w-auto"
+>>>>>>> main
                   >
                     {challengeSubmitting && <Spinner size="sm" />}
                     {challengeSubmitting ? "Starting..." : "Start Challenge"}

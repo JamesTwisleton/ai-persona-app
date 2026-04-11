@@ -1,0 +1,246 @@
+name: PR Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  BE_APP: persona-pr-${{ github.event.pull_request.number }}-be
+  FE_APP: persona-pr-${{ github.event.pull_request.number }}-fe
+  DB_APP: persona-pr-${{ github.event.pull_request.number }}-db
+  FLY_REGION: lhr
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy preview
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # ----------------------------------------------------------------
+      # Backend
+      # ----------------------------------------------------------------
+      - name: Create backend app (if not exists)
+        run: |
+          flyctl apps list --json | jq -e ".[] | select(.Name==\"$BE_APP\")" > /dev/null 2>&1 \
+            || flyctl apps create "$BE_APP" --org personal
+
+      - name: Create Postgres cluster (if not exists)
+        run: |
+          flyctl apps list --json | jq -e ".[] | select(.Name==\"$DB_APP\")" > /dev/null 2>&1 \
+            || flyctl postgres create \
+                --name "$DB_APP" \
+                --org personal \
+                --region "$FLY_REGION" \
+                --vm-size shared-cpu-1x \
+                --initial-cluster-size 1 \
+                --volume-size 1
+
+      - name: Attach Postgres to backend (if not attached)
+        run: |
+          flyctl postgres attach "$DB_APP" --app "$BE_APP" 2>&1 || true
+
+      - name: Set backend secrets
+        run: |
+          flyctl secrets set \
+            --app "$BE_APP" \
+            JWT_SECRET="$(openssl rand -base64 32)" \
+            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            FRONTEND_URL="https://${FE_APP}.fly.dev" \
+            ENV="preview" \
+            LOG_LEVEL="INFO" \
+            --stage
+
+      - name: Deploy backend
+        working-directory: backend
+        run: |
+          printf '%s\n' \
+            "app = \"${BE_APP}\"" \
+            "primary_region = \"${FLY_REGION}\"" \
+            "" \
+            "[build]" \
+            "dockerfile = \"Dockerfile\"" \
+            "" \
+            "[processes]" \
+            "app = \"uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1\"" \
+            "" \
+            "[http_service]" \
+            "internal_port = 8000" \
+            "force_https = true" \
+            "auto_stop_machines = \"suspend\"" \
+            "auto_start_machines = true" \
+            "min_machines_running = 0" \
+            "processes = [\"app\"]" \
+            "" \
+            "[checks]" \
+            "[checks.health]" \
+            "type = \"http\"" \
+            "port = 8000" \
+            "path = \"/health\"" \
+            "interval = \"10s\"" \
+            "timeout = \"5s\"" \
+            "grace_period = \"30s\"" \
+            "processes = [\"app\"]" \
+            "" \
+            "[[vm]]" \
+            "size = \"shared-cpu-1x\"" \
+            "memory = \"512mb\"" \
+            > fly.toml
+
+          flyctl deploy \
+            --build-target production \
+            --strategy immediate \
+            --wait-timeout 300
+
+      - name: Verify backend health
+        run: |
+          for i in $(seq 1 10); do
+            if curl -sf "https://${BE_APP}.fly.dev/health" > /dev/null 2>&1; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/10)"
+            sleep 5
+          done
+          echo "Warning: backend health check timed out (may still be starting)"
+
+      # ----------------------------------------------------------------
+      # Frontend
+      # ----------------------------------------------------------------
+      - name: Create frontend app (if not exists)
+        run: |
+          flyctl apps list --json | jq -e ".[] | select(.Name==\"$FE_APP\")" > /dev/null 2>&1 \
+            || flyctl apps create "$FE_APP" --org personal
+
+      - name: Deploy frontend
+        working-directory: frontend
+        run: |
+          printf '%s\n' \
+            "app = \"${FE_APP}\"" \
+            "primary_region = \"${FLY_REGION}\"" \
+            "" \
+            "[build]" \
+            "dockerfile = \"Dockerfile\"" \
+            "" \
+            "[build.args]" \
+            "NEXT_PUBLIC_API_URL = \"https://${BE_APP}.fly.dev\"" \
+            "NEXT_PUBLIC_PREVIEW_MODE = \"true\"" \
+            "" \
+            "[http_service]" \
+            "internal_port = 3000" \
+            "force_https = true" \
+            "auto_stop_machines = \"suspend\"" \
+            "auto_start_machines = true" \
+            "min_machines_running = 0" \
+            "" \
+            "[[vm]]" \
+            "size = \"shared-cpu-1x\"" \
+            "memory = \"256mb\"" \
+            > fly.toml
+
+          flyctl deploy \
+            --build-target production \
+            --strategy immediate \
+            --wait-timeout 300
+
+      # ----------------------------------------------------------------
+      # Comment on PR
+      # ----------------------------------------------------------------
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '## Preview Environment',
+              '',
+              `| | URL |`,
+              `|---|---|`,
+              `| **App** | https://${process.env.FE_APP}.fly.dev |`,
+              `| **API** | https://${process.env.BE_APP}.fly.dev |`,
+              `| **API Docs** | https://${process.env.BE_APP}.fly.dev/docs |`,
+              '',
+              '_Auto-deployed by fly.io. First load may take ~10s if machines are stopped._',
+              '',
+              `Commit: \`${context.sha.slice(0, 7)}\``,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## Preview Environment')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  teardown:
+    name: Teardown preview
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Destroy frontend app
+        run: flyctl apps destroy "$FE_APP" --yes || true
+
+      - name: Destroy backend app
+        run: flyctl apps destroy "$BE_APP" --yes || true
+
+      - name: Destroy Postgres app
+        run: flyctl apps destroy "$DB_APP" --yes || true
+
+      - name: Comment teardown notice
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## Preview Environment')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: '## Preview Environment\n\n_Torn down after PR closed._',
+              });
+            }
