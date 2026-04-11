@@ -40,8 +40,8 @@ function ConversationListItem({
     <div
       className={`bg-white dark:bg-gray-800 rounded-xl border p-4 transition-all ${
         isSelected
-          ? "border-indigo-400 ring-2 ring-indigo-300"
-          : "border-gray-200 dark:border-gray-700 hover:border-indigo-300 hover:shadow-sm"
+          ? "border-teal-400 ring-2 ring-teal-300"
+          : "border-gray-200 dark:border-gray-700 hover:border-teal-300 hover:shadow-sm"
       } ${selectMode ? "cursor-pointer" : ""}`}
       onClick={selectMode ? () => onSelect?.(conversation.unique_id) : undefined}
     >
@@ -51,7 +51,7 @@ function ConversationListItem({
           {selectMode && (
             <div
               className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center ${
-                isSelected ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500"
+                isSelected ? "bg-teal-600 border-teal-600" : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500"
               }`}
             >
               {isSelected && (
@@ -63,7 +63,7 @@ function ConversationListItem({
           )}
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate">
               {conversation.topic}
             </h3>
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
@@ -83,7 +83,7 @@ function ConversationListItem({
               Complete
             </span>
           ) : (
-            <span className="text-xs px-2 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium">
+            <span className="text-xs px-2 py-1 rounded-full bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium">
               Active
             </span>
           )}

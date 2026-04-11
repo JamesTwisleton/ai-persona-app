@@ -32,7 +32,7 @@ function AuthCallbackContent() {
         <div className="max-w-sm w-full px-4">
           <ErrorMessage message={error} />
           <div className="text-center mt-4">
-            <a href="/login" className="text-indigo-600 hover:underline text-sm">
+            <a href="/login" className="text-teal-600 hover:underline text-sm">
               Back to login
             </a>
           </div>

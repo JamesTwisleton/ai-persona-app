@@ -55,7 +55,7 @@ export function ForkModal({ conversation, onClose }: ForkModalProps) {
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 mb-4"
         />
 
         {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -70,7 +70,7 @@ export function ForkModal({ conversation, onClose }: ForkModalProps) {
           <button
             onClick={handleFork}
             disabled={loading || !topic.trim()}
-            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
           >
             {loading ? "Forking…" : "Fork"}
           </button>

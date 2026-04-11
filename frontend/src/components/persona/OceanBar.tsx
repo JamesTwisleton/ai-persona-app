@@ -1,7 +1,7 @@
 import { OceanScores } from "@/types";
 
 const TRAITS = [
-  { key: "openness" as const, label: "Openness", color: "bg-purple-500" },
+  { key: "openness" as const, label: "Openness", color: "bg-rose-500" },
   { key: "conscientiousness" as const, label: "Conscientiousness", color: "bg-blue-500" },
   { key: "extraversion" as const, label: "Extraversion", color: "bg-amber-500" },
   { key: "agreeableness" as const, label: "Agreeableness", color: "bg-emerald-500" },

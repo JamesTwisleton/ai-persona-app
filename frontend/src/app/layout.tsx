@@ -7,9 +7,9 @@ import { ThemeProvider } from "@/context/ThemeContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PersonaComposer",
-  description: "AI-powered focus group simulator with psychologically realistic personas",
-  icons: { icon: "/logo-b.svg" },
+  title: "PersonaComposer | AI Focus Group Simulator",
+  description: "Build, simulate, and analyze AI-powered focus groups with psychologically realistic personas.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
