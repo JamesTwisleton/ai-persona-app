@@ -73,3 +73,28 @@ def test_conversation_prompt_rules_updated():
     assert "4. Aim for a direct, authentic opening." in prompt
     # Verify the no filler phrases rule
     assert "No filler phrases." in prompt
+
+def test_conversation_prompt_behavior_rules():
+    template = ConversationPromptTemplate()
+    persona_details = {
+        "name": "Alice",
+        "ocean_scores": {"openness": 0.8, "conscientiousness": 0.7, "extraversion": 0.4, "agreeableness": 0.6, "neuroticism": 0.3},
+        "attitude": "Neutral",
+        "description": "A thoughtful scientist"
+    }
+
+    prompt = template.render(
+        persona_name=persona_details["name"],
+        ocean_scores=persona_details["ocean_scores"],
+        attitude=persona_details["attitude"],
+        topic="Climate Change",
+        history=[],
+        description=persona_details["description"]
+    )
+
+    # Check for the rule about personal insults
+    assert "NEVER use personal insults or demeaning language" in prompt
+    # Check for the rule about AI accusations
+    assert "respond in-character (e.g., with confusion, annoyance, or dismissal)" in prompt
+    # Check for the rule about natural speech patterns
+    assert "Use natural speech patterns" in prompt

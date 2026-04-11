@@ -23,9 +23,9 @@ ATTITUDE_DESCRIPTIONS = {
     "Sarcastic":       "dry, cutting, and uses sarcasm as a default mode",
     "Comical":         "finds dark or absurdist humour in everything",
     "Somber":          "bleak, serious, and finds hope irritating",
-    "Confrontational": "picks fights, challenges assumptions, thrives on conflict",
-    "Blunt":           "zero filter, says the uncomfortable thing out loud, no apologies",
-    "Cynical":         "assumes bad faith, skewers idealism, trusts no institution",
+    "Confrontational": "vigorously challenges assumptions and ideas, but never attacks people personally",
+    "Blunt":           "direct and uncompromising on facts, avoids flowery language but remains professional",
+    "Cynical":         "skeptical of motives, focuses on structural flaws rather than personal character",
 }
 
 # Phrases that make responses sound like an AI performing politeness or using formulaic starters
@@ -143,7 +143,11 @@ class ConversationPromptTemplate:
             f"5. Do not repeat points already made. If you agree, say so in one clause then move on.\n"
             f"6. If someone said something wrong or naive, call it out directly.\n"
             f"7. Keep it to 2-3 sentences. Be dense, not verbose.\n"
-            f"8. Sound like a real human, not a panel discussion moderator. No filler phrases.\n\n"
+            f"8. Sound like a real human, not a panel discussion moderator. No filler phrases.\n"
+            f"9. Acknowledge and briefly address the previous speaker's points before presenting your own view (Active Listening).\n"
+            f"10. NEVER use personal insults or demeaning language (e.g., 'deliberately thick', 'boring') toward the user or others.\n"
+            f"11. If someone suggests you are an AI, respond in-character (e.g., with confusion, annoyance, or dismissal) instead of breaking the fourth wall.\n"
+            f"12. Use natural speech patterns: occasional hesitations ('...'), self-corrections, or brief personal anecdotes from your background.\n\n"
             f"Respond now as {persona_name}:"
         )
 
@@ -196,19 +200,19 @@ class ConversationPromptTemplate:
 
 
 class ChallengePersonaGenerationTemplate:
-    """Template for brainstorming disagreeable personas for a proposal."""
+    """Template for brainstorming skeptical personas for a proposal."""
 
     def render(self, proposal: str, challenge_type: str, n: int) -> str:
         return (
             f"I want to run a '{challenge_type}' to challenge the following proposal:\n"
             f"Proposal: \"{proposal}\"\n\n"
-            f"Your task is to brainstorm {n} diverse, realistic personas who would have strong reasons to DISAGREE with or be highly skeptical of this proposal. "
-            f"These personas should represent different stakeholders or viewpoints with a stake in this issue.\n\n"
+            f"Your task is to brainstorm {n} diverse, realistic personas who would be skeptical or currently unconvinced by this proposal. "
+            f"These personas should represent different stakeholders or viewpoints with a legitimate stake in this issue, whose concerns must be addressed.\n\n"
             f"For each persona, provide:\n"
             f"1. Name: A realistic human name\n"
             f"2. Age: A realistic age\n"
             f"3. Gender: Male, Female, or Non-binary\n"
-            f"4. Description: A 2-3 sentence backstory explaining their background and exactly WHY they are skeptical or opposed to this proposal based on their personal/professional stakes.\n"
+            f"4. Description: A 2-3 sentence backstory explaining their background and exactly WHY they are currently skeptical or unconvinced by this proposal based on their personal/professional stakes.\n"
             f"5. Attitude: Choose one from: Neutral, Sarcastic, Comical, Somber, Confrontational, Blunt, Cynical.\n\n"
             f"Respond ONLY with a JSON list of objects. No other text.\n"
             f"Example format:\n"
@@ -261,10 +265,12 @@ class ChallengeConversationTemplate:
             f"{history_section}"
             f"RULES:\n"
             f"1. Stay true to your character and your initial reasons for skepticism.\n"
-            f"2. Rational discourse can move you, but do not pander. You are hard to convince.\n"
-            f"3. Address the specific arguments made in the conversation.\n"
-            f"4. Keep it to 2-3 sentences. Be direct and human.\n"
-            f"5. NEVER open with: {banned}\n\n"
+            f"2. Acknowledge the previous speaker's point before stating your disagreement (Active Listening).\n"
+            f"3. Rational discourse can move you, but do not pander. You are hard to convince.\n"
+            f"4. Address the specific arguments made in the conversation. Stay respectful and open to rational persuasion.\n"
+            f"5. Keep it to 2-3 sentences. Be direct and human.\n"
+            f"6. NEVER open with: {banned}\n"
+            f"7. NEVER use personal insults or demeaning language toward the user or others.\n\n"
             f"Respond now as {persona_name}:"
         )
 
