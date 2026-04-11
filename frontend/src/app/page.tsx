@@ -6,11 +6,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
+import { Onboarding } from "@/components/layout/Onboarding";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { apiFetch } from "@/lib/api";
-import { Persona, Conversation, ApiError } from "@/types";
+import { Persona, Conversation } from "@/types";
 
 type Sort = "hot" | "top" | "new";
 
@@ -133,6 +134,9 @@ export default function Home() {
   const [convLoading, setConvLoading] = useState(false);
   const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
+  // Show onboarding to unauthenticated users by default
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
   // Initial full feed load (hot sort)
   useEffect(() => {
     setLoading(true);
@@ -162,6 +166,15 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convSort]);
 
+  if (!authLoading && !user && showOnboarding) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <Onboarding onExplore={() => setShowOnboarding(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
@@ -170,7 +183,7 @@ export default function Home() {
       <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-12 px-4 text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-white/90 rounded-xl p-2 inline-block">
-            <img src="/logo.jpeg" alt="PersonaComposer" className="w-16 h-16 block" />
+            <Image src="/logo.jpeg" alt="PersonaComposer" width={64} height={64} className="block" unoptimized />
           </div>
         </div>
         <h1 className="text-4xl font-bold mb-3">PersonaComposer</h1>
