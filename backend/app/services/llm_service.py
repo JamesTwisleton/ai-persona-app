@@ -21,7 +21,11 @@ Usage:
 from typing import Dict, List, Any, Optional
 
 from app.config import settings
-from app.services.prompt_templates import MottoPromptTemplate, ConversationPromptTemplate
+from app.services.prompt_templates import (
+    MottoPromptTemplate,
+    ConversationPromptTemplate,
+    BackstoryPromptTemplate,
+)
 
 # Use a capable but cost-effective model for generation tasks
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
@@ -64,6 +68,7 @@ class LLMService:
         self.model = model
         self._motto_template = MottoPromptTemplate()
         self._conversation_template = ConversationPromptTemplate()
+        self._backstory_template = BackstoryPromptTemplate()
 
     def generate_motto(self, persona_details: Dict[str, Any]) -> str:
         """
@@ -133,6 +138,40 @@ class LLMService:
             model=self.model,
             max_tokens=512,
             system=CONVERSATION_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_message}],
+        )
+
+        return message.content[0].text.strip()
+
+    def generate_backstory(
+        self,
+        name: Optional[str] = None,
+        age: Optional[int] = None,
+        gender: Optional[str] = None,
+        description: Optional[str] = None,
+        attitude: Optional[str] = "Neutral",
+    ) -> str:
+        """
+        Generate a detailed backstory for a persona.
+
+        Returns:
+            str: Generated backstory text
+
+        Raises:
+            Exception: Re-raises any Anthropic API errors
+        """
+        user_message = self._backstory_template.render(
+            name=name,
+            age=age,
+            gender=gender,
+            description=description,
+            attitude=attitude,
+        )
+
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=1024,
+            system="You are an expert creative writer specializing in character development.",
             messages=[{"role": "user", "content": user_message}],
         )
 

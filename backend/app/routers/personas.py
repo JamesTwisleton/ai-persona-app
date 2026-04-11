@@ -62,8 +62,61 @@ class PersonaCreateRequest(BaseModel):
         return v
 
 
+class BackstoryGenerateRequest(BaseModel):
+    name: Optional[str] = Field(None, max_length=255)
+    age: Optional[int] = Field(None, ge=0, le=150)
+    gender: Optional[str] = Field(None, max_length=50)
+    description: Optional[str] = None
+    attitude: Optional[str] = None
+
+    @field_validator("attitude")
+    @classmethod
+    def validate_attitude(cls, v):
+        if v is not None and v not in VALID_ATTITUDES:
+            raise ValueError(f"attitude must be one of: {', '.join(sorted(VALID_ATTITUDES))}")
+        return v
+
+
 class CompatibilityRequest(BaseModel):
     persona_ids: List[str] = Field(..., min_length=2)
+
+
+# ============================================================================
+# POST /personas/generate-backstory - Generate AI Backstory
+# ============================================================================
+
+@router.post(
+    "/personas/generate-backstory",
+    summary="Generate a detailed AI backstory for a persona",
+    responses={
+        200: {"description": "Backstory generated successfully"},
+        401: {"description": "Not authenticated"},
+    },
+)
+def generate_backstory(
+    request: BackstoryGenerateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate a detailed backstory based on partial persona info.
+    Uses LLMService to call Claude.
+    """
+    try:
+        llm_service = LLMService()
+        backstory = llm_service.generate_backstory(
+            name=request.name,
+            age=request.age,
+            gender=request.gender,
+            description=request.description,
+            attitude=request.attitude or "Neutral",
+        )
+        return {"backstory": backstory}
+    except Exception as e:
+        logger.error(f"Backstory generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Backstory generation failed: {e}",
+        )
 
 
 # ============================================================================

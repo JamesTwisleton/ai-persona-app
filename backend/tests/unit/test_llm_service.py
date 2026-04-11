@@ -203,3 +203,41 @@ class TestGenerateResponse:
             topic="Test",
         )
         assert response == response.strip()
+
+
+# ============================================================================
+# generate_backstory Tests
+# ============================================================================
+
+class TestGenerateBackstory:
+
+    def test_generate_backstory_returns_string(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("Elena was born in Athens...")
+        service = LLMService(client=mock_client)
+        backstory = service.generate_backstory(name="Elena")
+        assert isinstance(backstory, str)
+        assert len(backstory) > 0
+
+    def test_generate_backstory_calls_claude_api(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("Backstory text.")
+        service = LLMService(client=mock_client)
+        service.generate_backstory(name="Elena")
+        mock_client.messages.create.assert_called_once()
+
+    def test_generate_backstory_includes_name_in_prompt(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("Backstory.")
+        service = LLMService(client=mock_client)
+        service.generate_backstory(name="Elena")
+
+        call_kwargs = mock_client.messages.create.call_args
+        assert "Elena" in str(call_kwargs)
+
+    def test_generate_backstory_strips_whitespace(self):
+        from app.services.llm_service import LLMService
+        mock_client = make_mock_client("  Coherent backstory.  \n")
+        service = LLMService(client=mock_client)
+        backstory = service.generate_backstory()
+        assert backstory == backstory.strip()
