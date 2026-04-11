@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
+import { ShareButton } from "@/components/social/ShareButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -61,6 +62,20 @@ export default function PersonaProfilePage() {
       .catch(() => setConversations([]))
       .finally(() => setConvLoading(false));
   }, [id, convSort]);
+
+  const handleUpdateVisibility = async (isPublic: boolean) => {
+    if (!persona) return;
+    try {
+      const updated = await apiFetch<Persona>(`/personas/${persona.unique_id}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
+      setPersona(updated);
+    } catch (e) {
+      if (e instanceof ApiError) setError(e.message);
+    }
+  };
 
   const handleRegenerate = async () => {
     if (!persona) return;
@@ -153,16 +168,51 @@ export default function PersonaProfilePage() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Stats + upvote */}
-              <div className="flex items-center justify-between">
+              {/* Stats + upvote + share */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-sm text-gray-400 dark:text-gray-500">{persona.view_count} views</span>
-                <UpvoteButton
-                  targetType="persona"
-                  uniqueId={persona.unique_id}
-                  initialCount={persona.upvote_count}
-                  requiresAuth={!user}
-                />
+                <div className="flex items-center gap-2">
+                  <ShareButton
+                    url={`/p/${persona.unique_id}`}
+                    title={`Check out ${persona.name} on PersonaComposer`}
+                    isPublic={persona.is_public}
+                    onMakePublic={persona.is_owner ? () => handleUpdateVisibility(true) : undefined}
+                  />
+                  <UpvoteButton
+                    targetType="persona"
+                    uniqueId={persona.unique_id}
+                    initialCount={persona.upvote_count}
+                    requiresAuth={!user}
+                  />
+                </div>
               </div>
+
+              {persona.is_owner && (
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {persona.is_public ? "Public Persona" : "Private Persona"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {persona.is_public
+                          ? "Anyone with the link can view this persona."
+                          : "Only you can see this persona."}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleUpdateVisibility(!persona.is_public)}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                        persona.is_public
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                          : "bg-indigo-600 text-white hover:bg-indigo-700"
+                      }`}
+                    >
+                      {persona.is_public ? "Make Private" : "Make Public"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {persona.motto && (
                 <blockquote className="border-l-4 border-indigo-300 pl-4 italic text-gray-600 dark:text-gray-300 text-lg">

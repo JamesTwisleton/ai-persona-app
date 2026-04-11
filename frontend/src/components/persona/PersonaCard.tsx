@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Persona } from "@/types";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { ShareButton } from "@/components/social/ShareButton";
 
 function getTopArchetype(affinities: Record<string, number>): string {
   const entries = Object.entries(affinities);
@@ -121,17 +122,28 @@ export function PersonaCard({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-          {topArchetype && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium">
-              {formatArchetype(topArchetype)}
-            </span>
-          )}
-          {persona.attitude && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-              {persona.attitude}
-            </span>
-          )}
+        <div className="flex items-center justify-between mt-2 gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {topArchetype && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium">
+                {formatArchetype(topArchetype)}
+              </span>
+            )}
+            {persona.attitude && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                {persona.attitude}
+              </span>
+            )}
+          </div>
+
+          <div onClick={(e) => e.preventDefault()}>
+            <ShareButton
+              url={`/p/${persona.unique_id}`}
+              title={`Check out ${persona.name} on PersonaComposer`}
+              isPublic={persona.is_public}
+              variant="icon"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
+import { ShareButton } from "@/components/social/ShareButton";
 import { ForkModal } from "@/components/social/ForkModal";
 import { MessageBubble } from "@/components/conversation/MessageBubble";
 import { useAuth } from "@/context/AuthContext";
@@ -36,6 +37,20 @@ export default function PublicConversationPage() {
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
   }, [id]);
+
+  const handleUpdateVisibility = async (isPublic: boolean) => {
+    if (!conv) return;
+    try {
+      const updated = await apiFetch<Conversation>(`/conversations/${conv.unique_id}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
+      setConv(updated);
+    } catch (e) {
+      if (e instanceof ApiError) setError(e.message);
+    }
+  };
 
   const handleDelete = async () => {
     if (!conv || !window.confirm("Delete this conversation?")) return;
@@ -150,6 +165,13 @@ export default function PublicConversationPage() {
           )}
 
           <div className="flex items-center gap-2 flex-wrap">
+            <ShareButton
+              url={`/c/${conv.unique_id}`}
+              title={`Check out this conversation about "${conv.topic}" on PersonaComposer`}
+              isPublic={conv.is_public}
+              onMakePublic={conv.is_owner ? () => handleUpdateVisibility(true) : undefined}
+            />
+
             <UpvoteButton
               targetType="conversation"
               uniqueId={conv.unique_id}
