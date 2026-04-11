@@ -22,20 +22,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const storedToken = getToken();
-    if (!storedToken) {
-      setIsLoading(false);
+    if (storedToken) {
+      setTokenState(storedToken);
+      apiFetch<User>("/users/me")
+        .then((u) => setUser(u))
+        .catch((err: ApiError) => {
+          if (err.status === 401) {
+            clearToken();
+            setTokenState(null);
+          }
+        })
+        .finally(() => setIsLoading(false));
       return;
     }
-    setTokenState(storedToken);
-    apiFetch<User>("/users/me")
-      .then((u) => setUser(u))
-      .catch((err: ApiError) => {
-        if (err.status === 401) {
-          clearToken();
-          setTokenState(null);
-        }
-      })
-      .finally(() => setIsLoading(false));
+
+    // In preview environments, auto-login as test user
+    if (process.env.NEXT_PUBLIC_PREVIEW_MODE === "true") {
+      apiFetch<{ token: string }>("/auth/test-login")
+        .then(({ token: t }) => login(t))
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+      return;
+    }
+
+    setIsLoading(false);
   }, []);
 
   const login = async (newToken: string) => {
