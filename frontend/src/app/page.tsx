@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
+import { ShareButton } from "@/components/social/ShareButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { apiFetch } from "@/lib/api";
 import { Persona, Conversation, ApiError } from "@/types";
@@ -78,7 +79,13 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
           )}
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-400 dark:text-gray-500">{persona.view_count} views</span>
-            <div onClick={(e) => e.preventDefault()}>
+            <div className="flex items-center gap-1.5" onClick={(e) => e.preventDefault()}>
+              <ShareButton
+                url={`/p/${persona.unique_id}`}
+                title={`Check out ${persona.name} on PersonaComposer`}
+                isPublic={persona.is_public}
+                variant="icon"
+              />
               <UpvoteButton
                 targetType="persona"
                 uniqueId={persona.unique_id}
@@ -108,7 +115,13 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{conv.turn_count} turns</p>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-gray-400 dark:text-gray-500">{conv.view_count} views</span>
-          <div onClick={(e) => e.preventDefault()}>
+          <div className="flex items-center gap-1.5" onClick={(e) => e.preventDefault()}>
+            <ShareButton
+              url={`/c/${conv.unique_id}`}
+              title={`Check out this conversation about "${conv.topic}" on PersonaComposer`}
+              isPublic={conv.is_public}
+              variant="icon"
+            />
             <UpvoteButton
               targetType="conversation"
               uniqueId={conv.unique_id}

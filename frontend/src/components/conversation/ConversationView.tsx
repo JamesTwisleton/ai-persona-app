@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Conversation } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Button } from "@/components/ui/Button";
+import { ShareButton } from "@/components/social/ShareButton";
 
 interface ConversationViewProps {
   conversation: Conversation;
@@ -25,7 +26,6 @@ export function ConversationView({
   const participants = conversation.participants ?? [];
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom whenever messages change
@@ -145,14 +145,12 @@ export function ConversationView({
         </div>
 
         <div className="flex items-center gap-2">
-          {onUpdateVisibility && (
-            <button
-              onClick={() => setShowVisibilityModal(true)}
-              className="text-sm px-3 py-1.5 rounded-md font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              {conversation.is_public ? "Make Private" : "Make Public"}
-            </button>
-          )}
+          <ShareButton
+            url={`/c/${conversation.unique_id}`}
+            title={`Check out this conversation about "${conversation.topic}" on PersonaComposer`}
+            isPublic={conversation.is_public}
+            onMakePublic={onUpdateVisibility ? () => onUpdateVisibility(true) : undefined}
+          />
 
           <Button
             onClick={onContinue}
@@ -190,43 +188,29 @@ export function ConversationView({
         <div ref={bottomRef} />
       </div>
 
-      {showVisibilityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowVisibilityModal(false)} aria-hidden="true" />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-              {conversation.is_public ? "Make Conversation Private?" : "Make Conversation Public?"}
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-              {conversation.is_public
-                ? "This will hide the conversation from the public discovery feed. Only you will be able to see it."
-                : "This will make the conversation visible on the public discovery feed. Anyone will be able to view and fork it."}
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowVisibilityModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (onUpdateVisibility) {
-                    await onUpdateVisibility(!conversation.is_public);
-                  }
-                  setShowVisibilityModal(false);
-                }}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                  conversation.is_public
-                    ? "bg-gray-600 hover:bg-gray-700"
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                {conversation.is_public ? "Make Private" : "Make Public"}
-              </button>
+      {onUpdateVisibility && (
+        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                {conversation.is_public ? "Public Conversation" : "Private Conversation"}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {conversation.is_public
+                  ? "Anyone with the link can view this conversation."
+                  : "Only you can see this conversation."}
+              </p>
             </div>
+            <button
+              onClick={() => onUpdateVisibility(!conversation.is_public)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                conversation.is_public
+                  ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
+              }`}
+            >
+              {conversation.is_public ? "Make Private" : "Make Public"}
+            </button>
           </div>
         </div>
       )}

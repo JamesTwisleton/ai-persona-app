@@ -89,7 +89,7 @@ function ConversationContent() {
     if (!id) return;
     setError(null);
     try {
-      await apiFetch(`/conversations/${id}`, {
+      await apiFetch(`/conversations/${id}/visibility`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_public: isPublic }),
