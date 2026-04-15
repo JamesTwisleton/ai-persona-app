@@ -5,11 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 
-interface OnboardingProps {
-  onExplore: () => void;
-}
-
-export function Onboarding({ onExplore }: OnboardingProps) {
+export function Onboarding() {
   return (
     <div className="bg-white dark:bg-gray-900">
       {/* Hero Section */}
@@ -33,13 +29,14 @@ export function Onboarding({ onExplore }: OnboardingProps) {
                   Get Started Free
                 </Button>
               </Link>
-              <Button
-                variant="secondary"
-                onClick={onExplore}
-                className="w-full sm:w-auto px-8 py-4 text-lg rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                Explore Public Feed
-              </Button>
+              <Link href="/feed">
+                <Button
+                  variant="secondary"
+                  className="w-full sm:w-auto px-8 py-4 text-lg rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Explore Public Feed
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -200,12 +197,13 @@ export function Onboarding({ onExplore }: OnboardingProps) {
                 Create Account
               </button>
             </Link>
-            <button
-              onClick={onExplore}
-              className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold text-lg rounded-full transition-colors"
-            >
-              Explore First
-            </button>
+            <Link href="/feed">
+              <button
+                className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold text-lg rounded-full transition-colors"
+              >
+                Explore First
+              </button>
+            </Link>
           </div>
         </div>
       </section>
