@@ -1,0 +1,83 @@
+name: Production Deploy (Fly.io)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  backend-deploy:
+    name: Backend deploy (Fly.io)
+    runs-on: ubuntu-latest
+    if: vars.DEPLOY_TARGET == 'fly'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Set backend secrets
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl secrets set \
+            --app persona-composer-be \
+            JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+            GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            FRONTEND_URL="https://personacomposer.app" \
+            GOOGLE_REDIRECT_URI="https://api.personacomposer.app/auth/callback/google" \
+            S3_AVATAR_BUCKET="persona-composer-avatars" \
+            AWS_DEFAULT_REGION="eu-west-1" \
+            AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            ENV="production" \
+            LOG_LEVEL="INFO" \
+            --stage
+
+      - name: Deploy backend
+        working-directory: backend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --config fly.production.toml \
+            --build-target production \
+            --wait-timeout 300
+
+      - name: Smoke test
+        run: |
+          sleep 10
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-connrefused \
+            https://api.personacomposer.app/health
+
+  frontend-deploy:
+    name: Frontend deploy (Fly.io)
+    runs-on: ubuntu-latest
+    if: vars.DEPLOY_TARGET == 'fly'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy frontend
+        working-directory: frontend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --config fly.production.toml \
+            --build-target production \
+            --wait-timeout 300
+
+      - name: Smoke test
+        run: |
+          sleep 10
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-connrefused \
+            https://personacomposer.app
