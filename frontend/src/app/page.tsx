@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { apiFetch } from "@/lib/api";
-import { Persona, Conversation } from "@/types";
+import { Persona, Conversation, ApiError } from "@/types";
 
 type Sort = "hot" | "top" | "new";
 
@@ -123,12 +124,14 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
 
 export default function Home() {
   const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
   const [convSort, setConvSort] = useState<Sort>("hot");
   const [feed, setFeed] = useState<FeedData | null>(null);
   const [convFeed, setConvFeed] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [convLoading, setConvLoading] = useState(false);
+  const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
   // Initial full feed load (hot sort)
   useEffect(() => {
@@ -184,17 +187,85 @@ export default function Home() {
           </div>
         )}
         {!authLoading && user && (
-          <div className="flex gap-3 justify-center">
-            <Link href="/personas/new">
-              <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
-                + New Persona
-              </button>
-            </Link>
-            <Link href="/conversations/new">
-              <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
-                + New Conversation
-              </button>
-            </Link>
+          <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
+            <div className="flex gap-3 justify-center">
+              <Link href="/personas/new">
+                <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                  + New Persona
+                </button>
+              </Link>
+              <Link href="/conversations/new">
+                <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                  + New Conversation
+                </button>
+              </Link>
+            </div>
+
+            <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <h2 className="text-xl font-bold mb-4">Launch Challenge Mode</h2>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const proposal = (form.elements.namedItem("proposal") as HTMLInputElement).value;
+                  const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
+                  const nPersonas = parseInt((form.elements.namedItem("n_personas") as HTMLInputElement).value) || 3;
+
+                  setChallengeSubmitting(true);
+                  try {
+                    const res = await apiFetch<Conversation>("/conversations/challenge", {
+                      method: "POST",
+                      body: JSON.stringify({ proposal, challenge_type: challengeType, n_personas: nPersonas }),
+                    });
+                    router.push(`/conversations/${res.unique_id}`);
+                  } catch (err) {
+                    setChallengeSubmitting(false);
+                    alert("Failed to start challenge. Please try again.");
+                  }
+                }}
+                className="flex flex-col gap-3"
+              >
+                <input
+                  name="proposal"
+                  placeholder="Enter a proposal to be challenged (e.g. 'Cycle lanes should be everywhere')"
+                  required
+                  disabled={challengeSubmitting}
+                  className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
+                />
+                <div className="flex flex-wrap gap-3 items-center">
+                  <select
+                    name="type"
+                    disabled={challengeSubmitting}
+                    className="flex-1 min-w-[140px] px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
+                  >
+                    <option>Public Debate</option>
+                    <option>Interview</option>
+                    <option>Court of Law</option>
+                    <option>Presentation</option>
+                  </select>
+                  <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl text-gray-900">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Personas:</label>
+                    <input
+                      name="n_personas"
+                      type="number"
+                      min="1"
+                      max="8"
+                      defaultValue="3"
+                      disabled={challengeSubmitting}
+                      className="w-12 focus:outline-none font-bold disabled:opacity-60"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={challengeSubmitting}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg w-full sm:w-auto"
+                  >
+                    {challengeSubmitting && <Spinner size="sm" />}
+                    {challengeSubmitting ? "Starting..." : "Start Challenge"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

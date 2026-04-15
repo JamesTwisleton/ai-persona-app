@@ -5,6 +5,12 @@ set -e
 
 echo "Starting AI Focus Groups Backend..."
 
+# Fix Fly Postgres DATABASE_URL scheme (postgres:// -> postgresql://)
+# SQLAlchemy 2.0 requires the 'postgresql' dialect, not the shorthand 'postgres'
+if [ -n "$DATABASE_URL" ]; then
+  export DATABASE_URL="${DATABASE_URL/postgres:\/\//postgresql:\/\/}"
+fi
+
 # Wait for database to be ready
 echo "Waiting for PostgreSQL to be ready..."
 python << END
@@ -14,28 +20,9 @@ import os
 
 db_url = os.getenv("DATABASE_URL", "")
 if db_url.startswith("postgresql"):
-    # Extract connection details from DATABASE_URL
-    # Format: postgresql://user:password@host:port/dbname
-    parts = db_url.replace("postgresql://", "").split("@")
-    user_pass = parts[0].split(":")
-    host_port_db = parts[1].split("/")
-    host_port = host_port_db[0].split(":")
-
-    user = user_pass[0]
-    password = user_pass[1] if len(user_pass) > 1 else ""
-    host = host_port[0]
-    port = host_port[1] if len(host_port) > 1 else "5432"
-    dbname = host_port_db[1]
-
     for i in range(30):
         try:
-            conn = psycopg2.connect(
-                host=host,
-                port=port,
-                user=user,
-                password=password,
-                dbname=dbname
-            )
+            conn = psycopg2.connect(db_url)
             conn.close()
             print("✅ PostgreSQL is ready!")
             break
@@ -131,6 +118,21 @@ try:
             )
             """,
             "CREATE INDEX IF NOT EXISTS ix_page_views_target_id ON page_views(target_id)",
+            # Challenge Mode columns
+            "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_challenge BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS proposal TEXT",
+            "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS challenge_type VARCHAR(50)",
+            "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active'",
+            "ALTER TABLE conversation_participants ADD COLUMN IF NOT EXISTS persuaded_score FLOAT NOT NULL DEFAULT 0.0",
+            # Backfill: make existing challenge personas public so their profiles are viewable
+            """
+            UPDATE personas SET is_public = TRUE
+            WHERE id IN (
+                SELECT cp.persona_id FROM conversation_participants cp
+                JOIN conversations c ON c.id = cp.conversation_id
+                WHERE c.is_challenge = TRUE
+            )
+            """,
             # Clear expired DALL-E avatar URLs so they fall back to initials
             # (New avatars are stored as S3 keys starting with "avatars/")
             """
@@ -150,6 +152,12 @@ except Exception as e:
     traceback.print_exc()
     sys.exit(1)
 END
+
+# Seed preview data (if ENV=preview)
+if [ "$ENV" = "preview" ]; then
+  echo "Seeding preview data..."
+  python -m seed_preview_data
+fi
 
 # Start the application
 echo "Starting FastAPI application..."

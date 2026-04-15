@@ -98,13 +98,23 @@ export interface Conversation {
   max_turns: number;
   is_complete: boolean;
   is_public: boolean;
+  is_challenge?: boolean;
+  proposal?: string | null;
+  challenge_type?: string | null;
+  status?: "active" | "pending";
   forked_from_id: string | null;
   view_count: number;
   upvote_count: number;
   is_owner?: boolean;
   created_at: string;
   messages?: ConversationMessage[];
-  participants?: { persona_id: number; persona_name: string | null; persona_unique_id: string | null; avatar_url?: string | null }[];
+  participants?: {
+    persona_id: number;
+    persona_name: string | null;
+    persona_unique_id: string | null;
+    avatar_url?: string | null;
+    persuaded_score?: number;
+  }[];
 }
 
 export interface ConversationCreateRequest {

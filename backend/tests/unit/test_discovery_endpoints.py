@@ -177,6 +177,24 @@ class TestUpvotePersona:
         response = client.post(f"/p/{public_persona.unique_id}/upvote")
         assert response.status_code == 401
 
+    def test_upvote_count_increments_by_exactly_one(self, client, auth_headers, public_persona):
+        # Initial count is 0
+        assert public_persona.upvote_count == 0
+
+        # First upvote
+        response = client.post(f"/p/{public_persona.unique_id}/upvote", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["upvote_count"] == 1
+        assert data["upvoted"] is True
+
+        # Second upvote (toggle off)
+        response = client.post(f"/p/{public_persona.unique_id}/upvote", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["upvote_count"] == 0
+        assert data["upvoted"] is False
+
 
 # ============================================================================
 # POST /c/{unique_id}/upvote

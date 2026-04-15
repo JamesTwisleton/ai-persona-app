@@ -80,6 +80,7 @@ RUN adduser --disabled-password --gecos '' appuser
 
 # Copy application code
 COPY app ./app
+COPY seed_preview_data.py ./
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /usr/src/app

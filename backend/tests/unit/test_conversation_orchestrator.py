@@ -271,3 +271,53 @@ class TestGenerateTurn:
             orchestrator.generate_turn(
                 conversation=conv, personas=test_personas, history=[], db=db_session
             )
+
+    def test_generate_turn_challenge_mode(self, db_session, test_user, test_personas):
+        from app.services.conversation_orchestrator import ConversationOrchestrator
+        from app.models.conversation import Conversation, ConversationParticipant
+
+        conv = Conversation(
+            topic="Challenge",
+            proposal="Test",
+            is_challenge=True,
+            created_by=test_user.id
+        )
+        db_session.add(conv)
+        db_session.flush()
+
+        for p in test_personas[:1]:
+            db_session.add(ConversationParticipant(
+                conversation_id=conv.id,
+                persona_id=p.id,
+                persuaded_score=0.2
+            ))
+        db_session.commit()
+        db_session.refresh(conv)
+
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text='Response')]
+        mock_llm.client.messages.create.return_value = mock_response
+        mock_llm.model = "test-model"
+
+        # Mock challenge service for persuasion evaluation
+        with patch("app.services.challenge_service.ChallengeService") as mock_challenge_svc_cls:
+            mock_challenge_svc = mock_challenge_svc_cls.return_value
+            mock_challenge_svc.evaluate_persuasion.return_value = {"new_score": 0.3, "reasoning": "Progress."}
+
+            orchestrator = ConversationOrchestrator(
+                llm_service=mock_llm,
+                moderation_service=make_mock_moderator(),
+            )
+
+            history = [{"speaker": "User", "message": "I have proof."}]
+            messages = orchestrator.generate_turn(
+                conversation=conv,
+                personas=[test_personas[0]],
+                history=history,
+                db=db_session,
+            )
+
+            assert len(messages) == 1
+            # Verify score updated
+            assert conv.participants[0].persuaded_score == 0.3
