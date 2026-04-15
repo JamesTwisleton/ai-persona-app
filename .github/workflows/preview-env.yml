@@ -25,6 +25,10 @@ jobs:
     name: Deploy preview
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    outputs:
+      jwt_secret: ${{ steps.gen-secret.outputs.jwt_secret }}
+      be_url: https://persona-pr-${{ github.event.pull_request.number }}-be.fly.dev
+      fe_url: https://persona-pr-${{ github.event.pull_request.number }}-fe.fly.dev
     steps:
       - uses: actions/checkout@v4
 
@@ -54,11 +58,17 @@ jobs:
         run: |
           flyctl postgres attach "$DB_APP" --app "$BE_APP" 2>&1 || true
 
+      - name: Generate JWT secret
+        id: gen-secret
+        run: |
+          SECRET=$(openssl rand -base64 32)
+          echo "jwt_secret=$SECRET" >> "$GITHUB_OUTPUT"
+
       - name: Set backend secrets
         run: |
           flyctl secrets set \
             --app "$BE_APP" \
-            JWT_SECRET="$(openssl rand -base64 32)" \
+            JWT_SECRET="${{ steps.gen-secret.outputs.jwt_secret }}" \
             ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             FRONTEND_URL="https://${FE_APP}.fly.dev" \
@@ -204,6 +214,46 @@ jobs:
                 body,
               });
             }
+
+  smoke-tests:
+    name: Smoke tests (preview)
+    needs: deploy
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: smoke-tests/package-lock.json
+
+      - name: Install dependencies
+        working-directory: smoke-tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: smoke-tests
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke tests
+        working-directory: smoke-tests
+        env:
+          SMOKE_TEST_BASE_URL: ${{ needs.deploy.outputs.fe_url }}
+          SMOKE_TEST_API_URL: ${{ needs.deploy.outputs.be_url }}
+          JWT_SECRET: ${{ needs.deploy.outputs.jwt_secret }}
+          SMOKE_TEST_USER_ID: "1"
+          SMOKE_TEST_ADMIN_USER_ID: "1"
+        run: npx playwright test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-report-pr-${{ github.event.pull_request.number }}
+          path: smoke-tests/playwright-report/
+          retention-days: 7
 
   teardown:
     name: Teardown preview
