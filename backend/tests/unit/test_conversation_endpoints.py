@@ -205,6 +205,46 @@ class TestGetConversation:
 
 
 # ============================================================================
+# PATCH /conversations/{unique_id} - Update Conversation
+# ============================================================================
+
+class TestUpdateConversation:
+    def test_update_conversation_visibility(self, client, auth_headers, test_conversation):
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": False},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_public"] is False
+
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": True},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_public"] is True
+
+    def test_update_conversation_not_found(self, client, auth_headers):
+        response = client.patch(
+            "/conversations/xxxxxx",
+            json={"is_public": False},
+            headers=auth_headers,
+        )
+        assert response.status_code == 404
+
+    def test_update_conversation_requires_auth(self, client, test_conversation):
+        response = client.patch(
+            f"/conversations/{test_conversation.unique_id}",
+            json={"is_public": False},
+        )
+        assert response.status_code == 401
+
+
+# ============================================================================
 # POST /conversations/{unique_id}/continue - Continue Conversation
 # ============================================================================
 
@@ -279,3 +319,27 @@ class TestContinueConversation:
     def test_continue_requires_auth(self, client, test_conversation):
         response = client.post(f"/conversations/{test_conversation.unique_id}/continue")
         assert response.status_code == 401
+
+    def test_inject_user_message_success(self, client, auth_headers, test_conversation, db_session):
+        from app.models.conversation import ConversationMessage
+        response = client.post(
+            f"/conversations/{test_conversation.unique_id}/message",
+            json={"text": "I disagree!"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["message_text"] == "I disagree!"
+        assert data["moderation_status"] == "user"
+
+        # Verify it's in DB
+        msg = db_session.query(ConversationMessage).filter_by(id=data["id"]).first()
+        assert msg is not None
+
+    def test_inject_user_message_not_found(self, client, auth_headers):
+        response = client.post(
+            "/conversations/xxxxxx/message",
+            json={"text": "Hello"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 404

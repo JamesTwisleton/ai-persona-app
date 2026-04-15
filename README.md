@@ -16,7 +16,7 @@ An AI-powered focus group simulator. Create synthetic personas with distinct per
 - [API Reference](#api-reference)
 - [Environment Variables](#environment-variables)
 - [AWS Deployment](#aws-deployment)
-- [CI/CD — Bitbucket Pipelines](#cicd--bitbucket-pipelines)
+- [CI/CD — GitHub Actions](#cicd--github-actions)
 - [Development Commands](#development-commands)
 - [Troubleshooting](#troubleshooting)
 
@@ -68,10 +68,22 @@ This opens the right browser tabs and writes keys directly to `backend/.env`.
 | `ANTHROPIC_API_KEY` | https://console.anthropic.com/settings/keys |
 | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
 
-### 4. Start the app
+### 4. Avatar storage (local)
+
+By default, generated avatars are saved to disk under `./local_avatars/` and served by the backend at `http://localhost:8000/avatars/<filename>`. No S3 credentials needed for local dev.
+
+Add to `backend/.env`:
+
+```
+LOCAL_AVATAR_DIR=./local_avatars
+```
+
+To use S3 instead, leave `LOCAL_AVATAR_DIR` blank and set `S3_AVATAR_BUCKET` (see [Environment Variables](#environment-variables)).
+
+### 5. Start the app
 
 ```bash
-docker-compose --profile frontend up
+docker-compose up
 ```
 
 Open **http://localhost:3000**.
@@ -79,7 +91,7 @@ Open **http://localhost:3000**.
 To rebuild after dependency or Dockerfile changes:
 
 ```bash
-docker-compose --profile frontend up --build
+docker-compose up --build
 ```
 
 ---
@@ -224,7 +236,7 @@ ai-persona-app/
 │   │       ├── image_generation_service.py  # DALL-E → avatar
 │   │       ├── content_moderation_service.py
 │   │       └── conversation_orchestrator.py
-│   ├── tests/                               # 291 tests, 89%+ coverage
+│   ├── tests/                               # 355 tests, 87%+ coverage
 │   ├── docker-entrypoint.sh                 # Runs DB init + idempotent ALTER TABLE migrations
 │   ├── Dockerfile
 │   ├── requirements.txt
@@ -251,10 +263,14 @@ ai-persona-app/
 │       └── lib/                             # api.ts, auth.ts
 │
 ├── terraform/                               # AWS infrastructure (Terraform)
+├── .github/workflows/                       # GitHub Actions CI/CD
+│   ├── python-ci.yml                        # Backend tests + deploy on push to main
+│   ├── nextjs-ci.yml                        # Frontend build + deploy on push to main
+│   ├── python-docker-ecr-ecs.yml            # Manual backend redeploy
+│   └── nextjs-docker-ecr-ecs.yml           # Manual frontend redeploy
 ├── docker-compose.yml                       # Local dev orchestration
 ├── deploy.sh                                # Manual deploy script
-├── setup-keys.sh                            # Interactive API key setup
-└── bitbucket-pipelines.yml                  # CI/CD pipeline
+└── setup-keys.sh                            # Interactive API key setup
 ```
 
 ---
@@ -386,6 +402,10 @@ All variables live in `backend/.env`. Copy from `backend/.env.example` to start.
 | `GOOGLE_REDIRECT_URI` | ✅ | — | `http://localhost:8000/auth/callback/google` (local) or `https://api.personacomposer.app/auth/callback/google` (prod) |
 | `ANTHROPIC_API_KEY` | ✅ | — | Claude API — OCEAN inference, mottos, conversations |
 | `OPENAI_API_KEY` | ✅ | — | DALL-E avatar generation + content moderation |
+| `LOCAL_AVATAR_DIR` | ❌ | — | Path to store avatars locally (e.g. `./local_avatars`). Takes priority over S3. Served at `/avatars/<filename>`. |
+| `BACKEND_URL` | ❌ | `http://localhost:8000` | Base URL of the backend — used to construct local avatar URLs. |
+| `S3_AVATAR_BUCKET` | ❌ | — | S3 bucket name for avatar storage (production). Leave blank when using `LOCAL_AVATAR_DIR`. |
+| `AWS_DEFAULT_REGION` | ❌ | `eu-west-1` | AWS region for S3. Only needed when `S3_AVATAR_BUCKET` is set. |
 | `TOXICITY_THRESHOLD` | ❌ | `0.7` | Moderation sensitivity (0.0–1.0). Set `1.1` to disable. |
 | `FRONTEND_URL` | ❌ | `http://localhost:3000` | CORS origin. Set to `https://personacomposer.app` in prod. |
 | `LOG_LEVEL` | ❌ | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
@@ -543,25 +563,26 @@ cd terraform && terraform destroy
 
 ---
 
-## CI/CD — Bitbucket Pipelines
+## CI/CD — GitHub Actions
 
 ### Behaviour
 
-| Branch | What runs |
+| Trigger | What runs |
 |---|---|
-| Any branch / PR | Backend tests |
-| `main` | Tests → build backend + frontend images in parallel → ECS deploy |
+| Any PR | Backend tests + frontend build |
+| Push to `main` | Tests → build + push images to ECR → ECS rolling deploy → wait for stability → smoke test |
+| Manual (`workflow_dispatch`) | Emergency redeploy (skips tests) |
+
+The deploy job only runs after tests pass. After `aws ecs update-service`, the workflow blocks on `aws ecs wait services-stable` until new tasks are healthy and old tasks are deprovisioned — the workflow fails if this takes more than 10 minutes. A final curl smoke test confirms the live endpoint is responding before the job is marked green.
 
 ### Setup
 
-Go to **Repository settings → Pipelines → Repository variables** and add:
+Go to **GitHub → Settings → Secrets and variables → Actions** and add:
 
-| Variable | Value | Secured |
-|---|---|---|
-| `AWS_ACCESS_KEY_ID` | Your AWS access key | Yes |
-| `AWS_SECRET_ACCESS_KEY` | Your AWS secret key | Yes |
-| `AWS_DEFAULT_REGION` | `us-east-1` | No |
-| `AWS_ACCOUNT_ID` | `912531404540` | No |
+| Secret | Value |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | Your AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | Your AWS secret key |
 
 ### Required IAM permissions
 
@@ -571,6 +592,7 @@ ecr:BatchCheckLayerAvailability
 ecr:InitiateLayerUpload / UploadLayerPart / CompleteLayerUpload / PutImage
 ecs:UpdateService
 ecs:DescribeServices
+ecs:DescribeTasks
 ```
 
 ---
@@ -580,21 +602,21 @@ ecs:DescribeServices
 ### Local
 
 ```bash
-# Start all services
-docker-compose --profile frontend up
+# Start all services (db + backend + frontend)
+docker-compose up
 
 # Rebuild after Dockerfile or dependency changes
-docker-compose --profile frontend up --build
+docker-compose up --build
 
 # View live logs
 docker-compose logs -f backend
 docker-compose logs -f frontend
 
 # Restart backend (picks up .env changes without rebuild)
-docker-compose --profile frontend restart backend
+docker-compose restart backend
 
 # Wipe database and start fresh
-docker-compose --profile frontend down -v && docker-compose --profile frontend up
+docker-compose down -v && docker-compose up
 
 # Shell in backend container
 docker exec -it ai_focus_groups_backend bash
@@ -629,7 +651,7 @@ Open Docker Desktop and wait for it to fully start.
 
 Wipe the stale postgres volume:
 ```bash
-docker-compose --profile frontend down -v && docker-compose --profile frontend up
+docker-compose down -v && docker-compose up
 ```
 
 ---
@@ -638,7 +660,7 @@ docker-compose --profile frontend down -v && docker-compose --profile frontend u
 
 ```bash
 cd frontend && npm install && cd ..
-docker-compose --profile frontend up --build
+docker-compose up --build
 ```
 
 ---
@@ -656,7 +678,7 @@ TOXICITY_THRESHOLD=1.1
 
 Check `ANTHROPIC_API_KEY` is set in `backend/.env`, then:
 ```bash
-docker-compose --profile frontend restart backend
+docker-compose restart backend
 ```
 
 ---
