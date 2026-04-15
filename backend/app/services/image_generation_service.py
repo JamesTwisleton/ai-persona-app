@@ -164,6 +164,7 @@ class ImageGenerationService:
     def _generate_with_banana(self, prompt: str) -> Optional[bytes]:
         """
         Internal method to call the Gemini API for image generation (Nano Banana).
+        Uses generate_content with IMAGE response modality for Gemini flash models.
         Returns the raw image bytes on success, or None on failure.
         """
         if not settings.GEMINI_API_KEY:
@@ -176,18 +177,18 @@ class ImageGenerationService:
 
             client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-            response = client.models.generate_images(
+            response = client.models.generate_content(
                 model=settings.GEMINI_MODEL_ID,
-                prompt=prompt,
-                config=types.GenerateImagesConfig(
-                    negative_prompt="cartoon, illustration, animation, drawing, painting, 3d render, low quality, blurry",
-                    number_of_images=1,
-                    output_mime_type="image/jpeg",
-                )
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["IMAGE", "TEXT"],
+                ),
             )
 
-            if response.generated_images:
-                return response.generated_images[0].image_bytes
+            if response.candidates and response.candidates[0].content.parts:
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data is not None:
+                        return part.inline_data.data
 
             logger.warning(f"Gemini API returned no images: {response}")
             return None

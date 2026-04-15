@@ -213,16 +213,21 @@ class TestGenerateAvatar:
     @patch("app.services.image_generation_service.settings")
     def test_generate_avatar_banana_success(self, mock_settings, mock_genai_client_class):
         mock_settings.GEMINI_API_KEY = "test-api-key"
-        mock_settings.GEMINI_MODEL_ID = "imagen-3.0-generate-001"
+        mock_settings.GEMINI_MODEL_ID = "gemini-2.5-flash-image"
 
-        mock_image = MagicMock()
-        mock_image.image_bytes = base64.b64decode(SAMPLE_B64)
+        mock_part = MagicMock()
+        mock_part.inline_data = MagicMock()
+        mock_part.inline_data.data = base64.b64decode(SAMPLE_B64)
+        mock_part.text = None
+
+        mock_candidate = MagicMock()
+        mock_candidate.content.parts = [mock_part]
 
         mock_response = MagicMock()
-        mock_response.generated_images = [mock_image]
+        mock_response.candidates = [mock_candidate]
 
         mock_client = MagicMock()
-        mock_client.models.generate_images.return_value = mock_response
+        mock_client.models.generate_content.return_value = mock_response
         mock_genai_client_class.return_value = mock_client
 
         from app.services.image_generation_service import ImageGenerationService
@@ -231,7 +236,7 @@ class TestGenerateAvatar:
             result = service.generate_avatar("A portrait", model="nano-banana")
 
         assert result == SAMPLE_AVATAR_KEY
-        mock_client.models.generate_images.assert_called_once()
+        mock_client.models.generate_content.assert_called_once()
 
     @patch("app.services.image_generation_service.settings")
     def test_generate_avatar_banana_missing_config(self, mock_settings):
@@ -254,16 +259,21 @@ class TestGenerateAvatarForPersona:
     @patch("app.services.image_generation_service.settings")
     def test_generate_avatar_for_persona(self, mock_settings, mock_genai_client_class):
         mock_settings.GEMINI_API_KEY = "test-api-key"
-        mock_settings.GEMINI_MODEL_ID = "imagen-3.0-generate-001"
+        mock_settings.GEMINI_MODEL_ID = "gemini-2.5-flash-image"
 
-        mock_image = MagicMock()
-        mock_image.image_bytes = base64.b64decode(SAMPLE_B64)
+        mock_part = MagicMock()
+        mock_part.inline_data = MagicMock()
+        mock_part.inline_data.data = base64.b64decode(SAMPLE_B64)
+        mock_part.text = None
+
+        mock_candidate = MagicMock()
+        mock_candidate.content.parts = [mock_part]
 
         mock_response = MagicMock()
-        mock_response.generated_images = [mock_image]
+        mock_response.candidates = [mock_candidate]
 
         mock_client = MagicMock()
-        mock_client.models.generate_images.return_value = mock_response
+        mock_client.models.generate_content.return_value = mock_response
         mock_genai_client_class.return_value = mock_client
 
         from app.services.image_generation_service import ImageGenerationService
