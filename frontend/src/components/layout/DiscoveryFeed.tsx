@@ -44,10 +44,11 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
   );
 }
 
-function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: boolean }) {
+function PersonaFeedCard({ persona }: { persona: Persona }) {
   return (
     <Link href={`/p/${persona.unique_id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
+        {/* Photo-first: square avatar at top */}
         <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
           {persona.avatar_url ? (
             <Image
@@ -62,8 +63,11 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
               <span className="text-indigo-300 font-bold text-5xl">{persona.name.charAt(0)}</span>
             </div>
           )}
+          {/* Gradient ring effect */}
           <div className="absolute inset-0 rounded-t-xl ring-inset ring-1 ring-black/5" />
         </div>
+
+        {/* Info */}
         <div className="p-3">
           <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate text-sm">
             {persona.name}
@@ -78,7 +82,6 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
                 targetType="persona"
                 uniqueId={persona.unique_id}
                 initialCount={persona.upvote_count}
-                requiresAuth={!loggedIn}
               />
             </div>
           </div>
@@ -88,7 +91,7 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
   );
 }
 
-function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn: boolean }) {
+function ConversationFeedCard({ conv }: { conv: Conversation }) {
   return (
     <Link href={`/c/${conv.unique_id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 hover:shadow-md transition-all">
@@ -108,7 +111,6 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
               targetType="conversation"
               uniqueId={conv.unique_id}
               initialCount={conv.upvote_count}
-              requiresAuth={!loggedIn}
             />
           </div>
         </div>
@@ -118,7 +120,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
 }
 
 export function DiscoveryFeed() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, setLoginModalOpen } = useAuth();
   const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
   const [convSort, setConvSort] = useState<Sort>("hot");
@@ -154,7 +156,7 @@ export function DiscoveryFeed() {
   }, [convSort, loading]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-12">
       {/* Hero / Blurb */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-12 px-4 text-center">
         <div className="flex justify-center mb-4">
@@ -163,32 +165,35 @@ export function DiscoveryFeed() {
           </div>
         </div>
         <h1 className="text-4xl font-bold mb-3">PersonaComposer</h1>
-        <p className="text-indigo-100 max-w-xl mx-auto mb-6">
+        <p className="text-indigo-100 max-w-xl mx-auto mb-6 text-lg">
           Welcome to the discovery feed. Here you can explore public personas and focus group simulations created by the community.
           Use these as inspiration for your own simulations or fork conversations to see how they evolve.
         </p>
-        {!authLoading && !user && (
-          <div className="flex gap-3 justify-center">
-            <Link href="/login">
-              <button className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
-                Sign in with Google
-              </button>
-            </Link>
-          </div>
-        )}
-        {!authLoading && user && (
+
+        {!authLoading && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
             <div className="flex gap-3 justify-center">
-              <Link href="/personas/new">
-                <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
-                  + New Persona
+              {user ? (
+                <>
+                  <Link href="/personas/new">
+                    <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                      + New Persona
+                    </button>
+                  </Link>
+                  <Link href="/conversations/new">
+                    <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                      + New Conversation
+                    </button>
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={() => setLoginModalOpen(true)}
+                  className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors shadow-lg"
+                >
+                  Sign in with Google
                 </button>
-              </Link>
-              <Link href="/conversations/new">
-                <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
-                  + New Conversation
-                </button>
-              </Link>
+              )}
             </div>
 
             <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -196,6 +201,10 @@ export function DiscoveryFeed() {
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
+                  if (!user) {
+                    setLoginModalOpen(true);
+                    return;
+                  }
                   const form = e.target as HTMLFormElement;
                   const proposal = (form.elements.namedItem("proposal") as HTMLInputElement).value;
                   const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
@@ -265,6 +274,7 @@ export function DiscoveryFeed() {
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Personas column */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Personas</h2>
@@ -275,12 +285,13 @@ export function DiscoveryFeed() {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {feed?.personas.map((p) => (
-                    <PersonaFeedCard key={p.unique_id} persona={p} loggedIn={!!user} />
+                    <PersonaFeedCard key={p.unique_id} persona={p} />
                   ))}
                 </div>
               )}
             </div>
 
+            {/* Conversations column */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-gray-700 dark:text-gray-300 text-sm uppercase tracking-wide">Conversations</h2>
@@ -293,7 +304,7 @@ export function DiscoveryFeed() {
               ) : (
                 <div className="space-y-3">
                   {convFeed.map((c) => (
-                    <ConversationFeedCard key={c.unique_id} conv={c} loggedIn={!!user} />
+                    <ConversationFeedCard key={c.unique_id} conv={c} />
                   ))}
                 </div>
               )}
