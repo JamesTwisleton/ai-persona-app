@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { ApiError } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 
 interface UpvoteButtonProps {
   targetType: "persona" | "conversation";
   uniqueId: string;
   initialCount: number;
   initialUpvoted?: boolean;
-  requiresAuth?: boolean;
 }
 
 export function UpvoteButton({
@@ -17,8 +17,8 @@ export function UpvoteButton({
   uniqueId,
   initialCount,
   initialUpvoted = false,
-  requiresAuth = false,
 }: UpvoteButtonProps) {
+  const { user, setLoginModalOpen } = useAuth();
   const [count, setCount] = useState(initialCount);
   const [upvoted, setUpvoted] = useState(initialUpvoted);
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,10 @@ export function UpvoteButton({
   const prefix = targetType === "persona" ? "p" : "c";
 
   const handleClick = async () => {
-    if (requiresAuth) return;
+    if (!user) {
+      setLoginModalOpen(true);
+      return;
+    }
     if (loading) return;
     setLoading(true);
     try {
@@ -48,8 +51,8 @@ export function UpvoteButton({
   return (
     <button
       onClick={handleClick}
-      disabled={loading || requiresAuth}
-      title={requiresAuth ? "Log in to upvote" : upvoted ? "Remove upvote" : "Upvote"}
+      disabled={loading}
+      title={upvoted ? "Remove upvote" : "Upvote"}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
         upvoted
           ? "bg-indigo-600 text-white border-indigo-600"

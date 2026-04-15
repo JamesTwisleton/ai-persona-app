@@ -1,6 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { UpvoteButton } from "../UpvoteButton";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+
+// Mock useAuth
+jest.mock("@/context/AuthContext", () => ({
+  useAuth: jest.fn(),
+}));
 
 // Mock apiFetch
 jest.mock("@/lib/api", () => ({
@@ -17,6 +23,10 @@ describe("UpvoteButton", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 1, email: "test@example.com" },
+      setLoginModalOpen: jest.fn(),
+    });
   });
 
   it("renders the initial count", () => {
