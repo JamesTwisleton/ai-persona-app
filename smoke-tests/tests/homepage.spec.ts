@@ -8,19 +8,20 @@ test.describe("Homepage", () => {
     });
 
     await page.goto("/");
-    await expect(page).toHaveTitle(/Persona Composer/i);
+    await expect(page).toHaveTitle(/PersonaComposer/i);
   });
 
   test("has navigation links", async ({ page }) => {
     await page.goto("/");
-    // Should have a link to explore/discover personas
-    const exploreLink = page.getByRole("link", { name: /explore|discover|browse/i });
-    await expect(exploreLink).toBeVisible();
+    const personasLink = page.getByRole("link", { name: /personas/i });
+    await expect(personasLink).toBeVisible();
+    const conversationsLink = page.getByRole("link", { name: /conversations/i });
+    await expect(conversationsLink).toBeVisible();
   });
 
-  test("has login link when unauthenticated", async ({ page }) => {
+  test("has sign-in option when unauthenticated", async ({ page }) => {
     await page.goto("/");
-    const loginLink = page.getByRole("link", { name: /log\s*in|sign\s*in/i });
-    await expect(loginLink).toBeVisible();
+    const signIn = page.getByRole("link", { name: /sign in/i });
+    await expect(signIn).toBeVisible();
   });
 });

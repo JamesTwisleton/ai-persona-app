@@ -238,6 +238,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run smoke tests
+        id: smoke-test
         working-directory: smoke-tests
         env:
           SMOKE_TEST_BASE_URL: ${{ needs.deploy.outputs.fe_url }}
@@ -254,6 +255,74 @@ jobs:
           name: smoke-test-report-pr-${{ github.event.pull_request.number }}
           path: smoke-tests/playwright-report/
           retention-days: 7
+
+      - name: Comment test results on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+
+            // Determine pass/fail from the exit code of the test step
+            const testOutcome = '${{ steps.smoke-test.outcome }}' || 'unknown';
+            const passed = testOutcome === 'success';
+            const icon = passed ? '✅' : '❌';
+            const status = passed ? 'Passed' : 'Failed';
+
+            // Try to get test summary from playwright output
+            let details = '';
+            try {
+              const output = execSync(
+                'cat smoke-tests/test-results/.last-run.json 2>/dev/null || echo "{}"',
+                { encoding: 'utf-8' }
+              );
+              const lastRun = JSON.parse(output);
+              if (lastRun.status) {
+                details = `\nPlaywright status: \`${lastRun.status}\``;
+              }
+            } catch {}
+
+            const body = [
+              `## ${icon} Smoke Test Results — ${status}`,
+              '',
+              `| | |`,
+              `|---|---|`,
+              `| **Status** | ${status} |`,
+              `| **Frontend** | https://${process.env.FE_APP}.fly.dev |`,
+              `| **Backend** | https://${process.env.BE_APP}.fly.dev |`,
+              details,
+              '',
+              `[View full report](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              '',
+              `Commit: \`${context.sha.slice(0, 7)}\``,
+            ].filter(Boolean).join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## ') && c.body.includes('Smoke Test Results')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
 
   teardown:
     name: Teardown preview

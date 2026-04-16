@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
+import { authHeader } from "../lib/auth";
 
 const apiURL = process.env.SMOKE_TEST_API_URL || "https://api.personacomposer.app";
 
 test.describe("Social features", () => {
   test("public personas include social fields", async ({ request }) => {
-    const res = await request.get(`${apiURL}/personas/public`);
+    const headers = authHeader();
+    const res = await request.get(`${apiURL}/personas/public`, { headers });
     expect(res.status()).toBe(200);
     const personas = await res.json();
 

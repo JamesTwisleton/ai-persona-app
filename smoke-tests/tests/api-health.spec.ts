@@ -10,7 +10,8 @@ test.describe("Backend API endpoints", () => {
   });
 
   test("GET /personas/public returns array", async ({ request }) => {
-    const res = await request.get(`${apiURL}/personas/public`);
+    const headers = authHeader();
+    const res = await request.get(`${apiURL}/personas/public`, { headers });
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
