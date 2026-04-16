@@ -143,7 +143,10 @@ async def startup_event():
     # Preview mode: override auth to return a dummy user without DB lookup.
     # This allows smoke tests to exercise all endpoints without seeding users.
     if settings.ENV == "preview":
-        from app.dependencies import get_current_user, get_current_user_optional
+        from app.dependencies import (
+            get_current_user, get_current_user_optional,
+            get_current_admin, get_current_superuser,
+        )
         from app.models.user import User
 
         dummy_user = User(
@@ -151,18 +154,17 @@ async def startup_event():
             email="smoke-test@preview.local",
             google_id="preview-dummy",
             name="Preview Test User",
-            is_admin=False,
-            is_superuser=False,
+            is_admin=True,
+            is_superuser=True,
         )
 
         async def _dummy_user():
             return dummy_user
 
-        async def _dummy_user_optional():
-            return dummy_user
-
         app.dependency_overrides[get_current_user] = _dummy_user
-        app.dependency_overrides[get_current_user_optional] = _dummy_user_optional
+        app.dependency_overrides[get_current_user_optional] = _dummy_user
+        app.dependency_overrides[get_current_admin] = _dummy_user
+        app.dependency_overrides[get_current_superuser] = _dummy_user
         logger.info("Preview mode: auth dependencies overridden with dummy user")
 
 

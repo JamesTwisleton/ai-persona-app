@@ -21,7 +21,7 @@ test.describe("Homepage", () => {
 
   test("has sign-in option when unauthenticated", async ({ page }) => {
     await page.goto("/");
-    const signIn = page.getByRole("link", { name: /sign in/i });
+    const signIn = page.getByRole("button", { name: /sign in/i });
     await expect(signIn).toBeVisible();
   });
 });
