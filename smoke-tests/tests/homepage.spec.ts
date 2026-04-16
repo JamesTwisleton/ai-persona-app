@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const isPreview = (process.env.SMOKE_TEST_BASE_URL || "").includes("-pr-");
+
 test.describe("Homepage", () => {
   test("loads with expected content", async ({ page }) => {
     const errors: string[] = [];
@@ -20,6 +22,7 @@ test.describe("Homepage", () => {
   });
 
   test("has sign-in option when unauthenticated", async ({ page }) => {
+    test.skip(isPreview, "Preview frontend auto-logins — sign-in button not rendered");
     await page.goto("/");
     const signIn = page.getByRole("button", { name: /sign in/i });
     await expect(signIn).toBeVisible();
