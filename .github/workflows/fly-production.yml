@@ -86,10 +86,51 @@ jobs:
             --retry 5 --retry-delay 5 --retry-connrefused \
             https://personacomposer.app
 
+  smoke-tests:
+    name: Smoke tests
+    runs-on: ubuntu-latest
+    needs: [backend-deploy, frontend-deploy]
+    if: needs.backend-deploy.result == 'success' && needs.frontend-deploy.result == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: smoke-tests/package-lock.json
+
+      - name: Install dependencies
+        working-directory: smoke-tests
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: smoke-tests
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke tests
+        working-directory: smoke-tests
+        env:
+          SMOKE_TEST_BASE_URL: https://personacomposer.app
+          SMOKE_TEST_API_URL: https://api.personacomposer.app
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SMOKE_TEST_USER_ID: ${{ secrets.SMOKE_TEST_USER_ID }}
+          SMOKE_TEST_ADMIN_USER_ID: ${{ secrets.SMOKE_TEST_ADMIN_USER_ID }}
+        run: npx playwright test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-report
+          path: smoke-tests/playwright-report/
+          retention-days: 7
+
   deployment-status:
     name: Update deployment status
     runs-on: ubuntu-latest
-    needs: [backend-deploy, frontend-deploy]
+    needs: [backend-deploy, frontend-deploy, smoke-tests]
     if: always() && vars.DEPLOY_TARGET == 'fly'
 
     steps:
@@ -109,7 +150,8 @@ jobs:
 
             const backendResult = '${{ needs.backend-deploy.result }}';
             const frontendResult = '${{ needs.frontend-deploy.result }}';
-            const allSuccess = backendResult === 'success' && frontendResult === 'success';
+            const smokeResult = '${{ needs.smoke-tests.result }}';
+            const allSuccess = backendResult === 'success' && frontendResult === 'success' && smokeResult === 'success';
 
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
@@ -118,6 +160,6 @@ jobs:
               state: allSuccess ? 'success' : 'failure',
               environment_url: allSuccess ? 'https://personacomposer.app' : undefined,
               description: allSuccess
-                ? 'Deployed to Fly.io'
-                : `Deploy failed (backend: ${backendResult}, frontend: ${frontendResult})`,
+                ? 'Deployed to Fly.io (smoke tests passed)'
+                : `Deploy failed (backend: ${backendResult}, frontend: ${frontendResult}, smoke: ${smokeResult})`,
             });
