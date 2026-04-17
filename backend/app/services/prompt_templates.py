@@ -98,6 +98,7 @@ class ConversationPromptTemplate:
         topic: str,
         history: List[Dict[str, str]],
         description: str = "",
+        reddit_flair: str = "",
     ) -> str:
         attitude_desc = ATTITUDE_DESCRIPTIONS.get(attitude, "speaks plainly")
         personality_traits = self._describe_personality(ocean_scores)
@@ -124,12 +125,14 @@ class ConversationPromptTemplate:
             history_section = "You are opening the discussion.\n\n"
 
         background = f"Your background: {description}\n" if description else ""
+        flair = f"Your Reddit flair: {reddit_flair}\n" if reddit_flair else ""
 
         starters = ", ".join(f'"{s}"' for s in NATURAL_STARTERS)
 
         return (
             f"You are {persona_name}.\n"
             f"{background}"
+            f"{flair}"
             f"Your personality:\n{personality_traits}\n"
             f"Your communication style: {attitude} — {attitude_desc}\n\n"
             f"Topic: {topic}\n\n"

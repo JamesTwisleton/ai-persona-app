@@ -221,6 +221,7 @@ class TestPersonaModerationIntegration:
 
         llm_svc = MagicMock()
         llm_svc.generate_motto.return_value = "Stay curious."
+        llm_svc.generate_reddit_flair.return_value = "Researcher"
         mock_llm_cls.return_value = llm_svc
 
         img_svc = MagicMock()
@@ -256,6 +257,7 @@ class TestPersonaModerationIntegration:
 
         llm_svc = MagicMock()
         llm_svc.generate_motto.return_value = "Be bold."
+        llm_svc.generate_reddit_flair.return_value = "Adventurer"
         mock_llm_cls.return_value = llm_svc
 
         img_svc = MagicMock()

@@ -141,11 +141,13 @@ def create_persona(
         "archetype_affinities": affinities,
     }
     motto = None
+    reddit_flair = None
     try:
         llm_service = LLMService()
         motto = llm_service.generate_motto(persona_details)
+        reddit_flair = llm_service.generate_reddit_flair(description)
     except Exception as e:
-        logger.warning(f"Motto generation failed for '{request.name}': {e}")
+        logger.warning(f"AI text generation (motto/flair) failed for '{request.name}': {e}")
 
     # Step 5: Generate avatar via image generation (non-blocking on failure)
     avatar_url = None
@@ -177,6 +179,7 @@ def create_persona(
         ocean_neuroticism=ocean_scores["neuroticism"],
         archetype_affinities=affinities,
         motto=motto,
+        reddit_flair=reddit_flair,
         avatar_url=avatar_url,
     )
     db.add(persona)

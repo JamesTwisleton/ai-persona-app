@@ -212,6 +212,12 @@ class Persona(Base):
         doc="URL of generated avatar image"
     )
 
+    reddit_flair = Column(
+        String(255),
+        nullable=True,
+        doc="AI-generated Reddit flair"
+    )
+
     # =========================================================================
     # Social / Discovery
     # =========================================================================
@@ -315,6 +321,7 @@ class Persona(Base):
             "ocean_neuroticism": float(self.ocean_neuroticism) if self.ocean_neuroticism is not None else None,
             "archetype_affinities": self.archetype_affinities,
             "motto": self.motto,
+            "reddit_flair": self.reddit_flair,
             "avatar_url": generate_presigned_url(self.avatar_url) if self.avatar_url and self.avatar_url.startswith("avatars/") else self.avatar_url,
             "is_public": self.is_public,
             "view_count": self.view_count,
