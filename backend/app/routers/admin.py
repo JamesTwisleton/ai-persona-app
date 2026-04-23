@@ -123,7 +123,7 @@ def list_users(
         persona_count = (
             db.query(func.count(Persona.id)).filter(Persona.user_id == u.id).scalar()
         )
-        d = u.to_dict()
+        d = u.to_dict(show_private=True)
         d["persona_count"] = persona_count
         result.append(d)
 
@@ -154,7 +154,7 @@ def set_superuser(
     target.is_superuser = body.is_superuser
     db.commit()
     db.refresh(target)
-    return target.to_dict()
+    return target.to_dict(show_private=True)
 
 
 @router.get("/personas")

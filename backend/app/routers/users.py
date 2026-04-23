@@ -12,12 +12,23 @@ Endpoints:
 - GET /users/me - Get current authenticated user's profile
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
+from app.database import get_db
 from app.models.user import User
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+# ============================================================================
+# Request Schemas
+# ============================================================================
+
+class UserUpdate(BaseModel):
+    display_name: str = Field(..., min_length=1, max_length=255)
 
 
 # ============================================================================
@@ -55,6 +66,7 @@ async def get_current_user_profile(
     - Google ID
     - Profile picture URL
     - Account creation timestamp
+    - display_name (user-set)
 
     **Example Response:**
     ```json
@@ -62,6 +74,7 @@ async def get_current_user_profile(
         "id": 1,
         "email": "user@example.com",
         "name": "User Name",
+        "display_name": "FriendlyUser",
         "google_id": "108423082868902273239",
         "picture_url": "https://lh3.googleusercontent.com/...",
         "created_at": "2026-02-01T19:36:26",
@@ -69,7 +82,32 @@ async def get_current_user_profile(
     }
     ```
     """
-    return current_user.to_dict()
+    return current_user.to_dict(show_private=True)
+
+
+# ============================================================================
+# Update User Profile
+# ============================================================================
+
+@router.patch(
+    "/me",
+    summary="Update current user profile",
+    responses={
+        200: {"description": "User profile updated successfully"},
+        401: {"description": "Not authenticated"},
+        400: {"description": "Invalid data"}
+    }
+)
+async def update_current_user_profile(
+    update_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user's display name."""
+    current_user.display_name = update_data.display_name
+    db.commit()
+    db.refresh(current_user)
+    return current_user.to_dict(show_private=True)
 
 
 # ============================================================================

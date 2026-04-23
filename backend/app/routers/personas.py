@@ -85,6 +85,12 @@ def create_persona(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if not current_user.display_name:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must set a display name before creating a persona."
+        )
+
     # Step 1: Moderate content (check description for harmful content)
     description = request.description or f"A person named {request.name}"
     try:

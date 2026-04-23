@@ -177,16 +177,27 @@ export default function Home() {
         </p>
         {!authLoading && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
+            {!user?.display_name && user && (
+              <div className="bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-xl text-sm font-medium">
+                Please set a display name to start creating.
+              </div>
+            )}
             <div className="flex gap-3 justify-center">
               {user ? (
                 <>
-                  <Link href="/personas/new">
-                    <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                  <Link href={user.display_name ? "/personas/new" : "#"}>
+                    <button
+                      disabled={!user.display_name}
+                      className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       + New Persona
                     </button>
                   </Link>
-                  <Link href="/conversations/new">
-                    <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                  <Link href={user.display_name ? "/conversations/new" : "#"}>
+                    <button
+                      disabled={!user.display_name}
+                      className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       + New Conversation
                     </button>
                   </Link>
@@ -261,8 +272,8 @@ export default function Home() {
                   </div>
                   <button
                     type="submit"
-                    disabled={challengeSubmitting}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg w-full sm:w-auto"
+                    disabled={challengeSubmitting || (!!user && !user.display_name)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors shadow-lg w-full sm:w-auto"
                   >
                     {challengeSubmitting && <Spinner size="sm" />}
                     {challengeSubmitting ? "Starting..." : "Start Challenge"}

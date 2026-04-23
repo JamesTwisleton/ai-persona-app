@@ -100,6 +100,12 @@ def create_challenge(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if not current_user.display_name:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must set a display name before creating a challenge."
+        )
+
     # Create the conversation immediately so we can redirect the user right away
     conversation = Conversation(
         topic=f"Challenge: {request.proposal[:100]}",
@@ -143,6 +149,12 @@ def create_conversation(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if not current_user.display_name:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must set a display name before creating a conversation."
+        )
+
     # Fetch all requested personas — allow own personas OR other users' public personas
     from sqlalchemy import or_
     personas = (
@@ -345,7 +357,7 @@ def inject_user_message(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    speaker_name = current_user.name or "You"
+    speaker_name = current_user.display_name or "You"
     msg = ConversationMessage(
         conversation_id=conversation.id,
         persona_id=None,

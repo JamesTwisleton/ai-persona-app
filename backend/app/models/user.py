@@ -73,6 +73,12 @@ class User(Base):
         doc="User's display name from Google (optional)"
     )
 
+    display_name = Column(
+        String(255),
+        nullable=True,
+        doc="User-set name for conversations"
+    )
+
     picture_url = Column(
         String(512),
         nullable=True,
@@ -159,28 +165,38 @@ class User(Base):
         """
         return f"<User(id={self.id}, email='{self.email}')>"
 
-    def to_dict(self) -> dict:
+    def to_dict(self, show_private: bool = False) -> dict:
         """
         Convert user to dictionary (useful for API responses).
 
         Security Note:
-        - Only returns safe, public information
-        - Includes OAuth profile information from Google
+        - Only returns sensitive information if show_private is True.
+        - display_name is always included as the safe public identifier.
+
+        Args:
+            show_private: Whether to include email and Google-provided name.
 
         Returns:
-            dict: User data including OAuth profile fields
+            dict: User data.
         """
-        return {
+        data = {
             "id": self.id,
-            "email": self.email,
-            "google_id": self.google_id,
-            "name": self.name,
+            "display_name": self.display_name,
             "picture_url": self.picture_url,
             "is_admin": self.is_admin,
             "is_superuser": self.is_superuser,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+        if show_private:
+            data.update({
+                "email": self.email,
+                "name": self.name,
+                "google_id": self.google_id,
+            })
+
+        return data
 
 
 # ============================================================================

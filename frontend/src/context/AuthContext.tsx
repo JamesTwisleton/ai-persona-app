@@ -5,6 +5,7 @@ import { User, ApiError } from "@/types";
 import { getToken, setToken, clearToken } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { DisplayNameModal } from "@/components/auth/DisplayNameModal";
 
 interface AuthContextValue {
   user: User | null;
@@ -79,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
       <LoginModal />
+      <DisplayNameModal />
     </AuthContext.Provider>
   );
 }
