@@ -140,6 +140,7 @@ def test_user(db_session):
         email="test@example.com",
         google_id="google_test_user_123",
         name="Test User",
+        display_name="TestUser",
         picture_url="https://example.com/pic.jpg",
     )
     db_session.add(user)
