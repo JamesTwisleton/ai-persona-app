@@ -195,7 +195,7 @@ class ConversationParticipant(Base):
     )
 
     conversation = relationship("Conversation", back_populates="participants")
-    persona = relationship("Persona")
+    persona = relationship("Persona", back_populates="participations")
 
     def to_dict(self) -> Dict[str, Any]:
         return {

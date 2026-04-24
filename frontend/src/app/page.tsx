@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
+import { PersonaPreview } from "@/components/persona/PersonaPreview";
 import { apiFetch } from "@/lib/api";
 import { Persona, Conversation, ApiError } from "@/types";
 
@@ -46,9 +47,35 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
 }
 
 function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: boolean }) {
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
-    <Link href={`/p/${persona.unique_id}`} className="block group">
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
+    <div
+      className="relative"
+      data-testid="persona-card"
+      onMouseEnter={() => setShowPreview(true)}
+      onMouseLeave={() => setShowPreview(false)}
+      onTouchStart={() => setShowPreview(true)}
+    >
+      {/* Hover/Touch Preview Popover */}
+      {showPreview && (
+        <div className="absolute inset-0 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm overflow-y-auto rounded-xl border border-indigo-300 shadow-xl">
+          <div className="sticky top-0 right-0 p-2 flex justify-end">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}
+              className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <PersonaPreview persona={persona} />
+        </div>
+      )}
+
+      <Link href={`/p/${persona.unique_id}`} className="block">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
         {/* Photo-first: square avatar at top */}
         <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
           {persona.avatar_url ? (
@@ -83,12 +110,14 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
                 targetType="persona"
                 uniqueId={persona.unique_id}
                 initialCount={persona.upvote_count}
+                requiresAuth={!loggedIn}
               />
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -112,6 +141,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
               targetType="conversation"
               uniqueId={conv.unique_id}
               initialCount={conv.upvote_count}
+              requiresAuth={!loggedIn}
             />
           </div>
         </div>
@@ -121,7 +151,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
 }
 
 export default function Home() {
-  const { user, isLoading: authLoading, setLoginModalOpen } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
   const [convSort, setConvSort] = useState<Sort>("hot");
@@ -175,30 +205,28 @@ export default function Home() {
         <p className="text-indigo-100 max-w-xl mx-auto mb-6">
           Build AI personas and run focus group simulations. Discover what others have created.
         </p>
-        {!authLoading && (
+        {!authLoading && !user && (
+          <div className="flex gap-3 justify-center">
+            <Link href="/login">
+              <button className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                Sign in with Google
+              </button>
+            </Link>
+          </div>
+        )}
+        {!authLoading && user && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
             <div className="flex gap-3 justify-center">
-              {user ? (
-                <>
-                  <Link href="/personas/new">
-                    <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
-                      + New Persona
-                    </button>
-                  </Link>
-                  <Link href="/conversations/new">
-                    <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
-                      + New Conversation
-                    </button>
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={() => setLoginModalOpen(true)}
-                  className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors shadow-lg"
-                >
-                  Sign in with Google
+              <Link href="/personas/new">
+                <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                  + New Persona
                 </button>
-              )}
+              </Link>
+              <Link href="/conversations/new">
+                <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                  + New Conversation
+                </button>
+              </Link>
             </div>
 
             <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -206,10 +234,6 @@ export default function Home() {
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  if (!user) {
-                    setLoginModalOpen(true);
-                    return;
-                  }
                   const form = e.target as HTMLFormElement;
                   const proposal = (form.elements.namedItem("proposal") as HTMLInputElement).value;
                   const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
@@ -275,7 +299,7 @@ export default function Home() {
       </div>
 
       {/* Feed */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8" data-testid="discovery-feed">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
         ) : (

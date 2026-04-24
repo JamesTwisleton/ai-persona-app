@@ -27,4 +27,21 @@ test.describe("Homepage", () => {
     const signIn = page.getByRole("button", { name: /sign in/i });
     await expect(signIn).toBeVisible();
   });
+
+  test("shows discovery feed content", async ({ page }) => {
+    await page.goto("/");
+
+    // Wait for either onboarding content or discovery feed to appear
+    const onboarding = page.getByText(/welcome|get started|how it works/i);
+    const discoveryFeed = page.locator('[data-testid="discovery-feed"]');
+    const personaCards = page.locator('[data-testid="persona-card"]');
+
+    await expect(onboarding.or(discoveryFeed).or(personaCards).first()).toBeVisible({ timeout: 15000 });
+
+    const hasOnboarding = await onboarding.first().isVisible();
+    const hasDiscoveryFeed = await discoveryFeed.first().isVisible();
+    const hasPersonaCards = await personaCards.count() > 0;
+
+    expect(hasOnboarding || hasDiscoveryFeed || hasPersonaCards).toBeTruthy();
+  });
 });

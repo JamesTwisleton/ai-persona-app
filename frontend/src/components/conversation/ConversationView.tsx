@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Conversation } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Button } from "@/components/ui/Button";
+import { PersuasionTracker } from "./PersuasionTracker";
 
 interface ConversationViewProps {
   conversation: Conversation;
@@ -70,57 +71,7 @@ export function ConversationView({
         )}
 
         {conversation.is_challenge && participants.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Persona Persuasion
-              </h3>
-              <div className="text-xs font-bold">
-                {(() => {
-                  const persuadedCount = participants.filter(p => (p.persuaded_score ?? 0) >= 0.5).length;
-                  const percent = Math.round((persuadedCount / participants.length) * 100);
-                  const isSuccess = percent >= 60;
-                  return (
-                    <span className={isSuccess ? "text-green-600" : "text-red-600"}>
-                      Overall: {percent}% Convinced {isSuccess ? "(Success!)" : ""}
-                    </span>
-                  );
-                })()}
-              </div>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {participants.map((p, i) => {
-                const score = p.persuaded_score ?? 0;
-                const isPersuaded = score >= 0.5;
-                const statusLabel = score >= 0.7 ? "Strongly Persuaded" :
-                                   score >= 0.5 ? "Persuaded" :
-                                   score >= 0.3 ? "Not Persuaded" : "Strongly Against";
-                const card = (
-                  <div className="flex flex-col items-center min-w-[100px]">
-                    <div className={`relative w-12 h-12 rounded-full ring-2 ${isPersuaded ? "ring-green-500" : "ring-red-500"} mb-2`}>
-                      {p.avatar_url ? (
-                        <img src={p.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
-                          {p.persona_name?.charAt(0)}
-                        </div>
-                      )}
-                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${isPersuaded ? "bg-green-500" : "bg-red-500"}`} />
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate w-full text-center">{p.persona_name}</span>
-                    <span className={`text-[9px] font-medium ${isPersuaded ? "text-green-600" : "text-red-600"}`}>{statusLabel}</span>
-                  </div>
-                );
-                return p.persona_unique_id ? (
-                  <Link key={i} href={`/p/${p.persona_unique_id}`} className="hover:opacity-80 transition-opacity">
-                    {card}
-                  </Link>
-                ) : (
-                  <div key={i}>{card}</div>
-                );
-              })}
-            </div>
-          </div>
+          <PersuasionTracker participants={participants} />
         )}
       </div>
 
