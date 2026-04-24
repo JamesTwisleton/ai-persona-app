@@ -25,7 +25,7 @@ export function PersonaPreview({ persona }: PersonaPreviewProps) {
     .slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-4 p-4 min-w-[320px] max-w-sm">
+    <div className="flex flex-col gap-4 p-4 min-w-[320px] max-w-sm persona-preview">
       <div className="space-y-1.5">
         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">About</h4>
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">

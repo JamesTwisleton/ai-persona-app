@@ -24,7 +24,7 @@ const SORT_TABS: { key: Sort; label: string }[] = [
 
 export default function PersonaProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const { user, setLoginModalOpen } = useAuth();
+  const { user } = useAuth();
   const [persona, setPersona] = useState<Persona | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +160,7 @@ export default function PersonaProfilePage() {
                   targetType="persona"
                   uniqueId={persona.unique_id}
                   initialCount={persona.upvote_count}
+                  requiresAuth={!user}
                 />
               </div>
 
@@ -235,12 +236,11 @@ export default function PersonaProfilePage() {
                     </button>
                   </Link>
                 ) : (
-                  <button
-                    onClick={() => setLoginModalOpen(true)}
-                    className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                  >
-                    Start a Conversation
-                  </button>
+                  <Link href="/login">
+                    <button className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                      Log in to start a conversation
+                    </button>
+                  </Link>
                 )}
                 {persona.is_owner && (
                   <>

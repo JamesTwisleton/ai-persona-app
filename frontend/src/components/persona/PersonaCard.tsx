@@ -47,6 +47,7 @@ export function PersonaCard({
 
   const cardContent = (
     <div
+      data-testid="persona-card"
       className={`bg-white dark:bg-gray-800 rounded-xl border overflow-hidden hover:shadow-md transition-all relative ${
         isSelected ? "border-indigo-400 ring-2 ring-indigo-300" : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
       }`}

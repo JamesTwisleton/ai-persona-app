@@ -22,7 +22,7 @@ export function PersuasionTracker({ participants }: PersuasionTrackerProps) {
   const isSuccess = overallPercent >= 60;
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 persuasion-tracker">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Persona Persuasion
@@ -53,7 +53,7 @@ export function PersuasionTracker({ participants }: PersuasionTrackerProps) {
           }
 
           const card = (
-            <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 persona-participant">
               <div className="relative flex-shrink-0 w-10 h-10">
                 {p.avatar_url ? (
                   <img src={p.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />

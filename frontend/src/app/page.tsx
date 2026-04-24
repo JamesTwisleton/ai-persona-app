@@ -52,6 +52,7 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
   return (
     <div
       className="relative"
+      data-testid="persona-card"
       onMouseEnter={() => setShowPreview(true)}
       onMouseLeave={() => setShowPreview(false)}
       onTouchStart={() => setShowPreview(true)}
@@ -109,6 +110,7 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
                 targetType="persona"
                 uniqueId={persona.unique_id}
                 initialCount={persona.upvote_count}
+                requiresAuth={!loggedIn}
               />
             </div>
           </div>
@@ -139,6 +141,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
               targetType="conversation"
               uniqueId={conv.unique_id}
               initialCount={conv.upvote_count}
+              requiresAuth={!loggedIn}
             />
           </div>
         </div>
@@ -148,7 +151,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
 }
 
 export default function Home() {
-  const { user, isLoading: authLoading, setLoginModalOpen } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
   const [convSort, setConvSort] = useState<Sort>("hot");
@@ -202,30 +205,28 @@ export default function Home() {
         <p className="text-indigo-100 max-w-xl mx-auto mb-6">
           Build AI personas and run focus group simulations. Discover what others have created.
         </p>
-        {!authLoading && (
+        {!authLoading && !user && (
+          <div className="flex gap-3 justify-center">
+            <Link href="/login">
+              <button className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                Sign in with Google
+              </button>
+            </Link>
+          </div>
+        )}
+        {!authLoading && user && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
             <div className="flex gap-3 justify-center">
-              {user ? (
-                <>
-                  <Link href="/personas/new">
-                    <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
-                      + New Persona
-                    </button>
-                  </Link>
-                  <Link href="/conversations/new">
-                    <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
-                      + New Conversation
-                    </button>
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={() => setLoginModalOpen(true)}
-                  className="px-6 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors shadow-lg"
-                >
-                  Sign in with Google
+              <Link href="/personas/new">
+                <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                  + New Persona
                 </button>
-              )}
+              </Link>
+              <Link href="/conversations/new">
+                <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                  + New Conversation
+                </button>
+              </Link>
             </div>
 
             <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -233,10 +234,6 @@ export default function Home() {
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  if (!user) {
-                    setLoginModalOpen(true);
-                    return;
-                  }
                   const form = e.target as HTMLFormElement;
                   const proposal = (form.elements.namedItem("proposal") as HTMLInputElement).value;
                   const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
@@ -302,7 +299,7 @@ export default function Home() {
       </div>
 
       {/* Feed */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8" data-testid="discovery-feed">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
         ) : (

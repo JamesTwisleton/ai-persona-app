@@ -15,7 +15,7 @@ import { Conversation, ApiError } from "@/types";
 
 export default function PublicConversationPage() {
   const { id } = useParams<{ id: string }>();
-  const { user, setLoginModalOpen } = useAuth();
+  const { user } = useAuth();
   const [conv, setConv] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,17 +154,26 @@ export default function PublicConversationPage() {
               targetType="conversation"
               uniqueId={conv.unique_id}
               initialCount={conv.upvote_count}
+              requiresAuth={!user}
             />
 
-            <button
-              onClick={() => (user ? setShowFork(true) : setLoginModalOpen(true))}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01" />
-              </svg>
-              Fork
-            </button>
+            {user ? (
+              <button
+                onClick={() => setShowFork(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01" />
+                </svg>
+                Fork
+              </button>
+            ) : (
+              <Link href="/login">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Log in to fork
+                </button>
+              </Link>
+            )}
 
             {conv.is_owner && (
               <button
@@ -198,12 +207,11 @@ export default function PublicConversationPage() {
         {!user && (
           <div className="mt-8 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-5 text-center">
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-3">Want to continue this conversation?</p>
-            <button
-              onClick={() => setLoginModalOpen(true)}
-              className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Sign in to fork
-            </button>
+            <Link href="/login">
+              <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                Sign in to fork
+              </button>
+            </Link>
           </div>
         )}
       </div>
