@@ -21,7 +21,7 @@ This document outlines a systematic, phase-by-phase approach to building the AI 
 | **Phase 2** | ✅ Complete | 100% | 85%+ | 2026-01-31 |
 | Core Backend (FastAPI + Auth) | ✅ | OAuth2, JWT, User CRUD | 28 tests | |
 | **Phase 3A** | ✅ Complete | 100% | 95%+ | 2026-02-01 |
-| OCEAN Trait System | ✅ | Traits, Affinity, Archetypes | 53 tests | Commit: 4e182f4 |
+|  Trait System | ✅ | Traits, Affinity, Archetypes | 53 tests | Commit: 4e182f4 |
 | **Phase 3B** | ✅ Complete | 100% | 85%+ | 2026-03-19 |
 | Database & OCEAN Inference | ✅ | Persona model, CRUD endpoints, compatibility | ~50 tests | |
 | **Phase 4** | ✅ Complete | 100% | 85%+ | 2026-03-19 |
