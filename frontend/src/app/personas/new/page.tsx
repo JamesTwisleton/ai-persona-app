@@ -24,7 +24,6 @@ const ATTITUDE_DESCRIPTIONS: Record<Attitude, string> = {
 function PersonaForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(true);
   const [ageError, setAgeError] = useState<string | null>(null);
@@ -68,26 +67,6 @@ function PersonaForm() {
     // Block non-numeric keys (allow backspace, delete, arrows, tab)
     if (!/[\d]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)) {
       e.preventDefault();
-    }
-  };
-
-  const handleGenerateBackstory = async () => {
-    setError(null);
-    setIsGenerating(true);
-    try {
-      const response = await apiFetch<{ backstory: string }>("/personas/generate-backstory", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-      setForm((prev) => ({ ...prev, description: response.backstory }));
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.detail ?? err.message);
-      } else {
-        setError("Failed to generate backstory.");
-      }
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -138,7 +117,7 @@ function PersonaForm() {
               required
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Alice"
             />
           </div>
@@ -157,7 +136,7 @@ function PersonaForm() {
                 value={form.age ?? ""}
                 onChange={handleChange}
                 onKeyDown={handleAgeKeyDown}
-                className={`w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 ${ageError ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
+                className={`w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ageError ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
                 placeholder="e.g. 35"
               />
               {ageError && <p className="text-xs text-red-500 mt-1">{ageError}</p>}
@@ -172,7 +151,7 @@ function PersonaForm() {
                 type="text"
                 value={form.gender ?? ""}
                 onChange={handleChange}
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="e.g. Female"
               />
             </div>
@@ -180,41 +159,16 @@ function PersonaForm() {
 
           {/* Description */}
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Description / Backstory
-              </label>
-              <button
-                type="button"
-                onClick={handleGenerateBackstory}
-                disabled={isGenerating}
-                className="text-xs font-semibold text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <>
-                    <svg className="animate-spin h-3 w-3 text-teal-600 dark:text-teal-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Generate with AI
-                  </>
-                )}
-              </button>
-            </div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Description / Backstory
+            </label>
             <textarea
               id="description"
               name="description"
               rows={4}
               value={form.description ?? ""}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
               placeholder="Describe this persona's background, job, values, personality…"
             />
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -232,7 +186,7 @@ function PersonaForm() {
               name="attitude"
               value={form.attitude ?? "Neutral"}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {ATTITUDES.map((a) => (
                 <option key={a} value={a}>
@@ -251,7 +205,7 @@ function PersonaForm() {
             <button
               type="button"
               onClick={() => setIsPublic((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-teal-600" : "bg-gray-200 dark:bg-gray-600"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-600"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
             </button>

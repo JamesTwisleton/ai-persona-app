@@ -7,7 +7,7 @@ TDD: These tests are written FIRST. They define expected behavior.
 """
 
 import pytest
-from app.services.prompt_templates import MottoPromptTemplate, ConversationPromptTemplate, BackstoryPromptTemplate
+from app.services.prompt_templates import MottoPromptTemplate, ConversationPromptTemplate
 
 
 SAMPLE_OCEAN = {
@@ -84,6 +84,7 @@ class TestMottoPromptTemplate:
             archetype_affinities=SAMPLE_AFFINITIES,
         )
         assert isinstance(prompt, str)
+        assert len(prompt) > 50
 
     def test_render_neutral_attitude_default(self):
         """Neutral is the default attitude."""
@@ -200,40 +201,3 @@ class TestConversationPromptTemplate:
             history=[],
         )
         assert isinstance(prompt, str)
-
-
-# ============================================================================
-# BackstoryPromptTemplate Tests
-# ============================================================================
-
-class TestBackstoryPromptTemplate:
-    """Tests for backstory generation prompt construction."""
-
-    def test_render_includes_seeds(self):
-        template = BackstoryPromptTemplate()
-        prompt = template.render(
-            name="Elena",
-            age=28,
-            gender="Non-binary",
-            attitude="Sarcastic",
-            description="Loves urban exploring."
-        )
-        assert "Elena" in prompt
-        assert "28" in prompt
-        assert "Non-binary" in prompt
-        assert "Sarcastic" in prompt
-        assert "urban exploring" in prompt
-
-    def test_render_empty_seeds_works(self):
-        template = BackstoryPromptTemplate()
-        prompt = template.render()
-        assert "Generate a fully unique persona" in prompt
-        assert isinstance(prompt, str)
-
-    def test_render_mentions_requirements(self):
-        template = BackstoryPromptTemplate()
-        prompt = template.render()
-        assert "upbringing" in prompt.lower()
-        assert "occupation" in prompt.lower()
-        assert "worldview" in prompt.lower()
-        assert len(prompt) > 50
