@@ -242,14 +242,16 @@ def upvote_persona(
 
     if existing:
         db.delete(existing)
-        db.execute(text("UPDATE personas SET upvote_count = GREATEST(upvote_count - 1, 0) WHERE unique_id = :uid"), {"uid": unique_id})
+        db.execute(text("UPDATE personas SET upvote_count = CASE WHEN upvote_count > 0 THEN upvote_count - 1 ELSE 0 END WHERE unique_id = :uid"), {"uid": unique_id})
         db.commit()
-        return {"upvoted": False, "upvote_count": max(persona.upvote_count - 1, 0)}
+        db.refresh(persona)
+        return {"upvoted": False, "upvote_count": persona.upvote_count}
     else:
         db.add(Upvote(user_id=current_user.id, target_type="persona", target_id=unique_id))
         db.execute(text("UPDATE personas SET upvote_count = upvote_count + 1 WHERE unique_id = :uid"), {"uid": unique_id})
         db.commit()
-        return {"upvoted": True, "upvote_count": persona.upvote_count + 1}
+        db.refresh(persona)
+        return {"upvoted": True, "upvote_count": persona.upvote_count}
 
 
 # ============================================================================
@@ -274,14 +276,16 @@ def upvote_conversation(
 
     if existing:
         db.delete(existing)
-        db.execute(text("UPDATE conversations SET upvote_count = GREATEST(upvote_count - 1, 0) WHERE unique_id = :uid"), {"uid": unique_id})
+        db.execute(text("UPDATE conversations SET upvote_count = CASE WHEN upvote_count > 0 THEN upvote_count - 1 ELSE 0 END WHERE unique_id = :uid"), {"uid": unique_id})
         db.commit()
-        return {"upvoted": False, "upvote_count": max(conv.upvote_count - 1, 0)}
+        db.refresh(conv)
+        return {"upvoted": False, "upvote_count": conv.upvote_count}
     else:
         db.add(Upvote(user_id=current_user.id, target_type="conversation", target_id=unique_id))
         db.execute(text("UPDATE conversations SET upvote_count = upvote_count + 1 WHERE unique_id = :uid"), {"uid": unique_id})
         db.commit()
-        return {"upvoted": True, "upvote_count": conv.upvote_count + 1}
+        db.refresh(conv)
+        return {"upvoted": True, "upvote_count": conv.upvote_count}
 
 
 # ============================================================================

@@ -10,6 +10,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { Persona, Conversation, ApiError } from "@/types";
@@ -32,6 +33,7 @@ export default function PersonaProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   // Conversations featuring this persona
   const [convSort, setConvSort] = useState<Sort>("hot");
@@ -236,11 +238,12 @@ export default function PersonaProfilePage() {
                     </button>
                   </Link>
                 ) : (
-                  <Link href="/login">
-                    <button className="w-full py-3 px-4 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors">
-                      Log in to start a conversation
-                    </button>
-                  </Link>
+                  <button
+                    onClick={() => setLoginModalOpen(true)}
+                    className="w-full py-3 px-4 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors"
+                  >
+                    Start a Conversation
+                  </button>
                 )}
                 {persona.is_owner && (
                   <>
@@ -267,6 +270,11 @@ export default function PersonaProfilePage() {
           </div>
         </div>
       </div>
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
     </>
   );
 }

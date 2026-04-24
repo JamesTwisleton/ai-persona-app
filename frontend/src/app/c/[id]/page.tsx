@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { ForkModal } from "@/components/social/ForkModal";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { MessageBubble } from "@/components/conversation/MessageBubble";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -21,6 +22,7 @@ export default function PublicConversationPage() {
   const [error, setError] = useState<string | null>(null);
   const [showFork, setShowFork] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -168,11 +170,12 @@ export default function PublicConversationPage() {
                 Fork
               </button>
             ) : (
-              <Link href="/login">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:border-teal-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
-                  Log in to fork
-                </button>
-              </Link>
+              <button
+                onClick={() => setLoginModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:border-teal-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+              >
+                Fork Conversation
+              </button>
             )}
 
             {conv.is_owner && (
@@ -207,16 +210,21 @@ export default function PublicConversationPage() {
         {!user && (
           <div className="mt-8 bg-teal-50 dark:bg-teal-900/30 rounded-xl p-5 text-center">
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-3">Want to continue this conversation?</p>
-            <Link href="/login">
-              <button className="px-5 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors">
-                Sign in to fork
-              </button>
-            </Link>
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="px-5 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors"
+            >
+              Sign in to Fork
+            </button>
           </div>
         )}
       </div>
 
       {showFork && <ForkModal conversation={conv} onClose={() => setShowFork(false)} />}
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
     </div>
   );
 }
