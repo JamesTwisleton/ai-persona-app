@@ -27,4 +27,17 @@ test.describe("Homepage", () => {
     const signIn = page.getByRole("button", { name: /sign in/i });
     await expect(signIn).toBeVisible();
   });
+
+  test("shows discovery feed content", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState('networkidle');
+    
+    // Should show either onboarding content or discovery feed
+    const hasOnboarding = await page.locator('text=/welcome|get started|how it works/i').isVisible().catch(() => false);
+    const hasDiscoveryFeed = await page.locator('[data-testid="discovery-feed"], [class*="feed"], [class*="grid"]').isVisible().catch(() => false);
+    const hasPersonaCards = await page.locator('[data-testid="persona-card"], [class*="persona"], [class*="card"]').count() > 0;
+    
+    // Should have some form of content
+    expect(hasOnboarding || hasDiscoveryFeed || hasPersonaCards).toBeTruthy();
+  });
 });
