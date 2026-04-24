@@ -18,6 +18,9 @@ const mockPersona: Persona = {
   archetype_affinities: { ANALYST: 0.85, SOCIALITE: 0.15 },
   motto: "Question everything.",
   avatar_url: "https://api.dicebear.com/7.x/personas/svg?seed=alice",
+  is_public: true,
+  view_count: 0,
+  upvote_count: 0,
   created_at: "2026-01-01T00:00:00",
 };
 

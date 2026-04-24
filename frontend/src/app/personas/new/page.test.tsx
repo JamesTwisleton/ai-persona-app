@@ -38,6 +38,9 @@ const mockCreatedPersona: Persona = {
   archetype_affinities: {},
   motto: null,
   avatar_url: null,
+  is_public: true,
+  view_count: 0,
+  upvote_count: 0,
   created_at: "2026-01-01T00:00:00",
 };
 

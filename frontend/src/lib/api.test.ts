@@ -54,7 +54,9 @@ describe("apiFetch", () => {
     mockFetch(401, { detail: "Not authenticated" }, false);
     const error = await apiFetch("/personas").catch((e) => e);
     expect(error).toBeInstanceOf(ApiError);
-    expect(error.status).toBe(401);
+    if (error instanceof ApiError) {
+      expect(error.status).toBe(401);
+    }
   });
 
   it("throws ApiError with status 404 on not found", async () => {
