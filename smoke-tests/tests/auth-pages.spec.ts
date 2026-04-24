@@ -33,7 +33,7 @@ test.describe("Authenticated pages", () => {
 
   test("user is recognized in navigation", async ({ page }) => {
     await page.goto("/");
-    
+
     // If display name modal appears, fill it out first
     const displayNameModal = page.locator('text=Welcome to PersonaComposer!');
     if (await displayNameModal.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -47,7 +47,7 @@ test.describe("Authenticated pages", () => {
       await submitButton.click();
       await expect(displayNameModal).not.toBeVisible({ timeout: 5000 });
     }
-    
+
     // When authenticated, login link should not be visible
     // and user menu/avatar should appear instead
     const loginLink = page.getByRole("link", { name: /log\s*in|sign\s*in/i });

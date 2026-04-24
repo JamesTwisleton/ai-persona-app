@@ -14,7 +14,7 @@ Environment Variables Required:
 - TESTING: Set to "1" for test mode
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
@@ -22,6 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import logging
+import jwt
 
 # Import version from package
 from app import __version__
@@ -149,23 +150,34 @@ async def startup_event():
         )
         from app.models.user import User
 
-        dummy_user = User(
-            id=0,
-            email="smoke-test@preview.local",
-            google_id="preview-dummy",
-            name="Preview Test User",
-            is_admin=True,
-            is_superuser=True,
-        )
+        async def _dummy_user(request: Request):
+            # Extract sub from JWT if present
+            auth_header = request.headers.get("Authorization")
+            display_name = "Preview Tester"
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+                try:
+                    payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+                    if payload.get("sub") == "smoke-test-no-display":
+                        display_name = None
+                except:
+                    pass
 
-        async def _dummy_user():
-            return dummy_user
+            return User(
+                id=1,
+                email="smoke-test@preview.local",
+                google_id="preview-dummy",
+                name="Preview Test User",
+                display_name=display_name,
+                is_admin=True,
+                is_superuser=True,
+            )
 
         app.dependency_overrides[get_current_user] = _dummy_user
         app.dependency_overrides[get_current_user_optional] = _dummy_user
         app.dependency_overrides[get_current_admin] = _dummy_user
         app.dependency_overrides[get_current_superuser] = _dummy_user
-        logger.info("Preview mode: auth dependencies overridden with dummy user")
+        logger.info("Preview mode: auth dependencies overridden with dynamic dummy user")
 
 
 @app.on_event("shutdown")

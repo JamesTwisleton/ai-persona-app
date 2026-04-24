@@ -42,7 +42,7 @@ export function DisplayNameModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" data-testid="display-name-modal">
+    <div data-testid="display-name-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Welcome to PersonaComposer!
@@ -58,6 +58,7 @@ export function DisplayNameModal() {
             </label>
             <input
               id="display_name"
+              data-testid="display-name-input"
               type="text"
               required
               autoFocus
@@ -75,11 +76,12 @@ export function DisplayNameModal() {
 
           <button
             type="submit"
+            data-testid="display-name-submit"
             disabled={isLoading || !displayName.trim()}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
           >
             {isLoading && <Spinner size="sm" />}
-            {isLoading ? "Saving..." : "Let's Go"}
+            {isLoading ? "Saving..." : "Finish Setup"}
           </button>
         </form>
 

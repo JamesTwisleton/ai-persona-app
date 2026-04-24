@@ -51,14 +51,13 @@ def test_create_challenge_without_display_name_fails(client, auth_headers_no_dis
 
 def test_user_message_uses_display_name(client, auth_headers, test_user, test_conversation_data, db_session):
     # Setup: Create a conversation first
-    # We need a conversation to post a message to.
-    # Using existing fixtures test_user (which has display_name="TestUser" now)
-
     from app.models.conversation import Conversation
+    import secrets
     conv = Conversation(
         topic="Test Conversation",
         created_by=test_user.id,
-        status="active"
+        status="active",
+        unique_id=secrets.token_hex(3)
     )
     db_session.add(conv)
     db_session.commit()
