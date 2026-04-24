@@ -154,7 +154,7 @@ class TestUserModelOAuth:
         """
         RED: Will fail.
 
-        Requirement: to_dict() should include OAuth fields when show_private=True
+        Requirement: to_dict() should include OAuth fields
         """
         from app.models.user import User
 

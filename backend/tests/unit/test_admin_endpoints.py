@@ -23,7 +23,6 @@ def admin_user(db_session):
         email="admin@example.com",
         google_id="google_admin_123",
         name="Admin User",
-        display_name="Admin",
         is_admin=True,
     )
     db_session.add(user)

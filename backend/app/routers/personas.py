@@ -3,14 +3,6 @@ Persona Routes - Phase 3B/4
 
 CRUD endpoints for AI personas with OCEAN personality inference,
 motto generation (Claude), and avatar generation (DALL-E).
-
-Endpoints:
-- POST /personas - Create persona (OCEAN inference → motto → avatar)
-- GET /personas - List current user's personas
-- GET /personas/{unique_id} - Get single persona
-- DELETE /personas/{unique_id} - Delete persona
-- POST /personas/compatibility - Compatibility analysis between personas
-- GET /archetypes - List all personality archetypes
 """
 
 import logging
@@ -37,13 +29,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["personas"])
 
-
-# ============================================================================
-# Request/Response Schemas
-# ============================================================================
-
 VALID_ATTITUDES = {"Neutral", "Sarcastic", "Comical", "Somber", "Confrontational", "Blunt", "Cynical"}
-
 
 class PersonaCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
@@ -61,24 +47,13 @@ class PersonaCreateRequest(BaseModel):
             raise ValueError(f"attitude must be one of: {', '.join(sorted(VALID_ATTITUDES))}")
         return v
 
-
 class CompatibilityRequest(BaseModel):
     persona_ids: List[str] = Field(..., min_length=2)
-
-
-# ============================================================================
-# POST /personas - Create Persona
-# ============================================================================
 
 @router.post(
     "/personas",
     status_code=status.HTTP_201_CREATED,
     summary="Create a new persona",
-    responses={
-        201: {"description": "Persona created successfully"},
-        401: {"description": "Not authenticated"},
-        502: {"description": "OCEAN inference service failed"},
-    },
 )
 def create_persona(
     request: PersonaCreateRequest,
@@ -91,7 +66,7 @@ def create_persona(
             detail="You must set a display name before creating a persona."
         )
 
-    # Step 1: Moderate content (check description for harmful content)
+    # Step 1: Moderate content
     description = request.description or f"A person named {request.name}"
     try:
         mod_service = ContentModerationService()
@@ -114,9 +89,8 @@ def create_persona(
         raise
     except Exception as e:
         logger.warning(f"Content moderation check failed for '{request.name}': {e}")
-        # Fail open — allow creation to proceed if moderation service is unavailable
 
-    # Step 2: Infer OCEAN traits from description
+    # Step 2: Infer OCEAN traits
     try:
         service = OceanInferenceService()
         ocean_scores = service.infer_ocean_traits(description)
@@ -138,7 +112,7 @@ def create_persona(
     calculator = AffinityCalculator(get_all_archetypes())
     affinities = calculator.calculate(persona_vector)
 
-    # Step 4: Generate motto via LLM (non-blocking on failure)
+    # Step 4: Generate motto
     persona_details = {
         "name": request.name,
         "description": description,
@@ -153,7 +127,7 @@ def create_persona(
     except Exception as e:
         logger.warning(f"Motto generation failed for '{request.name}': {e}")
 
-    # Step 5: Generate avatar via image generation (non-blocking on failure)
+    # Step 5: Generate avatar
     avatar_url = None
     try:
         img_service = ImageGenerationService()
@@ -191,146 +165,39 @@ def create_persona(
 
     return persona.to_dict()
 
-
-# ============================================================================
-# GET /personas - List User's Personas
-# ============================================================================
-
-@router.get(
-    "/personas",
-    summary="List your personas",
-    responses={
-        200: {"description": "List of personas"},
-        401: {"description": "Not authenticated"},
-    },
-)
-def list_personas(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    personas = (
-        db.query(Persona)
-        .filter(Persona.user_id == current_user.id)
-        .order_by(Persona.created_at.desc())
-        .all()
-    )
+@router.get("/personas")
+def list_personas(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    personas = db.query(Persona).filter(Persona.user_id == current_user.id).order_by(Persona.created_at.desc()).all()
     return [p.to_dict() for p in personas]
 
-
-# ============================================================================
-# GET /personas/public - List public personas from other users
-# ============================================================================
-
-@router.get(
-    "/personas/public",
-    summary="List public personas (all users)",
-    responses={
-        200: {"description": "List of public personas"},
-        401: {"description": "Not authenticated"},
-    },
-)
-def list_public_personas(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    q: Optional[str] = None,
-):
-    """Return all public personas, excluding the current user's own personas."""
-    query = (
-        db.query(Persona)
-        .filter(Persona.is_public == True, Persona.user_id != current_user.id)
-        .order_by(Persona.upvote_count.desc(), Persona.created_at.desc())
-    )
+@router.get("/personas/public")
+def list_public_personas(current_user: User = Depends(get_current_user), db: Session = Depends(get_db), q: Optional[str] = None):
+    query = db.query(Persona).filter(Persona.is_public == True, Persona.user_id != current_user.id).order_by(Persona.upvote_count.desc(), Persona.created_at.desc())
     if q:
         query = query.filter(Persona.name.ilike(f"%{q}%"))
     personas = query.limit(100).all()
     return [p.to_dict() for p in personas]
 
-
-# ============================================================================
-# GET /personas/{unique_id} - Get Single Persona
-# ============================================================================
-
-@router.get(
-    "/personas/{unique_id}",
-    summary="Get a persona by unique ID",
-    responses={
-        200: {"description": "Persona details"},
-        401: {"description": "Not authenticated"},
-        404: {"description": "Persona not found"},
-    },
-)
-def get_persona(
-    unique_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    persona = (
-        db.query(Persona)
-        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
-        .first()
-    )
+@router.get("/personas/{unique_id}")
+def get_persona(unique_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    persona = db.query(Persona).filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id).first()
     if not persona:
         raise HTTPException(status_code=404, detail="Persona not found")
     return persona.to_dict()
 
-
-# ============================================================================
-# DELETE /personas/{unique_id} - Delete Persona
-# ============================================================================
-
-@router.delete(
-    "/personas/{unique_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a persona",
-    responses={
-        204: {"description": "Persona deleted"},
-        401: {"description": "Not authenticated"},
-        404: {"description": "Persona not found"},
-    },
-)
-def delete_persona(
-    unique_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    persona = (
-        db.query(Persona)
-        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
-        .first()
-    )
+@router.delete("/personas/{unique_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_persona(unique_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    persona = db.query(Persona).filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id).first()
     if not persona:
         raise HTTPException(status_code=404, detail="Persona not found")
     db.delete(persona)
     db.commit()
 
-
-# ============================================================================
-# POST /personas/{unique_id}/regenerate-avatar - Owner regenerates avatar
-# ============================================================================
-
-@router.post(
-    "/personas/{unique_id}/regenerate-avatar",
-    summary="Regenerate avatar for a persona (owner only)",
-    responses={
-        200: {"description": "Avatar regenerated"},
-        401: {"description": "Not authenticated"},
-        403: {"description": "Not the owner"},
-        404: {"description": "Persona not found"},
-    },
-)
-def regenerate_persona_avatar(
-    unique_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    persona = (
-        db.query(Persona)
-        .filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id)
-        .first()
-    )
+@router.post("/personas/{unique_id}/regenerate-avatar")
+def regenerate_persona_avatar(unique_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    persona = db.query(Persona).filter(Persona.unique_id == unique_id, Persona.user_id == current_user.id).first()
     if not persona:
         raise HTTPException(status_code=404, detail="Persona not found")
-
     img_service = ImageGenerationService()
     new_avatar = img_service.generate_avatar_for_persona({
         "name": persona.name,
@@ -339,103 +206,28 @@ def regenerate_persona_avatar(
         "description": persona.description or "",
         "attitude": persona.attitude or "Neutral",
     })
-
     if not new_avatar:
-        raise HTTPException(status_code=500, detail="Avatar generation failed — try again")
-
+        raise HTTPException(status_code=500, detail="Avatar generation failed")
     persona.avatar_url = new_avatar
     db.commit()
     db.refresh(persona)
     return persona.to_dict()
 
-
-# ============================================================================
-# POST /personas/compatibility - Compatibility Analysis
-# ============================================================================
-
-@router.post(
-    "/personas/compatibility",
-    summary="Calculate compatibility between personas",
-    responses={
-        200: {"description": "Compatibility analysis"},
-        401: {"description": "Not authenticated"},
-        404: {"description": "One or more personas not found"},
-    },
-)
-def calculate_compatibility(
-    request: CompatibilityRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    # Fetch all requested personas
-    personas = (
-        db.query(Persona)
-        .filter(
-            Persona.unique_id.in_(request.persona_ids),
-            Persona.user_id == current_user.id,
-        )
-        .all()
-    )
+@router.post("/personas/compatibility")
+def calculate_compatibility(request: CompatibilityRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    personas = db.query(Persona).filter(Persona.unique_id.in_(request.persona_ids), Persona.user_id == current_user.id).all()
     if len(personas) != len(request.persona_ids):
-        found_ids = {p.unique_id for p in personas}
-        missing = [pid for pid in request.persona_ids if pid not in found_ids]
-        raise HTTPException(
-            status_code=404,
-            detail=f"Personas not found: {missing}",
-        )
-
-    # Build personality vectors
-    vectors = []
-    for p in personas:
-        vectors.append(PersonalityVector({
-            "O": p.ocean_openness,
-            "C": p.ocean_conscientiousness,
-            "E": p.ocean_extraversion,
-            "A": p.ocean_agreeableness,
-            "N": p.ocean_neuroticism,
-        }))
-
-    # Calculate pairwise distances
+        raise HTTPException(status_code=404, detail="One or more personas not found")
+    vectors = [PersonalityVector({"O": p.ocean_openness, "C": p.ocean_conscientiousness, "E": p.ocean_extraversion, "A": p.ocean_agreeableness, "N": p.ocean_neuroticism}) for p in personas]
     pairwise = []
     for i in range(len(vectors)):
         for j in range(i + 1, len(vectors)):
             dist = vectors[i].euclidean_distance(vectors[j])
-            pairwise.append({
-                "persona_a": personas[i].unique_id,
-                "persona_b": personas[j].unique_id,
-                "distance": round(float(dist), 4),
-            })
-
-    # Diversity score = mean pairwise distance
+            pairwise.append({"persona_a": personas[i].unique_id, "persona_b": personas[j].unique_id, "distance": round(float(dist), 4)})
     distances = [p["distance"] for p in pairwise]
     diversity_score = sum(distances) / len(distances) if distances else 0.0
+    return {"diversity_score": round(diversity_score, 4), "pairwise_distances": pairwise, "persona_count": len(personas)}
 
-    return {
-        "diversity_score": round(diversity_score, 4),
-        "pairwise_distances": pairwise,
-        "persona_count": len(personas),
-    }
-
-
-# ============================================================================
-# GET /archetypes - List All Archetypes
-# ============================================================================
-
-@router.get(
-    "/archetypes",
-    summary="List all personality archetypes",
-    responses={
-        200: {"description": "List of archetypes"},
-    },
-)
+@router.get("/archetypes")
 def list_archetypes():
-    archetypes = get_all_archetypes()
-    return [
-        {
-            "code": a.code,
-            "name": a.name,
-            "description": a.description,
-            "ocean_vector": a.ocean_vector.to_dict(),
-        }
-        for a in archetypes
-    ]
+    return [{"code": a.code, "name": a.name, "description": a.description, "ocean_vector": a.ocean_vector.to_dict()} for a in get_all_archetypes()]

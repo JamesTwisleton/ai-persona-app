@@ -30,18 +30,6 @@ export async function injectAuth(page: Page, userId?: string): Promise<void> {
     [TOKEN_KEY, token],
   );
   await page.reload();
-
-  // Handle display name modal if it appears
-  const displayNameModal = page.locator('[data-testid="display-name-modal"]');
-  if (await displayNameModal.isVisible({ timeout: 2000 }).catch(() => false)) {
-    const displayNameInput = page.locator('input[id="display_name"]').or(
-      page.locator('input[placeholder*="Alex"]')
-    );
-    await displayNameInput.fill("SmokeTestUser");
-    const submitButton = displayNameModal.locator('button[type="submit"]');
-    await submitButton.click();
-    await displayNameModal.waitFor({ state: 'hidden', timeout: 5000 });
-  }
 }
 
 export function authHeader(userId?: string): Record<string, string> {
