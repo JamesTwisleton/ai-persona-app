@@ -42,7 +42,7 @@ export function DisplayNameModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" data-testid="display-name-modal">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Welcome to PersonaComposer!
