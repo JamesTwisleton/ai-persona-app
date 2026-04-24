@@ -33,9 +33,14 @@ test.describe("Authenticated pages", () => {
 
   test("user is recognized in navigation", async ({ page }) => {
     await page.goto("/");
-    // When authenticated, login link should not be visible
-    // and user menu/avatar should appear instead
+    
+    // When authenticated, login buttons should not be visible
+    // Look for sign in buttons (now uses modal instead of links)
+    const signInButton = page.getByRole("button", { name: /log\s*in|sign\s*in/i });
     const loginLink = page.getByRole("link", { name: /log\s*in|sign\s*in/i });
+    
+    // Neither should be visible when authenticated
+    await expect(signInButton).not.toBeVisible();
     await expect(loginLink).not.toBeVisible();
   });
 });
