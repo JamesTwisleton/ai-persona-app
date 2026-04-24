@@ -30,6 +30,20 @@ export async function injectAuth(page: Page, userId?: string): Promise<void> {
     [TOKEN_KEY, token],
   );
   await page.reload();
+  
+  // Handle display name modal if it appears
+  const displayNameModal = page.locator('text=Welcome to PersonaComposer!');
+  if (await displayNameModal.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const displayNameInput = page.locator('input[id="display_name"]').or(
+      page.locator('input[placeholder*="Alex"]')
+    );
+    await displayNameInput.fill("SmokeTestUser");
+    const submitButton = page.locator('button[type="submit"]').or(
+      page.locator('text=Let\'s Go')
+    );
+    await submitButton.click();
+    await displayNameModal.waitFor({ state: 'hidden', timeout: 5000 });
+  }
 }
 
 export function authHeader(userId?: string): Record<string, string> {
