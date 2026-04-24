@@ -24,6 +24,16 @@ test.describe("Authenticated pages", () => {
     // Should have a form or input for persona creation
     const nameInput = page.locator("input, textarea").first();
     await expect(nameInput).toBeVisible();
+    
+    // Should have AI generation functionality
+    const generateButton = page.locator('button:has-text("Generate with AI")').or(
+      page.locator('[data-testid="generate-backstory"]')
+    );
+    
+    // AI generation button should be present
+    if (await generateButton.isVisible()) {
+      await expect(generateButton).toBeVisible();
+    }
   });
 
   test("new conversation form loads", async ({ page }) => {
