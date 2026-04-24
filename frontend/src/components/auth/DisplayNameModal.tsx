@@ -35,6 +35,7 @@ export function DisplayNameModal() {
         await login(token);
       }
     } catch (err) {
+      console.error("Failed to save display name:", err);
       setError("Failed to save display name. Please try again.");
     } finally {
       setIsLoading(false);
@@ -81,7 +82,7 @@ export function DisplayNameModal() {
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
           >
             {isLoading && <Spinner size="sm" />}
-            {isLoading ? "Saving..." : "Finish Setup"}
+            {isLoading ? "Saving..." : "Let's Go"}
           </button>
         </form>
 
