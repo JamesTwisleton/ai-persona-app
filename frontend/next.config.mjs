@@ -4,12 +4,20 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
         protocol: "https",
         hostname: "api.dicebear.com",
       },
       {
         protocol: "https",
         hostname: "oaidalleapiprodscus.blob.core.windows.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fly.dev",
       },
       {
         protocol: "https",

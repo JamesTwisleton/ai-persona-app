@@ -82,6 +82,26 @@ class Conversation(Base):
         doc="Number of upvotes"
     )
 
+    is_challenge = Column(
+        Boolean, nullable=False, default=False, server_default="false",
+        doc="Whether this is a 'Challenge Mode' conversation"
+    )
+
+    proposal = Column(
+        Text, nullable=True,
+        doc="The proposal being challenged in Challenge Mode"
+    )
+
+    challenge_type = Column(
+        String(50), nullable=True,
+        doc="Type of challenge: Interview, Public Debate, Court of Law, Presentation"
+    )
+
+    status = Column(
+        String(20), nullable=False, default="active", server_default="'active'",
+        doc="'active' (ready) | 'pending' (challenge personas still being generated)"
+    )
+
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(),
         nullable=False, doc="Creation timestamp"
@@ -122,6 +142,10 @@ class Conversation(Base):
             "max_turns": self.max_turns,
             "is_complete": self.is_complete,
             "is_public": self.is_public,
+            "is_challenge": self.is_challenge,
+            "proposal": self.proposal,
+            "challenge_type": self.challenge_type,
+            "status": self.status,
             "forked_from_id": self.forked_from_id,
             "view_count": self.view_count,
             "upvote_count": self.upvote_count,
@@ -137,6 +161,7 @@ class Conversation(Base):
                         if p.persona and p.persona.avatar_url and p.persona.avatar_url.startswith("avatars/")
                         else (p.persona.avatar_url if p.persona else None)
                     ),
+                    "persuaded_score": p.persuaded_score,
                 }
                 for p in self.participants
             ],
@@ -162,6 +187,11 @@ class ConversationParticipant(Base):
     persona_id = Column(
         Integer, ForeignKey("personas.id", ondelete="CASCADE"),
         primary_key=True, nullable=False
+    )
+
+    persuaded_score = Column(
+        Float, nullable=False, default=0.0, server_default="0.0",
+        doc="Current persuasion level [0.0, 1.0]. <0.3=strongly against, <0.5=not persuaded, 0.5+=persuaded, 0.7+=strongly persuaded"
     )
 
     conversation = relationship("Conversation", back_populates="participants")

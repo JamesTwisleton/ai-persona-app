@@ -15,7 +15,7 @@ import { Conversation, ApiError } from "@/types";
 
 export default function PublicConversationPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, setLoginModalOpen } = useAuth();
   const [conv, setConv] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,33 +72,81 @@ export default function PublicConversationPage() {
             )}
           </p>
 
-          {/* Participant avatars */}
-          {conv.participants && conv.participants.length > 0 && (
-            <div className="flex gap-4 mb-4 flex-wrap">
-              {conv.participants.map((p, i) => (
-                <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center gap-1.5 group">
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center ring-2 ring-white dark:ring-gray-700 shadow-md">
-                    {p.avatar_url ? (
-                      <Image
-                        src={p.avatar_url}
-                        alt={p.persona_name ?? ""}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="text-indigo-700 dark:text-indigo-300 font-bold text-xl">
-                        {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium text-center max-w-[72px] truncate">
-                    {p.persona_name}
-                  </span>
-                </Link>
-              ))}
+          {/* Challenge proposal */}
+          {conv.is_challenge && conv.proposal && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 mb-4">
+              <h3 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1">
+                Challenge Proposal {conv.challenge_type ? `(${conv.challenge_type})` : ""}
+              </h3>
+              <p className="text-gray-900 dark:text-white font-medium italic">
+                &ldquo;{conv.proposal}&rdquo;
+              </p>
             </div>
+          )}
+
+          {/* Participant avatars — persuasion tracker for challenges, plain grid otherwise */}
+          {conv.participants && conv.participants.length > 0 && (
+            conv.is_challenge ? (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Persona Persuasion</span>
+                  {(() => {
+                    const persuadedCount = conv.participants!.filter(p => (p.persuaded_score ?? 0) >= 0.5).length;
+                    const percent = Math.round((persuadedCount / conv.participants!.length) * 100);
+                    const isSuccess = percent >= 60;
+                    return (
+                      <span className={`text-xs font-bold ${isSuccess ? "text-green-600" : "text-red-600"}`}>
+                        Overall: {percent}% Convinced {isSuccess ? "(Success!)" : ""}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2">
+                  {conv.participants.map((p, i) => {
+                    const score = p.persuaded_score ?? 0;
+                    const isPersuaded = score >= 0.5;
+                    const statusLabel = score >= 0.7 ? "Strongly Persuaded" :
+                                       score >= 0.5 ? "Persuaded" :
+                                       score >= 0.3 ? "Not Persuaded" : "Strongly Against";
+                    return (
+                      <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center min-w-[100px] hover:opacity-80 transition-opacity">
+                        <div className={`relative w-12 h-12 rounded-full ring-2 ${isPersuaded ? "ring-green-500" : "ring-red-500"} mb-2`}>
+                          {p.avatar_url ? (
+                            <Image src={p.avatar_url} alt={p.persona_name ?? ""} width={48} height={48} className="w-full h-full rounded-full object-cover" unoptimized />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
+                              {p.persona_name?.charAt(0)}
+                            </div>
+                          )}
+                          <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${isPersuaded ? "bg-green-500" : "bg-red-500"}`} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate w-full text-center">{p.persona_name}</span>
+                        <span className={`text-[9px] font-medium ${isPersuaded ? "text-green-600" : "text-red-600"}`}>{statusLabel}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-4 mb-4 flex-wrap">
+                {conv.participants.map((p, i) => (
+                  <Link key={i} href={p.persona_unique_id ? `/p/${p.persona_unique_id}` : "#"} className="flex flex-col items-center gap-1.5 group">
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center ring-2 ring-white dark:ring-gray-700 shadow-md">
+                      {p.avatar_url ? (
+                        <Image src={p.avatar_url} alt={p.persona_name ?? ""} width={64} height={64} className="object-cover w-full h-full" unoptimized />
+                      ) : (
+                        <span className="text-indigo-700 dark:text-indigo-300 font-bold text-xl">
+                          {p.persona_name?.charAt(0).toUpperCase() ?? "?"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium text-center max-w-[72px] truncate">
+                      {p.persona_name}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )
           )}
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -106,26 +154,17 @@ export default function PublicConversationPage() {
               targetType="conversation"
               uniqueId={conv.unique_id}
               initialCount={conv.upvote_count}
-              requiresAuth={!user}
             />
 
-            {user ? (
-              <button
-                onClick={() => setShowFork(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01" />
-                </svg>
-                Fork
-              </button>
-            ) : (
-              <Link href="/login">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Log in to fork
-                </button>
-              </Link>
-            )}
+            <button
+              onClick={() => (user ? setShowFork(true) : setLoginModalOpen(true))}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01" />
+              </svg>
+              Fork
+            </button>
 
             {conv.is_owner && (
               <button
@@ -159,11 +198,12 @@ export default function PublicConversationPage() {
         {!user && (
           <div className="mt-8 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-5 text-center">
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-3">Want to continue this conversation?</p>
-            <Link href="/login">
-              <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                Sign in to fork
-              </button>
-            </Link>
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Sign in to fork
+            </button>
           </div>
         )}
       </div>
