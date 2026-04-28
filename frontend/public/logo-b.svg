@@ -1,29 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <defs>
     <linearGradient id="gradB" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
     </linearGradient>
   </defs>
-
-  <!-- Head silhouette (left-facing profile) -->
-  <path d="M18 7 C12 7 8 12 8 18 C8 22 9.5 25.5 12 28 L12 33 C12 34.1 12.9 35 14 35 L20 35 C21.1 35 22 34.1 22 33 L22 31 C23.3 31 24 30.3 24 29 L24 27 C25.5 26 26 24 26 22 L26 18 C26 12 22 7 18 7 Z" fill="url(#gradB)"/>
-
-  <!-- Speech bubble 1 (right, medium) -->
-  <rect x="28" y="8" width="16" height="10" rx="3" fill="url(#gradB)" opacity="0.85"/>
-  <path d="M30 18 L28 22 L34 18 Z" fill="url(#gradB)" opacity="0.85"/>
-  <!-- Dots inside bubble 1 -->
-  <circle cx="32" cy="13" r="1" fill="white" opacity="0.9"/>
-  <circle cx="36" cy="13" r="1" fill="white" opacity="0.9"/>
-  <circle cx="40" cy="13" r="1" fill="white" opacity="0.9"/>
-
-  <!-- Speech bubble 2 (right, small, lower) -->
-  <rect x="30" y="26" width="13" height="8" rx="2.5" fill="#7c3aed" opacity="0.7"/>
-  <path d="M32 26 L30 22 L36 26 Z" fill="#7c3aed" opacity="0.7"/>
-  <!-- Dots inside bubble 2 -->
-  <circle cx="34" cy="30" r="1" fill="white" opacity="0.9"/>
-  <circle cx="37.5" cy="30" r="1" fill="white" opacity="0.9"/>
-
-  <!-- OCEAN radar pentagon (small, bottom right) -->
-  <polygon points="44,38 41,36 40,39 43,41 46,39" fill="none" stroke="#06b6d4" stroke-width="1" opacity="0.6"/>
+  <path d="M24 8 C18 8 14 13 14 19 C14 24 15.5 27.5 18 30 L18 35 C18 36.1 18.9 37 20 37 L28 37 C29.1 37 30 36.1 30 35 L30 33 C31.3 33 32 32.3 32 31 L32 29 C33.5 28 34 26 34 24 L34 19 C34 13 30 8 24 8 Z" fill="url(#gradB)"/>
+  <path d="M24 16 L28 19 L26.5 24 L21.5 24 L20 19 Z" fill="white" opacity="0.9"/>
 </svg>

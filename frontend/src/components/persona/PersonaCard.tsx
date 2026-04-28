@@ -46,11 +46,11 @@ export function PersonaCard({
   const cardContent = (
     <div
       className={`bg-white dark:bg-gray-800 rounded-xl border overflow-hidden hover:shadow-md transition-all ${
-        isSelected ? "border-indigo-400 ring-2 ring-indigo-300" : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
+        isSelected ? "border-teal-400 ring-2 ring-teal-300" : "border-gray-200 dark:border-gray-700 hover:border-teal-300"
       }`}
     >
       {/* Photo-first: avatar fills top 60% */}
-      <div className="relative w-full aspect-square bg-indigo-50 dark:bg-indigo-950">
+      <div className="relative w-full aspect-square bg-teal-50 dark:bg-teal-950">
         {persona.avatar_url ? (
           <Image
             src={persona.avatar_url}
@@ -61,7 +61,7 @@ export function PersonaCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-indigo-400 font-bold text-6xl">
+            <span className="text-teal-400 font-bold text-6xl">
               {persona.name.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -74,7 +74,7 @@ export function PersonaCard({
           <div className="absolute top-2 left-2">
             <div
               className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                isSelected ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-300"
+                isSelected ? "bg-teal-600 border-teal-600" : "bg-white border-gray-300"
               }`}
             >
               {isSelected && (
@@ -123,7 +123,7 @@ export function PersonaCard({
 
         <div className="flex items-center gap-1.5 mt-2 flex-wrap">
           {topArchetype && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 font-medium">
               {formatArchetype(topArchetype)}
             </span>
           )}

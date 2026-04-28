@@ -91,11 +91,11 @@ function UsersTab({ currentUserId }: { currentUserId: number }) {
               <tr key={u.id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="py-3 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {u.avatar_url ? (
                         <Image src={u.avatar_url} alt={u.name ?? u.email} width={32} height={32} className="object-cover" unoptimized />
                       ) : (
-                        <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{(u.name ?? u.email).charAt(0).toUpperCase()}</span>
+                        <span className="text-teal-700 dark:text-teal-300 font-semibold text-xs">{(u.name ?? u.email).charAt(0).toUpperCase()}</span>
                       )}
                     </div>
                     <span className="font-medium text-gray-900 dark:text-white">{u.name ?? "—"}</span>
@@ -112,7 +112,7 @@ function UsersTab({ currentUserId }: { currentUserId: number }) {
                       <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium">admin</span>
                     )}
                     {u.is_superuser && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-medium">superuser</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 font-medium">superuser</span>
                     )}
                     <button
                       onClick={() => toggleSuperuser(u.id, u.is_superuser)}
@@ -225,7 +225,7 @@ function PersonasTab() {
               }
             }}
             disabled={isRepairing}
-            className="px-3 py-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-40 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/50 disabled:opacity-40 transition-colors"
           >
             {isRepairing ? "Repairing…" : "Repair avatars"}
           </button>
@@ -285,16 +285,16 @@ function PersonasTab() {
                     type="checkbox"
                     checked={selected.has(p.unique_id)}
                     onChange={() => toggleSelect(p.unique_id)}
-                    className="rounded text-indigo-600"
+                    className="rounded text-teal-600"
                   />
                 </td>
                 <td className="py-2 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-900 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {p.avatar_url ? (
                         <Image src={p.avatar_url} alt={p.name} width={28} height={28} className="object-cover" unoptimized />
                       ) : (
-                        <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{p.name.charAt(0)}</span>
+                        <span className="text-teal-700 dark:text-teal-300 font-semibold text-xs">{p.name.charAt(0)}</span>
                       )}
                     </div>
                     <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
@@ -434,7 +434,7 @@ function ConversationsTab() {
                     type="checkbox"
                     checked={selected.has(c.unique_id)}
                     onChange={() => toggleSelect(c.unique_id)}
-                    className="rounded text-indigo-600"
+                    className="rounded text-teal-600"
                   />
                 </td>
                 <td className="py-2 pr-4">
@@ -447,7 +447,7 @@ function ConversationsTab() {
                   {c.is_complete ? (
                     <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">Complete</span>
                   ) : (
-                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">Active</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300">Active</span>
                   )}
                 </td>
                 <td className="py-2 text-gray-500 dark:text-gray-500">{new Date(c.created_at!).toLocaleDateString()}</td>
@@ -514,7 +514,7 @@ function AdminContent() {
               onClick={() => setTab(id)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 tab === id
-                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                  ? "border-teal-600 text-teal-600 dark:text-teal-400"
                   : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >

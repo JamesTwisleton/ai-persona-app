@@ -30,27 +30,41 @@ const mockConversation: Conversation = {
   turn_count: 1,
   max_turns: 20,
   is_complete: false,
+  is_public: true,
+  forked_from_id: null,
+  view_count: 0,
+  upvote_count: 0,
   created_at: "2026-01-01T00:00:00",
   messages: mockMessages,
 };
 
 describe("ConversationView", () => {
   const mockOnContinue = jest.fn();
+  const mockOnSendMessage = jest.fn();
 
   beforeEach(() => {
     mockOnContinue.mockReset();
+    mockOnSendMessage.mockReset();
   });
 
   it("renders the conversation topic", () => {
     render(
-      <ConversationView conversation={mockConversation} onContinue={mockOnContinue} />
+      <ConversationView
+        conversation={mockConversation}
+        onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
+      />
     );
     expect(screen.getByText("Should we colonize Mars?")).toBeInTheDocument();
   });
 
   it("renders all messages", () => {
     render(
-      <ConversationView conversation={mockConversation} onContinue={mockOnContinue} />
+      <ConversationView
+        conversation={mockConversation}
+        onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
+      />
     );
     expect(
       screen.getByText("I think Mars colonization is a great idea.")
@@ -60,14 +74,22 @@ describe("ConversationView", () => {
 
   it("shows turn counter", () => {
     render(
-      <ConversationView conversation={mockConversation} onContinue={mockOnContinue} />
+      <ConversationView
+        conversation={mockConversation}
+        onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
+      />
     );
     expect(screen.getByText(/1\s*\/\s*20/)).toBeInTheDocument();
   });
 
   it("Next Turn button is enabled when not complete", () => {
     render(
-      <ConversationView conversation={mockConversation} onContinue={mockOnContinue} />
+      <ConversationView
+        conversation={mockConversation}
+        onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
+      />
     );
     expect(
       screen.getByRole("button", { name: /next turn/i })
@@ -79,6 +101,7 @@ describe("ConversationView", () => {
       <ConversationView
         conversation={{ ...mockConversation, is_complete: true }}
         onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
       />
     );
     expect(screen.getByRole("button", { name: /next turn/i })).toBeDisabled();
@@ -86,7 +109,11 @@ describe("ConversationView", () => {
 
   it("calls onContinue when Next Turn is clicked", () => {
     render(
-      <ConversationView conversation={mockConversation} onContinue={mockOnContinue} />
+      <ConversationView
+        conversation={mockConversation}
+        onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /next turn/i }));
     expect(mockOnContinue).toHaveBeenCalledTimes(1);
@@ -97,6 +124,7 @@ describe("ConversationView", () => {
       <ConversationView
         conversation={{ ...mockConversation, messages: [] }}
         onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
       />
     );
     expect(screen.getByText(/no messages yet/i)).toBeInTheDocument();
@@ -107,6 +135,7 @@ describe("ConversationView", () => {
       <ConversationView
         conversation={{ ...mockConversation, is_complete: true }}
         onContinue={mockOnContinue}
+        onSendMessage={mockOnSendMessage}
       />
     );
     expect(screen.getByText(/complete/i)).toBeInTheDocument();

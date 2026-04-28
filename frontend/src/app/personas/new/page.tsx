@@ -117,7 +117,7 @@ function PersonaForm() {
               required
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="e.g. Alice"
             />
           </div>
@@ -136,7 +136,7 @@ function PersonaForm() {
                 value={form.age ?? ""}
                 onChange={handleChange}
                 onKeyDown={handleAgeKeyDown}
-                className={`w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ageError ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
+                className={`w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 ${ageError ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
                 placeholder="e.g. 35"
               />
               {ageError && <p className="text-xs text-red-500 mt-1">{ageError}</p>}
@@ -151,7 +151,7 @@ function PersonaForm() {
                 type="text"
                 value={form.gender ?? ""}
                 onChange={handleChange}
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 placeholder="e.g. Female"
               />
             </div>
@@ -168,7 +168,7 @@ function PersonaForm() {
               rows={4}
               value={form.description ?? ""}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-y"
               placeholder="Describe this persona's background, job, values, personality…"
             />
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -186,7 +186,7 @@ function PersonaForm() {
               name="attitude"
               value={form.attitude ?? "Neutral"}
               onChange={handleChange}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               {ATTITUDES.map((a) => (
                 <option key={a} value={a}>
@@ -205,7 +205,7 @@ function PersonaForm() {
             <button
               type="button"
               onClick={() => setIsPublic((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-600"}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-teal-600" : "bg-gray-200 dark:bg-gray-600"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
             </button>
