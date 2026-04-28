@@ -66,6 +66,8 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL_ID: str = "gemini-2.5-flash-image"
     TOXICITY_THRESHOLD: float = 0.7
 
     # ========================================================================

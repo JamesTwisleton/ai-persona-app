@@ -21,7 +21,7 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_MODELS = {"dalle"}
+SUPPORTED_MODELS = {"dalle", "nano-banana"}
 
 FALLBACK_AVATAR_URL = "https://api.dicebear.com/7.x/personas/svg?seed=default-avatar"
 
@@ -38,15 +38,22 @@ def get_s3_client():
     return boto3.client("s3", region_name=settings.AWS_DEFAULT_REGION)
 
 
-def generate_presigned_url(s3_key: str) -> str:
+def generate_presigned_url(s3_key: Optional[str]) -> str:
     """
     Return a displayable URL for an avatar key.
 
+    - If s3_key is already a full URL (http/https), return it.
     - Local mode (LOCAL_AVATAR_DIR set): returns a static URL served by the backend.
     - S3 mode (S3_AVATAR_BUCKET set): returns a presigned S3 URL.
     - Otherwise: returns the fallback DiceBear URL.
     """
-    if not s3_key or not s3_key.startswith("avatars/"):
+    if not s3_key:
+        return FALLBACK_AVATAR_URL
+
+    if s3_key.startswith(("http://", "https://")):
+        return s3_key
+
+    if not s3_key.startswith("avatars/"):
         return FALLBACK_AVATAR_URL
 
     if settings.LOCAL_AVATAR_DIR:
@@ -76,7 +83,7 @@ class ImageGenerationService:
     Use generate_presigned_url() to get a displayable URL from that key.
     """
 
-    def __init__(self, client=None, default_model: str = "dalle"):
+    def __init__(self, client=None, default_model: str = "nano-banana"):
         if client is not None:
             self.client = client
         else:
@@ -115,15 +122,16 @@ class ImageGenerationService:
             f"Casual or semi-professional attire appropriate to their background. "
             f"Cropped tightly from the shoulders up, as if extracted from a larger photo and used as a profile picture. "
             f"No studio lighting. No digital effects. No AI smoothing. No idealized features. "
-            f"Looks like a real person's social media or LinkedIn profile photo. "
+            f"Incredibly realistic display picture that you might find on any social media website. "
             f"Ultra-realistic, candid, human, imperfect. Absolutely not AI-generated looking."
         )
 
         return prompt
 
-    def _store_avatar(self, image_bytes: bytes) -> Optional[str]:
+    def _store_avatar(self, image_bytes: bytes, content_type: str = "image/jpeg") -> Optional[str]:
         """Store image bytes locally or in S3. Returns the avatar key, or None on failure."""
-        avatar_key = f"avatars/{uuid.uuid4().hex}.jpg"
+        ext = ".png" if "png" in content_type else ".jpg"
+        avatar_key = f"avatars/{uuid.uuid4().hex}{ext}"
 
         if settings.LOCAL_AVATAR_DIR:
             try:
@@ -147,14 +155,57 @@ class ImageGenerationService:
                 Bucket=settings.S3_AVATAR_BUCKET,
                 Key=avatar_key,
                 Body=image_bytes,
-                ContentType="image/jpeg",
+                ContentType=content_type,
             )
             return avatar_key
         except ClientError as e:
             logger.warning(f"Failed to upload avatar to S3: {e}")
             return None
 
-    def generate_avatar(self, prompt: str, model: str = "dalle") -> str:
+    def _generate_with_banana(self, prompt: str) -> Optional[tuple[bytes, str]]:
+        """
+        Internal method to call the Gemini API for image generation (Nano Banana).
+        Uses generate_content with IMAGE response modality for Gemini flash models.
+        Returns (image_bytes, mime_type) on success, or None on failure.
+        """
+        if not settings.GEMINI_API_KEY:
+            logger.warning("GEMINI_API_KEY not configured")
+            return None
+
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+            response = client.models.generate_content(
+                model=settings.GEMINI_MODEL_ID,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["IMAGE", "TEXT"],
+                ),
+            )
+
+            if response.candidates and response.candidates[0].content.parts:
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data is not None:
+                        mime_type = part.inline_data.mime_type or "image/png"
+                        data = part.inline_data.data
+                        # google-genai returns base64-encoded data (as str or bytes)
+                        if isinstance(data, (str, bytes)):
+                            try:
+                                data = base64.b64decode(data)
+                            except Exception:
+                                pass  # already raw bytes
+                        return data, mime_type
+
+            logger.warning(f"Gemini API returned no images: {response}")
+            return None
+        except Exception as e:
+            logger.error(f"Gemini API call failed with exception: {str(e)}", exc_info=True)
+            return None
+
+    def generate_avatar(self, prompt: str, model: str = "nano-banana") -> str:
         """
         Generate an avatar image from a text prompt, upload to S3.
 
@@ -166,18 +217,29 @@ class ImageGenerationService:
             raise ValueError(f"Unsupported model: '{model}'. Choose from: {sorted(SUPPORTED_MODELS)}")
 
         try:
-            response = self.client.images.generate(
-                model=DALLE_MODEL,
-                prompt=prompt,
-                n=1,
-                size=DALLE_SIZE,
-                quality=DALLE_QUALITY,
-                response_format="b64_json",
-            )
-            b64_data = response.data[0].b64_json
-            image_bytes = base64.b64decode(b64_data)
+            image_bytes = None
+            content_type = "image/jpeg"
+            if model == "dalle":
+                response = self.client.images.generate(
+                    model=DALLE_MODEL,
+                    prompt=prompt,
+                    n=1,
+                    size=DALLE_SIZE,
+                    quality=DALLE_QUALITY,
+                    response_format="b64_json",
+                )
+                b64_data = response.data[0].b64_json
+                image_bytes = base64.b64decode(b64_data)
+            elif model == "nano-banana":
+                result = self._generate_with_banana(prompt)
+                if result:
+                    image_bytes, content_type = result
 
-            s3_key = self._store_avatar(image_bytes)
+            if not image_bytes:
+                logger.warning(f"Image generation failed for model {model}")
+                return None
+
+            s3_key = self._store_avatar(image_bytes, content_type)
             if s3_key:
                 return s3_key
 

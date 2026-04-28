@@ -18,6 +18,7 @@ An AI-powered focus group simulator. Create synthetic personas with distinct per
 - [AWS Deployment](#aws-deployment)
 - [CI/CD — GitHub Actions](#cicd--github-actions)
 - [Development Commands](#development-commands)
+- [Smoke Tests](#smoke-tests)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -402,6 +403,8 @@ All variables live in `backend/.env`. Copy from `backend/.env.example` to start.
 | `GOOGLE_REDIRECT_URI` | ✅ | — | `http://localhost:8000/auth/callback/google` (local) or `https://api.personacomposer.app/auth/callback/google` (prod) |
 | `ANTHROPIC_API_KEY` | ✅ | — | Claude API — OCEAN inference, mottos, conversations |
 | `OPENAI_API_KEY` | ✅ | — | DALL-E avatar generation + content moderation |
+| `GEMINI_API_KEY` | ✅ | — | Gemini API — nano-banana image generation (default avatar model) |
+| `GEMINI_MODEL_ID` | ❌ | `gemini-2.5-flash-image` | Gemini model for image generation. Only change if switching models. |
 | `LOCAL_AVATAR_DIR` | ❌ | — | Path to store avatars locally (e.g. `./local_avatars`). Takes priority over S3. Served at `/avatars/<filename>`. |
 | `BACKEND_URL` | ❌ | `http://localhost:8000` | Base URL of the backend — used to construct local avatar URLs. |
 | `S3_AVATAR_BUCKET` | ❌ | — | S3 bucket name for avatar storage (production). Leave blank when using `LOCAL_AVATAR_DIR`. |
@@ -633,6 +636,50 @@ docker-compose exec backend pytest --cov=app --cov-report=html
 
 # Single test file
 docker-compose exec backend pytest tests/unit/test_ocean_inference_service.py -v
+```
+
+---
+
+## Smoke Tests
+
+End-to-end smoke tests using [Playwright](https://playwright.dev/) that verify core functionality (homepage, auth pages, API health, admin, social features, etc.).
+
+### Prerequisites
+
+```bash
+cd smoke-tests
+npm install
+npx playwright install chromium
+```
+
+### Run against local
+
+Make sure both the frontend (port 3000) and backend (port 8000) are running (`docker-compose up`), then:
+
+```bash
+cd smoke-tests
+SMOKE_TEST_BASE_URL=http://localhost:3000 SMOKE_TEST_API_URL=http://localhost:8000 npx playwright test
+```
+
+### Run against production
+
+```bash
+cd smoke-tests
+npx playwright test
+```
+
+This uses the default URLs (`https://personacomposer.app` / `https://api.personacomposer.app`).
+
+### Headed mode (watch the browser)
+
+```bash
+SMOKE_TEST_BASE_URL=http://localhost:3000 SMOKE_TEST_API_URL=http://localhost:8000 npx playwright test --headed
+```
+
+### View the HTML report
+
+```bash
+npx playwright show-report
 ```
 
 ---
