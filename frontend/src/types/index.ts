@@ -89,6 +89,9 @@ export interface ConversationMessage {
   moderation_status: "approved" | "flagged" | "user";
   toxicity_score: number | null;
   created_at: string;
+  reply_to_id: number | null;
+  reply_to_persona_name: string | null;
+  reply_to_text: string | null;
 }
 
 export interface Conversation {

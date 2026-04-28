@@ -24,4 +24,4 @@ Ultimately, a persona consists of a pre-prompt that the user will pass to whatev
 ## Teams
 Once personas are constructed, the user can compose a team of personas. The user can opt to select from existing personas and ones they've created.
 
-Maybe you need a project manager, two backend devs, two frontend devs, a delivery manager.
+Maybe you need a project manager, two backend devs, two frontend devs, a delivery manager. 
