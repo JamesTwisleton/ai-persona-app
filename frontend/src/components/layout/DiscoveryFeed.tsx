@@ -5,13 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Navbar } from "@/components/layout/Navbar";
-import { Onboarding } from "@/components/layout/Onboarding";
 import { Spinner } from "@/components/ui/Spinner";
 import { UpvoteButton } from "@/components/social/UpvoteButton";
 import { AvatarGroup } from "@/components/social/AvatarGroup";
 import { apiFetch } from "@/lib/api";
-import { Persona, Conversation, ApiError } from "@/types";
+import { Persona, Conversation } from "@/types";
 
 type Sort = "hot" | "top" | "new";
 
@@ -46,7 +44,7 @@ function SortTabBar({ value, onChange }: { value: Sort; onChange: (s: Sort) => v
   );
 }
 
-function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: boolean }) {
+function PersonaFeedCard({ persona }: { persona: Persona }) {
   return (
     <Link href={`/p/${persona.unique_id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all">
@@ -93,7 +91,7 @@ function PersonaFeedCard({ persona, loggedIn }: { persona: Persona; loggedIn: bo
   );
 }
 
-function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn: boolean }) {
+function ConversationFeedCard({ conv }: { conv: Conversation }) {
   return (
     <Link href={`/c/${conv.unique_id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 hover:shadow-md transition-all">
@@ -121,7 +119,7 @@ function ConversationFeedCard({ conv, loggedIn }: { conv: Conversation; loggedIn
   );
 }
 
-export default function Home() {
+export function DiscoveryFeed() {
   const { user, isLoading: authLoading, setLoginModalOpen } = useAuth();
   const router = useRouter();
   const [personaSort, setPersonaSort] = useState<Sort>("hot");
@@ -132,7 +130,6 @@ export default function Home() {
   const [convLoading, setConvLoading] = useState(false);
   const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
-  // Initial full feed load (hot sort)
   useEffect(() => {
     setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover?sort=${personaSort}`)
@@ -146,10 +143,8 @@ export default function Home() {
         setConvFeed([]);
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaSort]);
 
-  // Separate reload when conversation sort changes (after initial load)
   useEffect(() => {
     if (loading) return;
     setConvLoading(true);
@@ -158,44 +153,23 @@ export default function Home() {
       .then((data: FeedData) => setConvFeed(data.conversations))
       .catch(() => setConvFeed([]))
       .finally(() => setConvLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [convSort]);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
-        <div className="flex items-center justify-center py-32">
-          <Spinner size="lg" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
-        <Onboarding />
-      </div>
-    );
-  }
+  }, [convSort, loading]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-
-      {/* Hero */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-12">
+      {/* Hero / Blurb */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-12 px-4 text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-white/90 rounded-xl p-2 inline-block">
-            <img src="/logo.jpeg" alt="PersonaComposer" className="w-16 h-16 block" />
+            <Image src="/logo.jpeg" alt="PersonaComposer" width={64} height={64} className="block" unoptimized />
           </div>
         </div>
         <h1 className="text-4xl font-bold mb-3">PersonaComposer</h1>
-        <p className="text-indigo-100 max-w-xl mx-auto mb-6">
-          Build AI personas and run focus group simulations. Discover what others have created.
+        <p className="text-indigo-100 max-w-xl mx-auto mb-6 text-lg">
+          Welcome to the discovery feed. Here you can explore public personas and focus group simulations created by the community.
+          Use these as inspiration for your own simulations or fork conversations to see how they evolve.
         </p>
+
         {!authLoading && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
             <div className="flex gap-3 justify-center">
@@ -295,7 +269,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Feed */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
@@ -312,7 +285,7 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {feed?.personas.map((p) => (
-                    <PersonaFeedCard key={p.unique_id} persona={p} loggedIn={!!user} />
+                    <PersonaFeedCard key={p.unique_id} persona={p} />
                   ))}
                 </div>
               )}
@@ -331,7 +304,7 @@ export default function Home() {
               ) : (
                 <div className="space-y-3">
                   {convFeed.map((c) => (
-                    <ConversationFeedCard key={c.unique_id} conv={c} loggedIn={!!user} />
+                    <ConversationFeedCard key={c.unique_id} conv={c} />
                   ))}
                 </div>
               )}
