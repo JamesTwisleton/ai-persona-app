@@ -18,6 +18,7 @@ An AI-powered focus group simulator. Create synthetic personas with distinct per
 - [AWS Deployment](#aws-deployment)
 - [CI/CD — GitHub Actions](#cicd--github-actions)
 - [Development Commands](#development-commands)
+- [Smoke Tests](#smoke-tests)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -633,6 +634,50 @@ docker-compose exec backend pytest --cov=app --cov-report=html
 
 # Single test file
 docker-compose exec backend pytest tests/unit/test_ocean_inference_service.py -v
+```
+
+---
+
+## Smoke Tests
+
+End-to-end smoke tests using [Playwright](https://playwright.dev/) that verify core functionality (homepage, auth pages, API health, admin, social features, etc.).
+
+### Prerequisites
+
+```bash
+cd smoke-tests
+npm install
+npx playwright install chromium
+```
+
+### Run against local
+
+Make sure both the frontend (port 3000) and backend (port 8000) are running (`docker-compose up`), then:
+
+```bash
+cd smoke-tests
+SMOKE_TEST_BASE_URL=http://localhost:3000 SMOKE_TEST_API_URL=http://localhost:8000 npx playwright test
+```
+
+### Run against production
+
+```bash
+cd smoke-tests
+npx playwright test
+```
+
+This uses the default URLs (`https://personacomposer.app` / `https://api.personacomposer.app`).
+
+### Headed mode (watch the browser)
+
+```bash
+SMOKE_TEST_BASE_URL=http://localhost:3000 SMOKE_TEST_API_URL=http://localhost:8000 npx playwright test --headed
+```
+
+### View the HTML report
+
+```bash
+npx playwright show-report
 ```
 
 ---
