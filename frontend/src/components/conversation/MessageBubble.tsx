@@ -65,6 +65,19 @@ export function MessageBubble({ message, avatarUrl }: MessageBubbleProps) {
             </span>
           )}
         </div>
+
+        {/* Reply to Preview */}
+        {message.reply_to_id && (
+          <div className="mb-2 p-2 border-l-4 border-indigo-400 bg-black/5 dark:bg-white/5 rounded-r-md">
+            <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-0.5">
+              {message.reply_to_persona_name}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic">
+              "{message.reply_to_text}"
+            </div>
+          </div>
+        )}
+
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{message.message_text}</p>
       </div>
     </div>

@@ -22,6 +22,7 @@ Usage:
 """
 
 import logging
+import re
 from typing import List, Dict, Any
 
 from app.services.llm_service import LLMService
@@ -60,6 +61,7 @@ class ConversationOrchestrator:
         history: List[Dict[str, str]],
         db,
     ) -> list:
+        topic = conversation.topic
         """
         Generate one full turn — one message from each persona.
 
@@ -85,16 +87,24 @@ class ConversationOrchestrator:
         next_turn = conversation.turn_count + 1
         new_messages = []
 
-        # For challenge mode, evaluate persuasion from previous turn's messages (especially user message)
+        # Work on a copy of history to avoid side effects for the caller
+        history = list(history)
+
+        # Map current history to original message IDs for REPLY_TO linking
+        existing_msgs = db.query(ConversationMessage).filter_by(
+            conversation_id=conversation.id
+        ).order_by(ConversationMessage.turn_number, ConversationMessage.id).all()
+
+        history_ids = [m.id for m in existing_msgs if m.moderation_status in ("approved", "user")]
+
+        # For challenge mode, evaluate persuasion from previous turn's messages
         if conversation.is_challenge and history:
             from app.services.challenge_service import ChallengeService
             challenge_svc = ChallengeService(llm_service=self.llm_service)
 
-            # Find the last message in history
             last_msg = history[-1]
 
             for participant in conversation.participants:
-                # Evaluate how this last message affected this participant
                 eval_res = challenge_svc.evaluate_persuasion(
                     persona_name=participant.persona.name,
                     persona_description=participant.persona.description,
@@ -115,13 +125,23 @@ class ConversationOrchestrator:
             persona_details = self._build_persona_details(persona)
             message_text, toxicity_score, moderation_status = self._generate_safe_message(
                 persona_details=persona_details,
-                history=history,
-                topic=conversation.topic,
+                history=list(history),
+                topic=topic,
                 is_challenge=conversation.is_challenge,
                 proposal=conversation.proposal,
                 challenge_type=conversation.challenge_type,
                 persuaded_score=persuaded_score,
             )
+
+            # Parse REPLY_TO: [index]
+            reply_to_id = None
+            match = re.search(r"^REPLY_TO:\s*\[(\d+)\]", message_text)
+            if match:
+                idx = int(match.group(1)) - 1  # 1-indexed to 0-indexed
+                if 0 <= idx < len(history_ids):
+                    reply_to_id = history_ids[idx]
+                # Strip the prefix
+                message_text = re.sub(r"^REPLY_TO:\s*\[\d+\]\s*", "", message_text).strip()
 
             msg = ConversationMessage(
                 conversation_id=conversation.id,
@@ -131,9 +151,16 @@ class ConversationOrchestrator:
                 turn_number=next_turn,
                 toxicity_score=toxicity_score,
                 moderation_status=moderation_status,
+                reply_to_id=reply_to_id,
             )
             db.add(msg)
+            db.flush()  # Flush to get msg.id
             new_messages.append(msg)
+
+            # Update history and history_ids for subsequent personas in this turn
+            if moderation_status == "approved":
+                history.append({"speaker": persona.name, "message": message_text})
+                history_ids.append(msg.id)
 
             if moderation_status == "flagged":
                 from app.models.moderation import ModerationAuditLog
