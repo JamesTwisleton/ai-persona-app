@@ -14,7 +14,7 @@ Environment Variables Required:
 - TESTING: Set to "1" for test mode
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
@@ -22,6 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import logging
+import jwt
 
 # Import version from package
 from app import __version__
@@ -131,17 +132,18 @@ app.openapi = custom_openapi
 # Startup/Shutdown Events
 # ============================================================================
 
+# Global state for preview mode persistence
+PREVIEW_NAMES = {}
+
 @app.on_event("startup")
 async def startup_event():
     """
     Run on application startup.
-    Future: Initialize database connection pool, load AI models, etc.
     """
     logger.info(f"Starting AI Focus Groups API v{__version__}")
     logger.info(f"Environment: {settings.ENV}")
 
     # Preview mode: override auth to return a dummy user without DB lookup.
-    # This allows smoke tests to exercise all endpoints without seeding users.
     if settings.ENV == "preview":
         from app.dependencies import (
             get_current_user, get_current_user_optional,
@@ -149,30 +151,45 @@ async def startup_event():
         )
         from app.models.user import User
 
-        dummy_user = User(
-            id=0,
-            email="smoke-test@preview.local",
-            google_id="preview-dummy",
-            name="Preview Test User",
-            is_admin=True,
-            is_superuser=True,
-        )
+        async def _dummy_user(request: Request):
+            global PREVIEW_NAMES
 
-        async def _dummy_user():
-            return dummy_user
+            # Extract sub from JWT if present
+            auth_header = request.headers.get("Authorization")
+            sub = "preview-dummy"
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+                try:
+                    payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+                    sub = payload.get("sub", sub)
+                except:
+                    pass
+
+            display_name = PREVIEW_NAMES.get(sub, "Preview Tester")
+            if sub.startswith("smoke-test-no-display") and sub not in PREVIEW_NAMES:
+                display_name = None
+
+            return User(
+                id=abs(hash(sub)) % 1000000,
+                email=f"{sub}@preview.local",
+                google_id=sub,
+                name=f"User {sub}",
+                display_name=display_name,
+                is_admin=True,
+                is_superuser=True,
+            )
 
         app.dependency_overrides[get_current_user] = _dummy_user
         app.dependency_overrides[get_current_user_optional] = _dummy_user
         app.dependency_overrides[get_current_admin] = _dummy_user
         app.dependency_overrides[get_current_superuser] = _dummy_user
-        logger.info("Preview mode: auth dependencies overridden with dummy user")
+        logger.info("Preview mode: auth dependencies overridden with dynamic dummy user")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """
     Run on application shutdown.
-    Future: Close database connections, cleanup resources, etc.
     """
     logger.info("Shutting down AI Focus Groups API")
 

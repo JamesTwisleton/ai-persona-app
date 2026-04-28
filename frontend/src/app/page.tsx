@@ -131,6 +131,8 @@ export default function Home() {
   const [convLoading, setConvLoading] = useState(false);
   const [challengeSubmitting, setChallengeSubmitting] = useState(false);
 
+  const hasDisplayName = !!user?.display_name;
+
   // Initial full feed load (hot sort)
   useEffect(() => {
     setLoading(true);
@@ -177,16 +179,29 @@ export default function Home() {
         </p>
         {!authLoading && (
           <div className="flex flex-col items-center gap-6 max-w-2xl mx-auto">
+            {user && !hasDisplayName && (
+              <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded shadow-sm text-left w-full">
+                <p className="font-bold">Alias Required</p>
+                <p className="text-sm">Please set an alias (display name) to start creating personas or conversations. Refresh the page if you just signed in.</p>
+              </div>
+            )}
+
             <div className="flex gap-3 justify-center">
               {user ? (
                 <>
-                  <Link href="/personas/new">
-                    <button className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors">
+                  <Link href={hasDisplayName ? "/personas/new" : "#"}>
+                    <button
+                      disabled={!hasDisplayName}
+                      className="px-5 py-2.5 bg-white text-indigo-700 font-semibold rounded-full hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       + New Persona
                     </button>
                   </Link>
-                  <Link href="/conversations/new">
-                    <button className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30">
+                  <Link href={hasDisplayName ? "/conversations/new" : "#"}>
+                    <button
+                      disabled={!hasDisplayName}
+                      className="px-5 py-2.5 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-400 transition-colors border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       + New Conversation
                     </button>
                   </Link>
@@ -210,6 +225,8 @@ export default function Home() {
                     setLoginModalOpen(true);
                     return;
                   }
+                  if (!hasDisplayName) return;
+
                   const form = e.target as HTMLFormElement;
                   const proposal = (form.elements.namedItem("proposal") as HTMLInputElement).value;
                   const challengeType = (form.elements.namedItem("type") as HTMLSelectElement).value;
@@ -233,13 +250,13 @@ export default function Home() {
                   name="proposal"
                   placeholder="Enter a proposal to be challenged (e.g. 'Cycle lanes should be everywhere')"
                   required
-                  disabled={challengeSubmitting}
+                  disabled={challengeSubmitting || (user && !hasDisplayName)}
                   className="px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
                 />
                 <div className="flex flex-wrap gap-3 items-center">
                   <select
                     name="type"
-                    disabled={challengeSubmitting}
+                    disabled={challengeSubmitting || (user && !hasDisplayName)}
                     className="flex-1 min-w-[140px] px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-60"
                   >
                     <option>Public Debate</option>
@@ -255,13 +272,13 @@ export default function Home() {
                       min="1"
                       max="8"
                       defaultValue="3"
-                      disabled={challengeSubmitting}
+                      disabled={challengeSubmitting || (user && !hasDisplayName)}
                       className="w-12 focus:outline-none font-bold disabled:opacity-60"
                     />
                   </div>
                   <button
                     type="submit"
-                    disabled={challengeSubmitting}
+                    disabled={challengeSubmitting || (user && !hasDisplayName)}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-70 text-white font-bold rounded-xl transition-colors shadow-lg w-full sm:w-auto"
                   >
                     {challengeSubmitting && <Spinner size="sm" />}

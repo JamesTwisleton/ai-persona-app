@@ -5,6 +5,7 @@ import { User, ApiError } from "@/types";
 import { getToken, setToken, clearToken } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { DisplayNameModal } from "@/components/auth/DisplayNameModal";
 
 interface AuthContextValue {
   user: User | null;
@@ -23,13 +24,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const [isDisplayNameModalOpen, setDisplayNameModalOpen] = useState(false);
 
   useEffect(() => {
     const storedToken = getToken();
     if (storedToken) {
       setTokenState(storedToken);
       apiFetch<User>("/users/me")
-        .then((u) => setUser(u))
+        .then((u) => {
+          setUser(u);
+          if (!u.display_name) {
+            setDisplayNameModalOpen(true);
+          }
+        })
         .catch((err: ApiError) => {
           if (err.status === 401) {
             clearToken();
@@ -57,12 +64,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTokenState(newToken);
     const u = await apiFetch<User>("/users/me");
     setUser(u);
+    if (!u.display_name) {
+      setDisplayNameModalOpen(true);
+    }
   };
 
   const logout = () => {
     clearToken();
     setTokenState(null);
     setUser(null);
+    setDisplayNameModalOpen(false);
+  };
+
+  const handleDisplayNameSuccess = (updatedUser: User) => {
+    setUser(updatedUser);
+    setDisplayNameModalOpen(false);
   };
 
   return (
@@ -79,6 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
       <LoginModal />
+      <DisplayNameModal
+        isOpen={isDisplayNameModalOpen}
+        onSuccess={handleDisplayNameSuccess}
+      />
     </AuthContext.Provider>
   );
 }

@@ -2,20 +2,6 @@
 User Model
 
 Database model for user accounts and authentication via Google OAuth.
-
-This model was implemented following TDD:
-1. RED: Tests written first in tests/unit/test_user_model_oauth.py
-2. GREEN: This implementation makes those tests pass
-3. REFACTOR: Can now improve while keeping tests green
-
-Fields:
-- id: Primary key (auto-increment)
-- email: User email (unique, lowercase, required)
-- google_id: Google OAuth unique identifier (unique, required)
-- name: User's display name from Google (optional)
-- picture_url: Profile picture URL from Google (optional)
-- created_at: Account creation timestamp
-- updated_at: Last modification timestamp
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, event
@@ -27,21 +13,9 @@ from datetime import datetime
 class User(Base):
     """
     User account model for Google OAuth authentication and profile management.
-
-    Authentication:
-    - Uses Google OAuth 2.0 for authentication
-    - No password storage - authentication handled by Google
-    - google_id is the unique identifier from Google OAuth
-
-    Security Note:
-    - Email is normalized to lowercase for consistent lookups
     """
 
     __tablename__ = "users"
-
-    # ========================================================================
-    # Columns
-    # ========================================================================
 
     id = Column(
         Integer,
@@ -64,19 +38,25 @@ class User(Base):
         unique=True,
         nullable=False,
         index=True,
-        doc="Google OAuth unique identifier (e.g., 'google_oauth2|123456789')"
+        doc="Google OAuth unique identifier"
     )
 
     name = Column(
         String(255),
         nullable=True,
-        doc="User's display name from Google (optional)"
+        doc="User's real name from Google"
+    )
+
+    display_name = Column(
+        String(255),
+        nullable=True,
+        doc="User-set name for conversations"
     )
 
     picture_url = Column(
         String(512),
         nullable=True,
-        doc="Profile picture URL from Google (optional)"
+        doc="Profile picture URL from Google"
     )
 
     is_admin = Column(
@@ -92,7 +72,7 @@ class User(Base):
         nullable=False,
         default=False,
         server_default="false",
-        doc="Whether this user can delete any content (site owner)"
+        doc="Whether this user can delete any content"
     )
 
     created_at = Column(
@@ -110,71 +90,25 @@ class User(Base):
         doc="Last account modification timestamp"
     )
 
-    # ========================================================================
-    # Relationships (Phase 3+)
-    # ========================================================================
-
-    # Phase 3B: Persona relationship
     personas = relationship("Persona", back_populates="user", cascade="all, delete-orphan")
-
-    # Will be added in Phase 7 when Conversation model is created:
-    # conversations = relationship("Conversation", back_populates="creator")
-
-    # ========================================================================
-    # Validators
-    # ========================================================================
 
     @validates('email')
     def normalize_email(self, key, email):
-        """
-        Normalize email to lowercase for consistent storage and lookups.
-
-        Args:
-            key: Column name (email)
-            email: Email address to normalize
-
-        Returns:
-            str: Lowercase email address
-
-        Example:
-            User(email="Test@EXAMPLE.com") -> stores as "test@example.com"
-        """
         if email:
             return email.lower().strip()
         return email
 
-    # ========================================================================
-    # Methods
-    # ========================================================================
-
     def __repr__(self) -> str:
-        """
-        String representation of User for debugging.
-
-        Returns:
-            str: User representation showing ID and email
-
-        Example:
-            <User(id=1, email='user@example.com')>
-        """
         return f"<User(id={self.id}, email='{self.email}')>"
 
-    def to_dict(self) -> dict:
+    def to_dict(self, show_private: bool = False) -> dict:
         """
-        Convert user to dictionary (useful for API responses).
-
-        Security Note:
-        - Only returns safe, public information
-        - Includes OAuth profile information from Google
-
-        Returns:
-            dict: User data including OAuth profile fields
+        Convert user to dictionary.
+        Safe for public views by default.
         """
-        return {
+        data = {
             "id": self.id,
-            "email": self.email,
-            "google_id": self.google_id,
-            "name": self.name,
+            "display_name": self.display_name,
             "picture_url": self.picture_url,
             "is_admin": self.is_admin,
             "is_superuser": self.is_superuser,
@@ -182,37 +116,16 @@ class User(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
+        if show_private:
+            data.update({
+                "email": self.email,
+                "name": self.name,
+                "google_id": self.google_id,
+            })
 
-# ============================================================================
-# SQLAlchemy Event Listeners
-# ============================================================================
+        return data
+
 
 @event.listens_for(User, 'before_update')
 def receive_before_update(mapper, connection, target):
-    """
-    Ensure updated_at is set when user is modified.
-
-    This is a backup for the onupdate=func.now() which may not
-    work in all database backends.
-    """
     target.updated_at = datetime.utcnow()
-
-
-# ============================================================================
-# TDD Status: GREEN Phase (OAuth)
-# ============================================================================
-#
-# This implementation makes all tests in test_user_model_oauth.py pass!
-#
-# Run: pytest tests/unit/test_user_model_oauth.py -v
-#
-# All OAuth tests should now PASS (GREEN state) ✅
-#
-# Changes from password-based auth:
-# - Removed: password_hash field
-# - Added: google_id (unique identifier from Google OAuth)
-# - Added: name (user's display name from Google)
-# - Added: picture_url (profile picture URL from Google)
-#
-# Next: Implement OAuth callback endpoint and JWT session tokens
-# ============================================================================
