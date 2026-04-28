@@ -117,9 +117,9 @@ class ConversationPromptTemplate:
                 )
 
         if history:
-            lines = [f"{msg['speaker']}: {msg['message']}" for msg in history]
+            lines = [f"[{i+1}] {msg['speaker']}: {msg['message']}" for i, msg in enumerate(history)]
             history_text = "\n".join(lines)
-            history_section = f"Conversation so far:\n{history_text}\n\n"
+            history_section = f"Conversation so far (use [index] to reply):\n{history_text}\n\n"
         else:
             history_section = "You are opening the discussion.\n\n"
 
@@ -143,7 +143,10 @@ class ConversationPromptTemplate:
             f"5. Do not repeat points already made. If you agree, say so in one clause then move on.\n"
             f"6. If someone said something wrong or naive, call it out directly.\n"
             f"7. Keep it to 2-3 sentences. Be dense, not verbose.\n"
-            f"8. Sound like a real human, not a panel discussion moderator. No filler phrases.\n\n"
+            f"8. Sound like a real human, not a panel discussion moderator. No filler phrases.\n"
+            f"9. Be aware of the developing tone of the conversation and respond accordingly.\n"
+            f"10. Track who you have spoken to. Use direct quotes when appropriate.\n"
+            f"11. If you are responding to a specific message, start your response with 'REPLY_TO: [index]'. Example: 'REPLY_TO: [1] I disagree because...'\n\n"
             f"Respond now as {persona_name}:"
         )
 

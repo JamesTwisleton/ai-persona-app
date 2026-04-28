@@ -133,6 +133,8 @@ try:
                 WHERE c.is_challenge = TRUE
             )
             """,
+            # Reply-to threading for conversation messages
+            "ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER REFERENCES conversation_messages(id)",
             # Clear expired DALL-E avatar URLs so they fall back to initials
             # (New avatars are stored as S3 keys starting with "avatars/")
             """

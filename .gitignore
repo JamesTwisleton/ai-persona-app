@@ -5,7 +5,7 @@
 code/python/flask_app/.env
 code/python/flask_app/README.md
 code/python/flask_app/compose_docker.sh
-
+backend/local_avatars/
 **/node_modules
 /.pnp
 .pnp.js
