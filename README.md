@@ -403,6 +403,8 @@ All variables live in `backend/.env`. Copy from `backend/.env.example` to start.
 | `GOOGLE_REDIRECT_URI` | ✅ | — | `http://localhost:8000/auth/callback/google` (local) or `https://api.personacomposer.app/auth/callback/google` (prod) |
 | `ANTHROPIC_API_KEY` | ✅ | — | Claude API — OCEAN inference, mottos, conversations |
 | `OPENAI_API_KEY` | ✅ | — | DALL-E avatar generation + content moderation |
+| `GEMINI_API_KEY` | ✅ | — | Gemini API — nano-banana image generation (default avatar model) |
+| `GEMINI_MODEL_ID` | ❌ | `gemini-2.5-flash-image` | Gemini model for image generation. Only change if switching models. |
 | `LOCAL_AVATAR_DIR` | ❌ | — | Path to store avatars locally (e.g. `./local_avatars`). Takes priority over S3. Served at `/avatars/<filename>`. |
 | `BACKEND_URL` | ❌ | `http://localhost:8000` | Base URL of the backend — used to construct local avatar URLs. |
 | `S3_AVATAR_BUCKET` | ❌ | — | S3 bucket name for avatar storage (production). Leave blank when using `LOCAL_AVATAR_DIR`. |

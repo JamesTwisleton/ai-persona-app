@@ -218,6 +218,7 @@ class TestGenerateAvatar:
         mock_part = MagicMock()
         mock_part.inline_data = MagicMock()
         mock_part.inline_data.data = base64.b64decode(SAMPLE_B64)
+        mock_part.inline_data.mime_type = "image/png"
         mock_part.text = None
 
         mock_candidate = MagicMock()
@@ -264,6 +265,7 @@ class TestGenerateAvatarForPersona:
         mock_part = MagicMock()
         mock_part.inline_data = MagicMock()
         mock_part.inline_data.data = base64.b64decode(SAMPLE_B64)
+        mock_part.inline_data.mime_type = "image/png"
         mock_part.text = None
 
         mock_candidate = MagicMock()

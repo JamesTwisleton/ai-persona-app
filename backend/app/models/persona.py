@@ -153,7 +153,7 @@ class Persona(Base):
     model_used = Column(
         String(50),
         nullable=True,
-        doc="Image generation model used for avatar: dalle | openjourney"
+        doc="Image generation model used for avatar: dalle | nano-banana"
     )
 
     # =========================================================================

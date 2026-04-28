@@ -75,6 +75,8 @@ services:
       - ./backend/app:/usr/src/app/app:delegated
       - ./backend/tests:/usr/src/app/tests:delegated
       - ./backend/alembic:/usr/src/app/alembic:delegated
+      # Persist generated avatars across container restarts
+      - ./backend/local_avatars:/usr/src/app/local_avatars
     depends_on:
       db:
         condition: service_healthy

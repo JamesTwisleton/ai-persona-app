@@ -128,9 +128,10 @@ class ImageGenerationService:
 
         return prompt
 
-    def _store_avatar(self, image_bytes: bytes) -> Optional[str]:
+    def _store_avatar(self, image_bytes: bytes, content_type: str = "image/jpeg") -> Optional[str]:
         """Store image bytes locally or in S3. Returns the avatar key, or None on failure."""
-        avatar_key = f"avatars/{uuid.uuid4().hex}.jpg"
+        ext = ".png" if "png" in content_type else ".jpg"
+        avatar_key = f"avatars/{uuid.uuid4().hex}{ext}"
 
         if settings.LOCAL_AVATAR_DIR:
             try:
@@ -154,18 +155,18 @@ class ImageGenerationService:
                 Bucket=settings.S3_AVATAR_BUCKET,
                 Key=avatar_key,
                 Body=image_bytes,
-                ContentType="image/jpeg",
+                ContentType=content_type,
             )
             return avatar_key
         except ClientError as e:
             logger.warning(f"Failed to upload avatar to S3: {e}")
             return None
 
-    def _generate_with_banana(self, prompt: str) -> Optional[bytes]:
+    def _generate_with_banana(self, prompt: str) -> Optional[tuple[bytes, str]]:
         """
         Internal method to call the Gemini API for image generation (Nano Banana).
         Uses generate_content with IMAGE response modality for Gemini flash models.
-        Returns the raw image bytes on success, or None on failure.
+        Returns (image_bytes, mime_type) on success, or None on failure.
         """
         if not settings.GEMINI_API_KEY:
             logger.warning("GEMINI_API_KEY not configured")
@@ -188,7 +189,15 @@ class ImageGenerationService:
             if response.candidates and response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
                     if part.inline_data is not None:
-                        return part.inline_data.data
+                        mime_type = part.inline_data.mime_type or "image/png"
+                        data = part.inline_data.data
+                        # google-genai returns base64-encoded data (as str or bytes)
+                        if isinstance(data, (str, bytes)):
+                            try:
+                                data = base64.b64decode(data)
+                            except Exception:
+                                pass  # already raw bytes
+                        return data, mime_type
 
             logger.warning(f"Gemini API returned no images: {response}")
             return None
@@ -209,6 +218,7 @@ class ImageGenerationService:
 
         try:
             image_bytes = None
+            content_type = "image/jpeg"
             if model == "dalle":
                 response = self.client.images.generate(
                     model=DALLE_MODEL,
@@ -221,13 +231,15 @@ class ImageGenerationService:
                 b64_data = response.data[0].b64_json
                 image_bytes = base64.b64decode(b64_data)
             elif model == "nano-banana":
-                image_bytes = self._generate_with_banana(prompt)
+                result = self._generate_with_banana(prompt)
+                if result:
+                    image_bytes, content_type = result
 
             if not image_bytes:
                 logger.warning(f"Image generation failed for model {model}")
                 return None
 
-            s3_key = self._store_avatar(image_bytes)
+            s3_key = self._store_avatar(image_bytes, content_type)
             if s3_key:
                 return s3_key
 

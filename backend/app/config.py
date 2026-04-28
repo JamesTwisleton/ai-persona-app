@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # Served at /avatars/{filename} via static files.
     # ========================================================================
 
-    LOCAL_AVATAR_DIR: str = "local_avatars"
+    LOCAL_AVATAR_DIR: str = ""
     BACKEND_URL: str = "http://localhost:8000"
 
     # ========================================================================
