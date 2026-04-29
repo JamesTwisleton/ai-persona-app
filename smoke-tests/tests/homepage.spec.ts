@@ -24,7 +24,8 @@ test.describe("Homepage", () => {
   test("has sign-in option when unauthenticated", async ({ page }) => {
     test.skip(isPreview, "Preview frontend auto-logins — sign-in button not rendered");
     await page.goto("/");
-    const signIn = page.getByRole("button", { name: /sign in/i });
-    await expect(signIn).toBeVisible();
+    // Onboarding page shows "Get Started Free" link for unauthenticated users
+    const getStarted = page.getByRole("link", { name: /get started/i });
+    await expect(getStarted).toBeVisible();
   });
 });
