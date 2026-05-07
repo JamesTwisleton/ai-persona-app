@@ -6,6 +6,7 @@ export interface User {
   id: number;
   email: string;
   name: string | null;
+  display_name: string | null;
   picture_url: string | null;
   is_admin: boolean;
   is_superuser: boolean;

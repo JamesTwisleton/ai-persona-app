@@ -169,7 +169,7 @@ class TestUserModelOAuth:
         db_session.commit()
         db_session.refresh(user)
 
-        user_dict = user.to_dict()
+        user_dict = user.to_dict(show_private=True)
 
         assert "email" in user_dict
         assert "google_id" in user_dict
