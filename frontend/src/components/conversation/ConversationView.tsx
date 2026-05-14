@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Conversation } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Button } from "@/components/ui/Button";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface ConversationViewProps {
   conversation: Conversation;
@@ -28,12 +29,12 @@ export function ConversationView({
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom whenever messages change
+  // Scroll to bottom whenever messages change or loading state changes
   useEffect(() => {
     if (bottomRef.current && typeof bottomRef.current.scrollIntoView === 'function') {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages.length]);
+  }, [messages.length, isLoading]);
 
   const handleSend = async () => {
     const text = inputText.trim();
@@ -167,7 +168,7 @@ export function ConversationView({
 
       {/* Messages */}
       <div className="space-y-3">
-        {messages.length === 0 ? (
+        {messages.length === 0 && !isLoading ? (
           <p className="text-gray-400 dark:text-gray-500 text-sm italic text-center py-8">
             No messages yet — click &ldquo;Next Turn&rdquo; to start the conversation.
           </p>
@@ -178,13 +179,27 @@ export function ConversationView({
                 .filter((p) => p.persona_name)
                 .map((p) => [p.persona_name!, p.avatar_url])
             );
-            return messages.map((msg) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                avatarUrl={avatarMap[msg.persona_name]}
-              />
-            ));
+            return (
+              <>
+                {messages.map((msg) => (
+                  <MessageBubble
+                    key={msg.id}
+                    message={msg}
+                    avatarUrl={avatarMap[msg.persona_name]}
+                  />
+                ))}
+                {isLoading && (
+                  <TypingIndicator
+                    participants={(conversation.participants ?? [])
+                      .filter((p) => p.persona_name)
+                      .map((p) => ({
+                        persona_name: p.persona_name,
+                        avatar_url: p.avatar_url,
+                      }))}
+                  />
+                )}
+              </>
+            );
           })()
         )}
         <div ref={bottomRef} />
