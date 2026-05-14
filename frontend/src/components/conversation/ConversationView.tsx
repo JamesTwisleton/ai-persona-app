@@ -27,6 +27,16 @@ export function ConversationView({
   const [isSending, setIsSending] = useState(false);
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-grow textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [inputText]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -42,6 +52,8 @@ export function ConversationView({
     setIsSending(true);
     try {
       await onSendMessage(text);
+      // Auto-trigger next turn after user message
+      onContinue();
     } finally {
       setIsSending(false);
     }
@@ -153,15 +165,6 @@ export function ConversationView({
               {conversation.is_public ? "Make Private" : "Make Public"}
             </button>
           )}
-
-          <Button
-            onClick={onContinue}
-            disabled={conversation.is_complete || isLoading || isSending}
-            isLoading={isLoading}
-            variant="primary"
-          >
-            Next Turn
-          </Button>
         </div>
       </div>
 
@@ -231,31 +234,63 @@ export function ConversationView({
         </div>
       )}
 
-      {/* User intervention input */}
-      {!conversation.is_complete && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
-            Steer the conversation — your message will be included in the next turn
-          </p>
-          <div className="flex gap-2 items-end">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Jump in... (Enter to send, Shift+Enter for new line)"
-              rows={2}
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!inputText.trim() || isSending}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors self-end"
-            >
-              {isSending ? "…" : "Send"}
-            </button>
+      {/* User intervention & Controls */}
+      <div className="flex flex-col gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 mt-4">
+        {!conversation.is_complete && (
+          <div className="flex flex-col">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+              Steer the conversation — your message will be included in the next turn
+            </p>
+            <div className="flex gap-2 items-end">
+              <textarea
+                ref={textareaRef}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Jump in and steer the conversation..."
+                rows={1}
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none min-h-[40px] max-h-[200px]"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!inputText.trim() || isSending}
+                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors self-end flex items-center justify-center min-w-[40px] h-[40px]"
+                aria-label="Send message"
+              >
+                {isSending ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
+        )}
+
+        <div className="flex flex-col items-center gap-2">
+          <Button
+            onClick={onContinue}
+            disabled={conversation.is_complete || isLoading || isSending}
+            isLoading={isLoading}
+            variant="primary"
+            className="w-full sm:w-auto sm:min-w-[200px]"
+          >
+            Next Turn
+          </Button>
+          {!conversation.is_complete && (
+            <p className="text-[10px] text-gray-400 dark:text-gray-500">
+              Click &ldquo;Next Turn&rdquo; to see how personas respond
+            </p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
